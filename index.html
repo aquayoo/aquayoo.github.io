@@ -6,12 +6,11 @@
   <title>ATM 신입 직원 교육 시스템</title>
   <style>
     :root {
-      --bg-color: #0b1120;
+      --bg-color: #0b0f19;
       --card-bg: #1e293b;
       --card-border: #334155;
       --accent-blue: #38bdf8;
-      --accent-hover: #0ea5e9;
-      --accent-green: #34d399;
+      --accent-green: #4ade80;
       --text-main: #f8fafc;
       --text-sub: #94a3b8;
     }
@@ -258,11 +257,11 @@
 </head>
 <body>
 
-  <div class="container">
-    <!-- 1. 헤더: ATM 및 실시간 접속 일자 -->
+  <main class="container">
+    <!-- 1. 헤더: ATM 로고 및 접속 일자 -->
     <header class="header">
       <div class="brand">ATM</div>
-      <div class="date-badge" id="current-date">접속 일자: 확인 중...</div>
+      <div class="date-badge" id="currentDate">접속일자 로딩 중...</div>
     </header>
 
     <!-- 2. 중앙 타이틀 -->
@@ -271,10 +270,10 @@
       <h1 class="main-title">“ATM 신입 직원 교육 시스템”</h1>
     </section>
 
-    <!-- 3. 원형 링크 모듈 (스케치 기반 구성) -->
+    <!-- 3. 원형 링크 모듈 (단일 저장소 간편 상대경로) -->
     <nav class="modules-grid">
       <!-- ① UF6 PC 시뮬레이터 -->
-      <a href="https://aquayoo.github.io/uf6_3d/uf6_pc.html" class="module-item">
+      <a href="uf6_pc.html" class="module-item">
         <div class="circle-btn">
           <span class="btn-icon">🖥️</span>
           <span class="btn-code">uf6_pc</span>
@@ -284,7 +283,7 @@
       </a>
 
       <!-- ② UF6 모바일 시뮬레이터 -->
-      <a href="https://aquayoo.github.io/uf6_3d/uf6_mo.html" class="module-item">
+      <a href="uf6_mo.html" class="module-item">
         <div class="circle-btn">
           <span class="btn-icon">📱</span>
           <span class="btn-code">uf6_mo</span>
@@ -294,7 +293,7 @@
       </a>
 
       <!-- ③ FOV 모듈 -->
-      <a href="https://aquayoo.github.io/uf6_3d/fov_mo.html" class="module-item">
+      <a href="fov_mo.html" class="module-item">
         <div class="circle-btn">
           <span class="btn-icon">📐</span>
           <span class="btn-code">fov</span>
@@ -313,24 +312,24 @@
         <div class="module-desc">신규 모듈 예정</div>
       </div>
     </nav>
-  </div>
+  </main>
 
   <script>
-    // 접속 당일 날짜 실시간 출력 함수 (YYYY. MM. DD 요일)
-    function updateDateBadge() {
+    // 한국 표준시 접속 일자 자동 계산 및 표기 (YYYY. MM. DD 형식)
+    function updateAccessDate() {
+      const dateElement = document.getElementById('currentDate');
       const now = new Date();
       const year = now.getFullYear();
       const month = String(now.getMonth() + 1).padStart(2, '0');
       const day = String(now.getDate()).padStart(2, '0');
       
-      const dayNames = ['일', '월', '화', '수', '목', '금', '토'];
-      const dayOfWeek = dayNames[now.getDay()];
+      const weekdays = ['일', '월', '화', '수', '목', '금', '토'];
+      const weekday = weekdays[now.getDay()];
 
-      document.getElementById('current-date').innerText = 
-        `접속 일자: ${year}. ${month}. ${day} (${dayOfWeek})`;
+      dateElement.textContent = `접속 일자 : ${year}. ${month}. ${day} (${weekday})`;
     }
 
-    updateDateBadge();
+    updateAccessDate();
   </script>
 </body>
 </html>
