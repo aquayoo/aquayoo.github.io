@@ -1,0 +1,1687 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>UF5 & UF6 위치보정 3D Simulator (Mobile M1.0)</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Pretendard:wght@400;500;600;700;800;900&display=swap');
+    
+    :root {
+      --sat: env(safe-area-inset-top, 0px);
+      --sab: env(safe-area-inset-bottom, 0px);
+    }
+    
+    body {
+      font-family: 'Pretendard', sans-serif;
+      user-select: none;
+      -webkit-user-select: none;
+      touch-action: manipulation;
+      height: 100dvh;
+      width: 100vw;
+      overflow: hidden;
+      background-color: #0f172a;
+    }
+    
+    #canvas-container canvas {
+      outline: none;
+      display: block;
+      width: 100%;
+      height: 100%;
+      touch-action: none;
+    }
+
+    .bottom-sheet {
+      transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.25s ease;
+    }
+    .bottom-sheet.closed {
+      transform: translateY(105%);
+      pointer-events: none;
+      opacity: 0;
+    }
+    
+    .touch-btn:active {
+      transform: scale(0.92);
+      filter: brightness(0.90);
+    }
+    
+    .cam-btn.active-cam {
+      background-color: #2563eb !important;
+      color: #ffffff !important;
+      border-color: #1d4ed8 !important;
+    }
+
+    /* 슬라이더 트랙과 손잡이(Thumb) 커스텀 스타일 */
+    .slider-yellow-custom {
+      -webkit-appearance: none;
+      appearance: none;
+      background: #e2e8f0;
+      border: 1px solid #cbd5e1;
+      height: 8px;
+      border-radius: 9999px;
+      outline: none;
+    }
+    .slider-yellow-custom::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      background: #eab308;
+      border: 2.5px solid #854d0e;
+      cursor: pointer;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.25);
+    }
+    .slider-yellow-custom::-moz-range-thumb {
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      background: #eab308;
+      border: 2.5px solid #854d0e;
+      cursor: pointer;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.25);
+    }
+
+    .slider-purple-custom {
+      -webkit-appearance: none;
+      appearance: none;
+      background: #e2e8f0;
+      border: 1px solid #cbd5e1;
+      height: 8px;
+      border-radius: 9999px;
+      outline: none;
+    }
+    .slider-purple-custom::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      background: #9333ea;
+      border: 2.5px solid #581c87;
+      cursor: pointer;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.25);
+    }
+    .slider-purple-custom::-moz-range-thumb {
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      background: #9333ea;
+      border: 2.5px solid #581c87;
+      cursor: pointer;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.25);
+    }
+
+    ::-webkit-scrollbar { width: 3px; height: 3px; }
+    ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+  </style>
+</head>
+<body class="relative flex flex-col justify-between text-slate-800">
+
+  <!-- 3D WebGL Canvas -->
+  <div id="canvas-container" class="absolute inset-0 z-0"></div>
+
+  <!-- [상단 헤더]: M1.0 (Nov.03) 정식 뱃지 및 기준 관점 버튼 -->
+  <header class="relative z-20 w-full pt-[calc(var(--sat)+8px)] px-3 pointer-events-none flex flex-col gap-1.5">
+    <div class="flex items-center justify-between gap-2 pointer-events-auto">
+      <div class="bg-white/90 backdrop-blur-md px-2.5 py-1 rounded-full shadow-md border border-slate-200/80 flex items-center gap-1.5">
+        <span class="bg-blue-600 text-white text-[10px] font-black px-1.5 py-0.5 rounded-full">M1.0 (Nov.03)</span>
+        <span class="text-xs font-black text-slate-900 tracking-tight">UF6 3D Simulator</span>
+      </div>
+
+      <div class="flex items-center gap-1.5">
+        <!-- [요청 1] 'ISO' -> '기준 관점' 명칭 변경 -->
+        <button id="btnCamIso" onclick="setCameraView('iso')" class="cam-btn active-cam touch-btn bg-white/90 backdrop-blur-md px-2.5 py-1 rounded-full shadow-md border border-slate-200 text-[11px] font-bold text-slate-700">
+          기준 관점
+        </button>
+        <button id="btnCamFocus" onclick="setCameraView('focus_ab')" class="cam-btn touch-btn bg-orange-50/90 backdrop-blur-md px-2.5 py-1 rounded-full shadow-md border border-orange-300 text-[11px] font-extrabold text-orange-700 flex items-center gap-0.5">
+          <span>🔍</span><span>가공선</span>
+        </button>
+        <button onclick="toggleModal('menuModal')" class="touch-btn bg-slate-900/90 backdrop-blur-md text-white w-7 h-7 rounded-full shadow-md flex items-center justify-center text-xs font-black">
+          ⚙️
+        </button>
+      </div>
+    </div>
+
+    <!-- 초슬림 상단 실시간 좌표 & 상태 모니터 바 -->
+    <div class="pointer-events-auto bg-slate-900/85 backdrop-blur-md px-3 py-1 rounded-xl shadow-sm border border-slate-800/80 flex items-center justify-between text-[10px] font-mono text-white">
+      <div class="flex items-center gap-1.5 truncate">
+        <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse shrink-0"></span>
+        <span class="text-slate-400 font-bold uppercase tracking-wider text-[9px]">TCP</span>
+        <span id="toolCoord" class="font-extrabold text-emerald-300 tracking-tight">대기 중</span>
+      </div>
+      <div class="flex items-center gap-1 shrink-0 pl-2 border-l border-slate-700">
+        <span class="text-slate-400 font-bold uppercase tracking-wider text-[9px]">CMD</span>
+        <span id="targetCoord" class="font-extrabold text-amber-300 truncate max-w-[110px] text-right">홈 대기</span>
+      </div>
+    </div>
+
+    <!-- 단계 브리핑 칩 -->
+    <div onclick="toggleModal('stepListModal')" class="pointer-events-auto bg-white/90 backdrop-blur-md px-3 py-1.5 rounded-2xl shadow-md border border-slate-200 flex items-center justify-between touch-btn">
+      <div class="flex items-center gap-2 overflow-hidden">
+        <span id="mobileStepBadge" class="bg-blue-600 text-white text-[10px] font-black px-1.5 py-0.5 rounded-md shrink-0">STEP 1</span>
+        <span id="mobileStepTitle" class="text-xs font-extrabold text-slate-900 truncate">1. Base 좌표계 및 로봇/스캐너 준비</span>
+      </div>
+      <span class="text-slate-400 text-xs font-bold shrink-0 ml-1">목록 ▾</span>
+    </div>
+  </header>
+
+  <!-- [하단 컨트롤 독 & [요청 4] 완료 알림 배너] -->
+  <footer class="relative z-20 w-full pb-[calc(var(--sab)+8px)] px-3 pointer-events-none flex flex-col gap-2">
+    
+    <!-- [요청 4] 스캐너를 가리지 않도록 하단 컨트롤 독 바로 위에 배치된 완료/에러 알림 배너 -->
+    <div id="cycleCompleteBanner" class="pointer-events-none w-full opacity-0 translate-y-2 transition-all duration-300">
+      <div id="cycleBannerBox" class="bg-white/95 backdrop-blur-md px-4 py-2 rounded-2xl border-2 border-blue-500 shadow-xl flex items-center gap-2.5">
+        <span id="cycleBannerIcon" class="w-6 h-6 rounded-full bg-emerald-500 text-white flex items-center justify-center text-xs font-black shrink-0">✓</span>
+        <div class="flex flex-col">
+          <span id="cycleBannerSub" class="text-[9px] font-extrabold text-blue-600 tracking-wider uppercase">Cycle Completed</span>
+          <span id="cycleBannerTitle" class="text-xs font-black text-slate-900">공정이 정상 완료되었습니다!</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 메인 조작 독 -->
+    <div class="pointer-events-auto bg-white/95 backdrop-blur-md p-2 rounded-2xl shadow-2xl border border-slate-300 flex flex-col gap-1.5">
+      
+      <!-- 상단 줄: OK / NG 시연 모드 퀵 버튼 + ICP 진단창 -->
+      <div class="flex items-center gap-1.5">
+        <button onclick="startCinematicDemo('OK')" class="touch-btn flex-1 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-extrabold shadow-sm flex items-center justify-center gap-1">
+          <span>🎬 OK 데모</span>
+        </button>
+        <button onclick="startCinematicDemo('NG')" class="touch-btn flex-1 py-1.5 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-extrabold shadow-sm flex items-center justify-center gap-1">
+          <span>⚠️ NG 데모</span>
+        </button>
+        <button id="btnOpenIcp" onclick="toggleModal('icpModal')" class="touch-btn px-2.5 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-800 rounded-xl text-[11px] font-bold border border-slate-300 flex items-center gap-1">
+          <span class="w-2 h-2 rounded-full bg-emerald-500" id="dockIcpDot"></span>
+          <span>진단창</span>
+        </button>
+      </div>
+
+      <!-- 하단 줄: 이전 / 자동재생 / 다음 -->
+      <div class="flex items-center gap-1.5">
+        <button id="prevBtn" onclick="prevStep()" class="touch-btn px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-800 rounded-xl text-xs font-black border border-slate-300 shrink-0 disabled:opacity-30">
+          ◀ 이전
+        </button>
+        <button id="autoPlayBtn" onclick="toggleAutoPlay()" class="touch-btn flex-1 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-black shadow-sm flex items-center justify-center gap-1">
+          <span id="playIcon">▶</span><span id="playText">자동 재생</span>
+        </button>
+        <button id="nextBtn" onclick="nextStep()" class="touch-btn px-4 py-2 bg-slate-900 hover:bg-black text-white rounded-xl text-xs font-black shadow-sm shrink-0 disabled:opacity-30">
+          다음 ▶
+        </button>
+      </div>
+
+      <!-- [요청 3] 한 줄로 표현된 ATM 로고, 제작자 정보 및 iPhone 14 해상도 최적화 안내 스트립 -->
+      <div class="pt-1.5 border-t border-slate-200/90 flex items-center justify-between text-[9px] text-slate-500 font-medium px-1 tracking-tight">
+        <div class="flex items-center gap-1.5 truncate">
+          <span class="font-black italic text-red-600 text-[10px] tracking-tighter">ATM</span>
+          <span class="text-slate-300">|</span>
+          <span class="font-semibold text-slate-700 truncate">제작: 교육관 유재광</span>
+        </div>
+        <span class="text-[8.5px] text-slate-400 font-mono shrink-0 pl-1">iPhone 14 기준 해상도 설정</span>
+      </div>
+
+    </div>
+  </footer>
+
+  <!-- ================= [바텀 시트 1: ICP & 6축 공차 모니터] ================= -->
+  <div id="icpModal" class="bottom-sheet closed absolute inset-x-0 bottom-0 z-40 bg-white/95 backdrop-blur-xl rounded-t-3xl shadow-2xl border-t border-slate-300 p-4 max-h-[82dvh] flex flex-col pb-[calc(var(--sab)+16px)]">
+    <div class="w-12 h-1.5 bg-slate-300 rounded-full mx-auto mb-2.5 shrink-0"></div>
+    <div class="flex items-center justify-between pb-2 border-b border-slate-200 mb-2.5 shrink-0">
+      <div class="flex items-center gap-1.5 font-black text-slate-900 text-sm">
+        <span class="w-2.5 h-2.5 rounded-full bg-emerald-500" id="sheetIcpStatusDot"></span>
+        <span>3D Point Cloud & 6-DOF 공차 모니터</span>
+      </div>
+      <button onclick="toggleModal('icpModal')" class="text-xs font-bold text-slate-400 bg-slate-100 px-2 py-0.5 rounded-full">닫기 ✕</button>
+    </div>
+    
+    <div class="relative w-full h-[150px] bg-slate-100 rounded-xl border border-slate-200 overflow-hidden shrink-0">
+      <div id="icpCanvasContainer" class="w-full h-full"></div>
+      <div class="absolute top-2 left-2 text-[10px] font-mono pointer-events-none flex flex-col gap-0.5">
+        <div class="flex items-center gap-1 text-blue-700 font-extrabold"><span class="w-2 h-2 rounded-full bg-[#2563eb]"></span>Master (UF5)</div>
+        <div class="flex items-center gap-1 text-orange-600 font-extrabold"><span class="w-2 h-2 rounded-full bg-[#ea580c]"></span>Measured (UF6)</div>
+      </div>
+      <div class="absolute bottom-2 right-2 bg-white/90 px-2 py-0.5 rounded border border-slate-300 text-[10px] font-mono text-slate-700 shadow-xs pointer-events-none">
+        RMSE: <span id="icpRmseVal" class="text-emerald-600 font-extrabold">0.000</span> m
+      </div>
+    </div>
+
+    <div class="bg-slate-50 p-2.5 rounded-xl border border-slate-200 mt-2.5 flex flex-col gap-1.5 shrink-0">
+      <div class="flex justify-between items-center text-[11px] font-mono font-bold text-slate-700">
+        <span>6-DOF TOLERANCE MONITOR</span>
+        <span id="tolLedSummary" class="text-emerald-600 font-extrabold">ALL OK</span>
+      </div>
+      <div class="grid grid-cols-6 gap-1 text-center font-mono text-[10px] font-extrabold">
+        <div class="bg-white py-1 rounded border border-slate-200 flex flex-col items-center gap-0.5"><span id="led_dx" class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span><span>dX</span></div>
+        <div class="bg-white py-1 rounded border border-slate-200 flex flex-col items-center gap-0.5"><span id="led_dy" class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span><span>dY</span></div>
+        <div class="bg-white py-1 rounded border border-slate-200 flex flex-col items-center gap-0.5"><span id="led_dz" class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span><span>dZ</span></div>
+        <div class="bg-white py-1 rounded border border-slate-200 flex flex-col items-center gap-0.5"><span id="led_rx" class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span><span>dRx</span></div>
+        <div class="bg-white py-1 rounded border border-slate-200 flex flex-col items-center gap-0.5"><span id="led_ry" class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span><span>dRy</span></div>
+        <div class="bg-white py-1 rounded border border-slate-200 flex flex-col items-center gap-0.5"><span id="led_rz" class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span><span>dRz</span></div>
+      </div>
+      <div id="tolDiagMsg" class="text-[10px] font-mono text-center text-slate-600 truncate bg-white py-1 rounded border border-slate-200">
+        [SYSTEM] 6축 변위가 허용공차 이내에 있습니다.
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= [바텀 시트 2: 11단계 전체 선택 점프창] ================= -->
+  <div id="stepListModal" class="bottom-sheet closed absolute inset-x-0 bottom-0 z-40 bg-white/95 backdrop-blur-xl rounded-t-3xl shadow-2xl border-t border-slate-300 p-4 max-h-[75dvh] flex flex-col pb-[calc(var(--sab)+16px)]">
+    <div class="w-12 h-1.5 bg-slate-300 rounded-full mx-auto mb-2.5 shrink-0"></div>
+    <div class="flex items-center justify-between pb-2 border-b border-slate-200 mb-2 shrink-0">
+      <span class="font-black text-slate-900 text-sm">공정 단계 바로가기</span>
+      <button onclick="toggleModal('stepListModal')" class="text-xs font-bold text-slate-400 bg-slate-100 px-2 py-0.5 rounded-full">닫기 ✕</button>
+    </div>
+    <div class="flex-1 overflow-y-auto space-y-1.5 pr-0.5 text-xs font-bold" id="mobileStepListContainer"></div>
+  </div>
+
+  <!-- ================= [바텀 시트 3: 환경설정 & UF5 회전 / UF6 변위값 (밝은 배경 + 큰 버튼 + 차별화 슬라이더)] ================= -->
+  <div id="menuModal" class="bottom-sheet closed absolute inset-x-0 bottom-0 z-40 bg-white/98 backdrop-blur-xl rounded-t-3xl shadow-2xl border-t border-slate-300 p-4 max-h-[86dvh] flex flex-col pb-[calc(var(--sab)+16px)]">
+    <div class="w-12 h-1.5 bg-slate-300 rounded-full mx-auto mb-2.5 shrink-0"></div>
+    <div class="flex items-center justify-between pb-2 border-b border-slate-200 mb-2 shrink-0">
+      <div class="flex items-center gap-1.5">
+        <span class="text-sm font-black text-slate-900">🛠️ 시뮬레이터 정밀 설정</span>
+      </div>
+      <div class="flex items-center gap-1.5">
+        <button onclick="resetDisplacements()" class="text-[11px] font-bold text-slate-700 bg-slate-100 hover:bg-slate-200 px-2.5 py-1 rounded-lg border border-slate-300 shadow-xs">0 초기화</button>
+        <button onclick="toggleModal('menuModal')" class="text-xs font-bold text-slate-400 bg-slate-100 px-2 py-0.5 rounded-full">닫기 ✕</button>
+      </div>
+    </div>
+    
+    <div class="space-y-3 overflow-y-auto pr-0.5 text-xs">
+      
+      <!-- [1. UF5 마스터 원점 Z축 회전 옵션] -->
+      <div class="bg-slate-50 p-3 rounded-2xl border border-slate-200 shadow-xs">
+        <div class="flex items-center justify-between mb-2">
+          <span class="font-extrabold text-slate-800 text-[11px] flex items-center gap-1">
+            <span>📍 마스터(UF5) XY평면 회전 (Z축 기준)</span>
+          </span>
+          <span id="labelMasterRz" class="font-mono font-black text-blue-700 text-xs bg-blue-50 px-2 py-0.5 rounded border border-blue-200">0°</span>
+        </div>
+        <div class="grid grid-cols-4 gap-1.5 font-bold font-mono">
+          <button id="btn_mrz_0" onclick="setMasterRotation(0)" class="py-2 rounded-xl border border-blue-600 bg-blue-600 text-white shadow-xs text-xs font-black">0°</button>
+          <button id="btn_mrz_90" onclick="setMasterRotation(90)" class="py-2 rounded-xl border border-slate-200 bg-white text-slate-700 hover:bg-slate-100 shadow-xs text-xs font-black">90°</button>
+          <button id="btn_mrz_180" onclick="setMasterRotation(180)" class="py-2 rounded-xl border border-slate-200 bg-white text-slate-700 hover:bg-slate-100 shadow-xs text-xs font-black">180°</button>
+          <button id="btn_mrz_m90" onclick="setMasterRotation(-90)" class="py-2 rounded-xl border border-slate-200 bg-white text-slate-700 hover:bg-slate-100 shadow-xs text-xs font-black">-90°</button>
+        </div>
+      </div>
+
+      <!-- [2. UF6 병진 변위 (dX, dY, dZ)] -->
+      <div class="bg-slate-50 p-3 rounded-2xl border border-slate-200 shadow-xs">
+        <div class="flex items-center justify-between mb-2.5">
+          <span class="font-extrabold text-slate-800 text-[11px]">📍 UF6 병진 위치 변위 (±1.50m)</span>
+          <span class="text-[10px] font-bold text-amber-700 bg-amber-100 px-1.5 py-0.5 rounded">Yellow Thumb</span>
+        </div>
+        <div class="space-y-3">
+          
+          <!-- dX -->
+          <div class="flex items-center gap-2">
+            <span class="w-8 font-mono font-black text-rose-600 text-xs shrink-0">dX</span>
+            <button onclick="stepDisp('dx', -0.05)" class="touch-btn w-8 h-8 rounded-xl bg-white border-2 border-slate-300 font-black text-slate-800 text-lg flex items-center justify-center shrink-0 shadow-xs leading-none">−</button>
+            <input type="range" id="slider_dx" min="-1.5" max="1.5" step="0.01" value="0" oninput="onDispSliderInput('dx', this.value)" class="flex-1 slider-yellow-custom cursor-pointer">
+            <button onclick="stepDisp('dx', 0.05)" class="touch-btn w-8 h-8 rounded-xl bg-white border-2 border-slate-300 font-black text-slate-800 text-lg flex items-center justify-center shrink-0 shadow-xs leading-none">+</button>
+            <span id="val_dx" class="w-13 font-mono font-black text-slate-900 text-right shrink-0 text-xs">+0.00</span>
+          </div>
+
+          <!-- dY -->
+          <div class="flex items-center gap-2">
+            <span class="w-8 font-mono font-black text-emerald-600 text-xs shrink-0">dY</span>
+            <button onclick="stepDisp('dy', -0.05)" class="touch-btn w-8 h-8 rounded-xl bg-white border-2 border-slate-300 font-black text-slate-800 text-lg flex items-center justify-center shrink-0 shadow-xs leading-none">−</button>
+            <input type="range" id="slider_dy" min="-1.5" max="1.5" step="0.01" value="0" oninput="onDispSliderInput('dy', this.value)" class="flex-1 slider-yellow-custom cursor-pointer">
+            <button onclick="stepDisp('dy', 0.05)" class="touch-btn w-8 h-8 rounded-xl bg-white border-2 border-slate-300 font-black text-slate-800 text-lg flex items-center justify-center shrink-0 shadow-xs leading-none">+</button>
+            <span id="val_dy" class="w-13 font-mono font-black text-slate-900 text-right shrink-0 text-xs">+0.00</span>
+          </div>
+
+          <!-- dZ -->
+          <div class="flex items-center gap-2">
+            <span class="w-8 font-mono font-black text-blue-600 text-xs shrink-0">dZ</span>
+            <button onclick="stepDisp('dz', -0.05)" class="touch-btn w-8 h-8 rounded-xl bg-white border-2 border-slate-300 font-black text-slate-800 text-lg flex items-center justify-center shrink-0 shadow-xs leading-none">−</button>
+            <input type="range" id="slider_dz" min="-1.5" max="1.5" step="0.01" value="0" oninput="onDispSliderInput('dz', this.value)" class="flex-1 slider-yellow-custom cursor-pointer">
+            <button onclick="stepDisp('dz', 0.05)" class="touch-btn w-8 h-8 rounded-xl bg-white border-2 border-slate-300 font-black text-slate-800 text-lg flex items-center justify-center shrink-0 shadow-xs leading-none">+</button>
+            <span id="val_dz" class="w-13 font-mono font-black text-slate-900 text-right shrink-0 text-xs">+0.00</span>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- [3. UF6 회전 변위 (dRx, dRy, dRz)] -->
+      <div class="bg-slate-50 p-3 rounded-2xl border border-slate-200 shadow-xs">
+        <div class="flex items-center justify-between mb-2.5">
+          <span class="font-extrabold text-slate-800 text-[11px]">🔄 UF6 3축 회전 각도 (±35°)</span>
+          <span class="text-[10px] font-bold text-purple-700 bg-purple-100 px-1.5 py-0.5 rounded">Purple Thumb</span>
+        </div>
+        <div class="space-y-3">
+          
+          <!-- dRx -->
+          <div class="flex items-center gap-2">
+            <span class="w-8 font-mono font-black text-amber-600 text-xs shrink-0">dRx</span>
+            <button onclick="stepDisp('rx', -1)" class="touch-btn w-8 h-8 rounded-xl bg-white border-2 border-slate-300 font-black text-slate-800 text-lg flex items-center justify-center shrink-0 shadow-xs leading-none">−</button>
+            <input type="range" id="slider_rx" min="-35" max="35" step="1" value="0" oninput="onDispSliderInput('rx', this.value)" class="flex-1 slider-purple-custom cursor-pointer">
+            <button onclick="stepDisp('rx', 1)" class="touch-btn w-8 h-8 rounded-xl bg-white border-2 border-slate-300 font-black text-slate-800 text-lg flex items-center justify-center shrink-0 shadow-xs leading-none">+</button>
+            <span id="val_rx" class="w-13 font-mono font-black text-slate-900 text-right shrink-0 text-xs">+0°</span>
+          </div>
+
+          <!-- dRy -->
+          <div class="flex items-center gap-2">
+            <span class="w-8 font-mono font-black text-teal-600 text-xs shrink-0">dRy</span>
+            <button onclick="stepDisp('ry', -1)" class="touch-btn w-8 h-8 rounded-xl bg-white border-2 border-slate-300 font-black text-slate-800 text-lg flex items-center justify-center shrink-0 shadow-xs leading-none">−</button>
+            <input type="range" id="slider_ry" min="-35" max="35" step="1" value="0" oninput="onDispSliderInput('ry', this.value)" class="flex-1 slider-purple-custom cursor-pointer">
+            <button onclick="stepDisp('ry', 1)" class="touch-btn w-8 h-8 rounded-xl bg-white border-2 border-slate-300 font-black text-slate-800 text-lg flex items-center justify-center shrink-0 shadow-xs leading-none">+</button>
+            <span id="val_ry" class="w-13 font-mono font-black text-slate-900 text-right shrink-0 text-xs">+0°</span>
+          </div>
+
+          <!-- dRz -->
+          <div class="flex items-center gap-2">
+            <span class="w-8 font-mono font-black text-purple-600 text-xs shrink-0">dRz</span>
+            <button onclick="stepDisp('rz', -1)" class="touch-btn w-8 h-8 rounded-xl bg-white border-2 border-slate-300 font-black text-slate-800 text-lg flex items-center justify-center shrink-0 shadow-xs leading-none">−</button>
+            <input type="range" id="slider_rz" min="-35" max="35" step="1" value="0" oninput="onDispSliderInput('rz', this.value)" class="flex-1 slider-purple-custom cursor-pointer">
+            <button onclick="stepDisp('rz', 1)" class="touch-btn w-8 h-8 rounded-xl bg-white border-2 border-slate-300 font-black text-slate-800 text-lg flex items-center justify-center shrink-0 shadow-xs leading-none">+</button>
+            <span id="val_rz" class="w-13 font-mono font-black text-slate-900 text-right shrink-0 text-xs">+0°</span>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- 실링 궤적 토글 -->
+      <div class="pt-2 border-t border-slate-200 flex justify-between items-center">
+        <span class="font-bold text-slate-700">실링 도포 궤적(Trail) 표시</span>
+        <button id="btnMobileTrail" onclick="toggleTrajectoryTrail()" class="px-3 py-1 bg-purple-100 text-purple-800 rounded-lg font-extrabold border border-purple-300">
+          Trail ON
+        </button>
+      </div>
+
+      <div class="pt-2 border-t border-slate-200 text-center text-slate-400 text-[11px]">
+        ATM Robot Automation • 유재광 교육관 (M1.0)
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const stepData = [
+      { badge: "STEP 1", heading: "1. Base 좌표계 및 로봇/스캐너 준비", body: "Base 원점에 6축 다관절 로봇과 AITZ 3DU[3DM] 스캐너가 준비됩니다." },
+      { badge: "STEP 2", heading: "2. 부품 마스터 기준점(UF5 Ref) 정의", body: "작업 테이블 위에 마스터 지그와 Org(UF5 Ref) 직교 3축이 형성됩니다." },
+      { badge: "STEP 3", heading: "3. UF6 시트 중첩 및 준비 위치 진입", body: "UF6 프레임 중첩 및 로봇이 시야 간섭 없는 대기 위치로 진입합니다." },
+      { badge: "STEP 4", heading: "4. 시작점(Point A) / 끝점(Point B) 지정", body: "마스터 가공선 시작점 Point A와 끝점 Point B 3D 좌표를 확정합니다." },
+      { badge: "STEP 5", heading: "5. Point A & B 개별 포인트 정밀 티칭", body: "Point A 상공(Move P) -> 수직 티칭(Move L) -> B 상공 점프 및 수직 티칭" },
+      { badge: "STEP 6", heading: "6. A → B 선형 보간(Move L) 검증 주행", body: "Point A에서 B까지 에메랄드 직선 보간 검증 주행 후 대기 위치로 복귀합니다." },
+      { badge: "STEP 7", heading: "7. 부품 3D 변위 인입 (입체 화살표 연장)", body: "부품이 3D 변위로 인입되며, 마스터에서 변위점까지 점선 화살표가 실시간 연장됩니다." },
+      { badge: "STEP 8", heading: "8. AITZ 3DU 구조광 스캔 (공차 인터락 검사)", body: "3D 점군 스캔 라인이 스위핑되며 6축 공차 LED 램프에 즉시 반영됩니다." },
+      { badge: "STEP 9", heading: "9. 3DU 알고리즘 ICP 정합 수렴", body: "측정 점군이 ICP 정합 수렴하며 UF6 축과 보정 가공선 A'B'가 확정됩니다." },
+      { badge: "STEP 10", heading: "10. UF6 기반 6자유도 보정 실링 도포", body: "보정 전 오차 점선 대비, UF6 정합 선 위에 보라색 실링 비드를 도포합니다." },
+      { badge: "STEP 11", heading: "11. 작업 완료 및 안전 홈 복귀", body: "도포된 보라색 실링 비드를 완제품으로 보존하며 안전 홈 위치로 복귀합니다." }
+    ];
+
+    let currentStep = 0, autoPlayTimer = null, animProgress = 0, isAnimating = false;
+    let currentCameraMode = 'iso', demoModeType = null;
+
+    let scene, camera, renderer, controls;
+    let baseAxes, masterGroup, sheetGroup, robotGroup, robotArmGroup;
+    let jointPivots = [], robotJointAngles = [0, 45, -85, 0, 40, 0];
+    const ROBOT_DH = { d1: 1.50, a1: 0.35, L2: 4.20, L3: 3.80, toolX: 0.24, toolY: 0.56 };
+
+    let masterPointA, masterPointB, masterSealingLine;
+    let sheetPointA, sheetPointB, sheetSealingLine;
+    let dispGroupA, dispGroupB;
+    let lockOnBeam, standMesh, standEdge;
+    let scannerGroup, scannerBeamMesh, cameraBeamMesh, cameraFlashMesh, scanSweeperMesh;
+    let uf5AxesGroup, uf5OrgLabel, uf5OrgMesh, uf6DashedAxesGroup, uf6SolidAxesGroup;
+    let sheetMeshRef, sheetEdgeLinesRef, sheetBadgeSprite, orgPrimeSprite, sheetPointASprite, sheetPointBSprite;
+    let errorCompareLineMesh;
+
+    let movePTrailMesh = null, moveLTrailMesh = null;
+    let movePPoints = [], moveLPoints = [];
+
+    const baseOriginPos = new THREE.Vector3(-4.5, 0.0, 3.2);
+
+    // [Point A & B의 3D Z값 고저차: pta_z = 0.0, ptb_z = 0.50m 반영]
+    const ufParams = {
+      uf5_x: 4.0, uf5_y: 2.5, uf5_z: 1.5, uf5_rz: 0,
+      pta_x: 0.8, pta_y: 0.4, pta_z: 0.00, pt_len: 1.6, pt_ang: 30, ptb_x: 2.19, ptb_y: 1.20, ptb_z: 0.50,
+      dx: 0.00, dy: 0.00, dz: 0.00, rx: 0, ry: 0, rz: 0
+    };
+
+    let masterOrigin = new THREE.Vector3();
+    let dynamicSheetShift = { pos: new THREE.Vector3(), rot: new THREE.Euler() };
+    let camTransition = { active: false, startTime: 0, duration: 620, startPos: new THREE.Vector3(), endPos: new THREE.Vector3(), startTarget: new THREE.Vector3(), endTarget: new THREE.Vector3() };
+
+    const TOLERANCE_LIMIT = { dx_min: -1.0, dx_max: 1.3, dy_min: -1.0, dy_max: 1.3, dz_min: -1.0, dz_max: 1.0, rx_min: -15.0, rx_max: 18.0, ry_min: -15.0, ry_max: 18.0, rz_min: -20.0, rz_max: 25.0 };
+    let isToleranceError = false, showTrail = true, trajectoryMesh = null, trajectoryPoints = [];
+    const MAX_TRAIL_POINTS = 300;
+
+    function checkToleranceStatus() {
+      const { dx, dy, dz, rx, ry, rz } = ufParams;
+      const isDxNg = (dx < TOLERANCE_LIMIT.dx_min || dx > TOLERANCE_LIMIT.dx_max);
+      const isDyNg = (dy < TOLERANCE_LIMIT.dy_min || dy > TOLERANCE_LIMIT.dy_max);
+      const isDzNg = (dz < TOLERANCE_LIMIT.dz_min || dz > TOLERANCE_LIMIT.dz_max);
+      const isRxNg = (rx < TOLERANCE_LIMIT.rx_min || rx > TOLERANCE_LIMIT.rx_max);
+      const isRyNg = (ry < TOLERANCE_LIMIT.ry_min || ry > TOLERANCE_LIMIT.ry_max);
+      const isRzNg = (rz < TOLERANCE_LIMIT.rz_min || rz > TOLERANCE_LIMIT.rz_max);
+
+      const isOver = isDxNg || isDyNg || isDzNg || isRxNg || isRyNg || isRzNg;
+      isToleranceError = isOver;
+
+      const setLed = (id, isNg) => {
+        const el = document.getElementById(id);
+        if (el) el.className = isNg ? "w-2.5 h-2.5 rounded-full bg-rose-600 animate-ping" : "w-2.5 h-2.5 rounded-full bg-emerald-500";
+      };
+      setLed('led_dx', isDxNg); setLed('led_dy', isDyNg); setLed('led_dz', isDzNg);
+      setLed('led_rx', isRxNg); setLed('led_ry', isRyNg); setLed('led_rz', isRzNg);
+
+      const summaryEl = document.getElementById('tolLedSummary');
+      const diagMsgEl = document.getElementById('tolDiagMsg');
+      const dockDot = document.getElementById('dockIcpDot');
+
+      if (isOver) {
+        if (dockDot) dockDot.className = "w-2 h-2 rounded-full bg-rose-600 animate-ping";
+        if (summaryEl) { summaryEl.innerText = "ALARM NG"; summaryEl.className = "text-rose-600 font-extrabold animate-pulse"; }
+        if (diagMsgEl) {
+          diagMsgEl.innerText = `[TOL_NG] 6축 허용공차 초과 발생!`;
+          diagMsgEl.className = "text-[10px] font-mono text-center text-rose-700 font-bold truncate bg-rose-50 py-1 rounded border border-rose-200";
+        }
+      } else {
+        if (dockDot) dockDot.className = "w-2 h-2 rounded-full bg-emerald-500";
+        if (summaryEl) { summaryEl.innerText = "ALL OK"; summaryEl.className = "text-emerald-600 font-extrabold"; }
+        if (diagMsgEl) {
+          diagMsgEl.innerText = "[SYSTEM] 6축 변위가 허용공차 이내에 있습니다.";
+          diagMsgEl.className = "text-[10px] font-mono text-center text-slate-600 truncate bg-white py-1 rounded border border-slate-200";
+        }
+      }
+      return { isOver };
+    }
+
+    function toggleModal(modalId) {
+      const modal = document.getElementById(modalId);
+      if (!modal) return;
+      const isClosed = modal.classList.contains('closed');
+      
+      ['icpModal', 'stepListModal', 'menuModal'].forEach(id => {
+        const m = document.getElementById(id);
+        if (m) m.classList.add('closed');
+      });
+
+      if (isClosed) {
+        modal.classList.remove('closed');
+        if (modalId === 'icpModal') {
+          setTimeout(() => {
+            if (!icpRenderer) initICPMiniView();
+            else {
+              const c = document.getElementById('icpCanvasContainer');
+              if (c && c.clientWidth > 0) {
+                icpCamera.aspect = c.clientWidth / c.clientHeight;
+                icpCamera.updateProjectionMatrix();
+                icpRenderer.setSize(c.clientWidth, c.clientHeight);
+              }
+            }
+          }, 50);
+        } else if (modalId === 'menuModal') {
+          syncDispUI();
+        }
+      }
+    }
+
+    function buildStepListSheet() {
+      const c = document.getElementById('mobileStepListContainer');
+      if (!c) return;
+      c.innerHTML = '';
+      stepData.forEach((s, idx) => {
+        const btn = document.createElement('button');
+        btn.className = `w-full text-left p-2.5 rounded-xl border flex items-center justify-between transition ${idx === currentStep ? 'bg-blue-600 text-white border-blue-700 shadow-sm' : 'bg-slate-50 text-slate-800 border-slate-200'}`;
+        btn.innerHTML = `<span>${s.heading}</span><span class="text-[10px] opacity-80">${s.badge}</span>`;
+        btn.onclick = () => { goToStep(idx); toggleModal('stepListModal'); };
+        c.appendChild(btn);
+      });
+    }
+
+    // [UF5 마스터 원점 Z축 회전 선택]
+    function setMasterRotation(deg) {
+      ufParams.uf5_rz = deg;
+      const lbl = document.getElementById('labelMasterRz');
+      if (lbl) lbl.innerText = `${deg}°`;
+
+      const degs = [0, 90, 180, -90];
+      degs.forEach(d => {
+        const btnId = (d === -90) ? 'btn_mrz_m90' : `btn_mrz_${d}`;
+        const b = document.getElementById(btnId);
+        if (b) {
+          if (d === deg) b.className = "py-2 rounded-xl border border-blue-600 bg-blue-600 text-white shadow-xs text-xs font-black";
+          else b.className = "py-2 rounded-xl border border-slate-200 bg-white text-slate-700 hover:bg-slate-100 shadow-xs text-xs font-black";
+        }
+      });
+
+      recalculateParameters();
+      if (masterGroup) {
+        masterGroup.rotation.y = THREE.MathUtils.degToRad(ufParams.uf5_rz);
+      }
+      if (scannerGroup) {
+        const radY = THREE.MathUtils.degToRad(ufParams.uf5_rz);
+        const scannerOffset = new THREE.Vector3(1.2, 3.8, -0.6).applyAxisAngle(new THREE.Vector3(0, 1, 0), radY);
+        scannerGroup.position.copy(masterOrigin).add(scannerOffset);
+        scannerGroup.rotation.set(0, 0, 0); // 항상 정면 고정
+      }
+      applyStepTransforms(animProgress);
+    }
+
+    function syncDispUI() {
+      const keys = ['dx', 'dy', 'dz', 'rx', 'ry', 'rz'];
+      keys.forEach(k => {
+        const slider = document.getElementById(`slider_${k}`);
+        const valEl = document.getElementById(`val_${k}`);
+        if (slider) slider.value = ufParams[k];
+        if (valEl) {
+          const v = ufParams[k];
+          if (k.startsWith('r')) valEl.innerText = (v >= 0 ? `+${v}` : `${v}`) + '°';
+          else valEl.innerText = (v >= 0 ? `+${v.toFixed(2)}` : `${v.toFixed(2)}`);
+        }
+      });
+      const lbl = document.getElementById('labelMasterRz');
+      if (lbl) lbl.innerText = `${ufParams.uf5_rz}°`;
+    }
+
+    function onDispSliderInput(axis, valStr) {
+      const val = parseFloat(valStr);
+      ufParams[axis] = val;
+      const valEl = document.getElementById(`val_${axis}`);
+      if (valEl) {
+        if (axis.startsWith('r')) valEl.innerText = (val >= 0 ? `+${val}` : `${val}`) + '°';
+        else valEl.innerText = (val >= 0 ? `+${val.toFixed(2)}` : `${val.toFixed(2)}`);
+      }
+      recalculateParameters();
+      checkToleranceStatus();
+      applyStepTransforms(animProgress);
+    }
+
+    function stepDisp(axis, delta) {
+      if (axis.startsWith('r')) {
+        let n = Math.round(ufParams[axis] + delta);
+        n = Math.max(-35, Math.min(35, n));
+        ufParams[axis] = n;
+      } else {
+        let n = parseFloat((ufParams[axis] + delta).toFixed(2));
+        n = Math.max(-1.5, Math.min(1.5, n));
+        ufParams[axis] = n;
+      }
+      syncDispUI();
+      recalculateParameters();
+      checkToleranceStatus();
+      applyStepTransforms(animProgress);
+    }
+
+    function resetDisplacements() {
+      ufParams.dx = 0; ufParams.dy = 0; ufParams.dz = 0;
+      ufParams.rx = 0; ufParams.ry = 0; ufParams.rz = 0;
+      syncDispUI();
+      recalculateParameters();
+      checkToleranceStatus();
+      applyStepTransforms(animProgress);
+    }
+
+    function robotToThreeWorld(rx, ry, rz) { return new THREE.Vector3(baseOriginPos.x + rx, baseOriginPos.y + rz, baseOriginPos.z - ry); }
+    function getPointALocalVector() { return new THREE.Vector3(ufParams.pta_x, ufParams.pta_z, -ufParams.pta_y); }
+    function getPointBLocalVector() { return new THREE.Vector3(ufParams.ptb_x, ufParams.ptb_z, -ufParams.ptb_y); }
+
+    function getUF6WorldQuaternion(scaleFactor = 1.0) {
+      const qMaster = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), THREE.MathUtils.degToRad(ufParams.uf5_rz));
+      const qDelta = new THREE.Quaternion().setFromEuler(new THREE.Euler(THREE.MathUtils.degToRad(ufParams.rx * scaleFactor), THREE.MathUtils.degToRad(ufParams.rz * scaleFactor), -THREE.MathUtils.degToRad(ufParams.ry * scaleFactor), 'ZYX'));
+      return qMaster.multiply(qDelta);
+    }
+
+    function interpolateMove(pStart, pEnd, t, opts, outVec) {
+      const mode = (opts && opts.mode) || 'L';
+      const clampedT = THREE.MathUtils.clamp(t, 0, 1);
+
+      if (mode === 'L') {
+        outVec.lerpVectors(pStart, pEnd, clampedT);
+      } else if (mode === 'P_HOP') {
+        const hopH = opts.hopHeight || 0.4;
+        outVec.lerpVectors(pStart, pEnd, clampedT);
+        outVec.y += Math.sin(clampedT * Math.PI) * hopH;
+      } else if (mode === 'P_SWING') {
+        const sH = opts.swingHeight || 0.8;
+        const sOut = opts.swingOut || 0.5;
+        outVec.lerpVectors(pStart, pEnd, clampedT);
+        const arch = Math.sin(clampedT * Math.PI);
+        outVec.y += arch * sH;
+        outVec.x += arch * sOut;
+      } else {
+        outVec.lerpVectors(pStart, pEnd, clampedT);
+      }
+    }
+
+    function recalculateParameters() {
+      masterOrigin.copy(robotToThreeWorld(ufParams.uf5_x, ufParams.uf5_y, ufParams.uf5_z));
+      const localDisp = new THREE.Vector3(ufParams.dx, ufParams.dz, -ufParams.dy).applyAxisAngle(new THREE.Vector3(0, 1, 0), THREE.MathUtils.degToRad(ufParams.uf5_rz));
+      dynamicSheetShift.pos.copy(localDisp);
+      dynamicSheetShift.rot.setFromQuaternion(getUF6WorldQuaternion(1.0));
+    }
+
+    function createTextSprite(text, color = '#0f172a', fontSize = 28, strokeColor = '#ffffff') {
+      const canvas = document.createElement('canvas'); canvas.width = 420; canvas.height = 110;
+      const ctx = canvas.getContext('2d');
+      ctx.font = `900 ${fontSize}px 'Pretendard', sans-serif`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      if (strokeColor !== 'transparent') { ctx.strokeStyle = strokeColor; ctx.lineWidth = 6; ctx.strokeText(text, 210, 55); }
+      ctx.fillStyle = color; ctx.fillText(text, 210, 55);
+      const sprite = new THREE.Sprite(new THREE.SpriteMaterial({ map: new THREE.CanvasTexture(canvas), depthTest: false, transparent: true, opacity: 1.0 }));
+      sprite.scale.set(1.85, 0.55, 1); sprite.renderOrder = 1000;
+      return sprite;
+    }
+
+    function createJointBadgeSprite(text) {
+      const canvas = document.createElement('canvas'); canvas.width = 110; canvas.height = 64;
+      const ctx = canvas.getContext('2d');
+      ctx.fillStyle = 'rgba(15, 23, 42, 0.65)'; 
+      ctx.strokeStyle = '#f59e0b'; ctx.lineWidth = 3.5;
+      ctx.beginPath(); ctx.roundRect(6, 6, 98, 52, 14); ctx.fill(); ctx.stroke();
+      ctx.font = `900 26px 'Pretendard', sans-serif`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillStyle = '#fde047'; ctx.fillText(text, 55, 33);
+      const sprite = new THREE.Sprite(new THREE.SpriteMaterial({ map: new THREE.CanvasTexture(canvas), depthTest: false, transparent: true }));
+      sprite.scale.set(0.38, 0.22, 1);
+      return sprite;
+    }
+
+    function createCustom3DAxes(length, radius, labels, offsetFactor = 1.0, isUF6 = false, topLayer = false, baseOpacity = 1.0) {
+      const group = new THREE.Group();
+      const createAxis = (dir, colorHex, labelText) => {
+        const axisGroup = new THREE.Group();
+        const mat = new THREE.MeshBasicMaterial({ color: colorHex, transparent: true, opacity: baseOpacity, depthTest: !topLayer });
+        const stem = new THREE.Mesh(new THREE.CylinderGeometry(radius, radius, length, 16), mat); stem.position.y = length / 2;
+        const head = new THREE.Mesh(new THREE.ConeGeometry(radius * 2.3, radius * 5.0, 16), mat); head.position.y = length + (radius * 2.5);
+        if (topLayer) { stem.renderOrder = 999; head.renderOrder = 999; }
+        axisGroup.add(stem); axisGroup.add(head);
+        if (dir.x !== 0) axisGroup.rotation.z = -Math.PI / 2;
+        else if (dir.z < 0) axisGroup.rotation.x = -Math.PI / 2;
+        else if (dir.z > 0) axisGroup.rotation.x = Math.PI / 2;
+        const sprite = createTextSprite(labelText, colorHex, 28, '#ffffff');
+        const labelPos = dir.clone().multiplyScalar(length * offsetFactor + 0.35);
+        if (isUF6) labelPos.y += 0.28;
+        sprite.position.copy(labelPos);
+        if (topLayer) sprite.renderOrder = 1000;
+        group.add(sprite); group.add(axisGroup);
+      };
+      createAxis(new THREE.Vector3(1, 0, 0), '#dc2626', labels.x);
+      createAxis(new THREE.Vector3(0, 0, -1), '#16a34a', labels.y);
+      createAxis(new THREE.Vector3(0, 1, 0), '#2563eb', labels.z);
+      return group;
+    }
+
+    function createCustom3DDashedAxes(length, labels, offsetFactor = 1.0, isUF6 = true) {
+      const group = new THREE.Group();
+      const createDashedAxis = (dir, colorHex, labelText) => {
+        const geo = new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(0, 0, 0), dir.clone().multiplyScalar(length)]);
+        const line = new THREE.Line(geo, new THREE.LineDashedMaterial({ color: colorHex, dashSize: 0.22, gapSize: 0.14, linewidth: 2, transparent: true, opacity: 0.65 }));
+        line.computeLineDistances(); group.add(line);
+        const head = new THREE.Mesh(new THREE.ConeGeometry(0.06, 0.20, 16), new THREE.MeshBasicMaterial({ color: colorHex, transparent: true, opacity: 0.65 }));
+        if (dir.x !== 0) { head.rotation.z = -Math.PI / 2; head.position.set(length + 0.10, 0, 0); }
+        else if (dir.z < 0) { head.rotation.x = -Math.PI / 2; head.position.set(0, 0, -length - 0.10); }
+        else if (dir.z > 0) { head.rotation.x = Math.PI / 2; head.position.set(0, 0, length + 0.10); }
+        else if (dir.y > 0) { head.position.set(0, length + 0.10, 0); }
+        group.add(head);
+        const sprite = createTextSprite(labelText, colorHex, 28, '#ffffff');
+        const labelPos = dir.clone().multiplyScalar(length * offsetFactor + 0.35);
+        if (isUF6) labelPos.y += 0.28;
+        sprite.position.copy(labelPos); group.add(sprite);
+      };
+      createDashedAxis(new THREE.Vector3(1, 0, 0), '#dc2626', labels.x);
+      createDashedAxis(new THREE.Vector3(0, 0, -1), '#16a34a', labels.y);
+      createDashedAxis(new THREE.Vector3(0, 1, 0), '#2563eb', labels.z);
+      return group;
+    }
+
+    function createSealingTube(colorHex, radius = 0.028) {
+      const geom = new THREE.CylinderGeometry(radius, radius, 1, 16); geom.translate(0, 0.5, 0);
+      return new THREE.Mesh(geom, new THREE.MeshLambertMaterial({ color: colorHex, transparent: true, opacity: 0.95 }));
+    }
+
+    function updateSealingLineGeometry(tubeMesh, ptA, ptB, progressFactor = 1.0) {
+      if (!tubeMesh) return;
+      const currentEnd = new THREE.Vector3().lerpVectors(ptA, ptB, THREE.MathUtils.clamp(progressFactor, 0.001, 1.0));
+      const dir = new THREE.Vector3().subVectors(currentEnd, ptA), len = dir.length();
+      tubeMesh.scale.set(1, Math.max(0.001, len), 1); tubeMesh.position.copy(ptA);
+      if (len > 0.0001) tubeMesh.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), dir.clone().normalize());
+    }
+
+    function buildDisplacementDashedLines() {
+      dispGroupA = new THREE.Group(); dispGroupB = new THREE.Group();
+      dispGroupA.visible = false; dispGroupB.visible = false;
+      scene.add(dispGroupA); scene.add(dispGroupB);
+    }
+
+    function updateDisplacementDashedLines(pA, pAPrime, pB, pBPrime, visible, progress = 1.0) {
+      if (!dispGroupA || !dispGroupB) return;
+      dispGroupA.visible = visible; dispGroupB.visible = visible;
+      if (!visible) return;
+
+      const renderDashedArrow = (group, startPt, targetEndPt, colorHex) => {
+        while (group.children.length > 0) {
+          const c = group.children[0];
+          if (c.geometry) c.geometry.dispose();
+          if (c.material) c.material.dispose();
+          group.remove(c);
+        }
+        const fullDir = new THREE.Vector3().subVectors(targetEndPt, startPt);
+        if (fullDir.length() < 0.04) return;
+        const curEndPt = new THREE.Vector3().lerpVectors(startPt, targetEndPt, THREE.MathUtils.clamp(progress, 0.01, 1.0));
+        const dir = new THREE.Vector3().subVectors(curEndPt, startPt), totalLen = dir.length();
+        if (totalLen < 0.03) return;
+        const unitDir = dir.clone().normalize();
+        const dashLen = 0.10, gapLen = 0.05, step = dashLen + gapLen, radius = 0.016;
+        const mat = new THREE.MeshBasicMaterial({ color: colorHex, transparent: true, opacity: 0.95, depthTest: false });
+        const upVec = new THREE.Vector3(0, 1, 0), quat = new THREE.Quaternion().setFromUnitVectors(upVec, unitDir);
+
+        for (let d = 0; d < totalLen - 0.10; d += step) {
+          const segLen = Math.min(dashLen, (totalLen - 0.10) - d);
+          if (segLen <= 0.01) break;
+          const cyl = new THREE.Mesh(new THREE.CylinderGeometry(radius, radius, segLen, 10), mat);
+          cyl.position.copy(startPt.clone().addScaledVector(unitDir, d + segLen * 0.5));
+          cyl.quaternion.copy(quat); cyl.renderOrder = 996;
+          group.add(cyl);
+        }
+        const cone = new THREE.Mesh(new THREE.ConeGeometry(radius * 2.5, 0.11, 12), mat);
+        cone.position.copy(curEndPt).addScaledVector(unitDir, -0.055);
+        cone.quaternion.copy(quat); cone.renderOrder = 997;
+        group.add(cone);
+      };
+
+      renderDashedArrow(dispGroupA, pA, pAPrime, 0xd97706);
+      renderDashedArrow(dispGroupB, pB, pBPrime, 0x0f766e);
+    }
+
+    function recordMoveMotionTrails(pos, mode) {
+      if (currentStep !== 4 && currentStep !== 5) return;
+      if (mode === 'P') {
+        movePPoints.push(pos.clone());
+        if (movePPoints.length >= 2) {
+          const geo = new THREE.BufferGeometry().setFromPoints(movePPoints);
+          if (!movePTrailMesh) {
+            movePTrailMesh = new THREE.Line(geo, new THREE.LineDashedMaterial({ color: 0xea580c, dashSize: 0.15, gapSize: 0.08, linewidth: 2, transparent: true, opacity: 0.85 }));
+            scene.add(movePTrailMesh);
+          } else { movePTrailMesh.geometry.dispose(); movePTrailMesh.geometry = geo; }
+          movePTrailMesh.computeLineDistances();
+        }
+      } else if (mode === 'L') {
+        moveLPoints.push(pos.clone());
+        if (moveLPoints.length >= 2) {
+          const geo = new THREE.BufferGeometry().setFromPoints(moveLPoints);
+          if (!moveLTrailMesh) {
+            moveLTrailMesh = new THREE.Line(geo, new THREE.LineBasicMaterial({ color: 0x10b981, linewidth: 3, transparent: true, opacity: 0.95 }));
+            scene.add(moveLTrailMesh);
+          } else { moveLTrailMesh.geometry.dispose(); moveLTrailMesh.geometry = geo; }
+        }
+      }
+    }
+
+    function resetMoveMotionTrails() {
+      movePPoints = []; moveLPoints = [];
+      if (movePTrailMesh) { scene.remove(movePTrailMesh); movePTrailMesh.geometry.dispose(); movePTrailMesh = null; }
+      if (moveLTrailMesh) { scene.remove(moveLTrailMesh); moveLTrailMesh.geometry.dispose(); moveLTrailMesh = null; }
+    }
+
+    function init3D() {
+      const container = document.getElementById('canvas-container');
+      const width = container.clientWidth || window.innerWidth, height = container.clientHeight || window.innerHeight;
+      recalculateParameters();
+      scene = new THREE.Scene(); scene.background = new THREE.Color(0xf8fafc); scene.fog = new THREE.FogExp2(0xf8fafc, 0.018);
+      
+      camera = new THREE.PerspectiveCamera(52, width / height, 0.1, 100); 
+      // [요청 2] 초기 카메라 위치도 로봇이 화면 좌측에 나오고 박스가 우측에 배치되도록 최적화
+      camera.position.set(0.4, 7.8, 11.6);
+      
+      renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' });
+      renderer.setSize(width, height); 
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+      container.appendChild(renderer.domElement);
+      
+      controls = new THREE.OrbitControls(camera, renderer.domElement);
+      controls.enableDamping = true; controls.dampingFactor = 0.08; controls.maxPolarAngle = Math.PI / 2 - 0.02;
+      controls.minDistance = 1.2; controls.maxDistance = 30;
+      controls.target.set(-0.8, 1.5, 0.6);
+      
+      scene.add(new THREE.AmbientLight(0xffffff, 1.05));
+      const dirLight = new THREE.DirectionalLight(0xffffff, 0.65); dirLight.position.set(8, 18, 14); scene.add(dirLight);
+      scene.add(new THREE.HemisphereLight(0xffffff, 0xf1f5f9, 0.35));
+
+      buildFloorAndTable();
+      buildBaseCoordinates();
+      buildMasterUF5();
+      buildTransparentSheetUF6();
+      buildDisplacementDashedLines();
+      createRobotFullModel();
+      buildFocusedToolAssembly();
+      buildStepListSheet();
+
+      window.addEventListener('resize', onWindowResize);
+      updateStepUI();
+      initTrajectoryTrail();
+      animate();
+    }
+
+    function buildFloorAndTable() {
+      const grid = new THREE.GridHelper(24, 24, 0xcbd5e1, 0xe2e8f0); grid.position.y = -0.01; scene.add(grid);
+      const tableGeo = new THREE.BoxGeometry(14.5, 0.01, 9.5);
+      const table = new THREE.Mesh(tableGeo, new THREE.MeshBasicMaterial({ color: 0xcfd8e3, transparent: true, opacity: 0.20, depthWrite: false }));
+      table.position.set(1.0, -0.005, -0.6); scene.add(table);
+      const bevel = new THREE.LineSegments(new THREE.EdgesGeometry(tableGeo), new THREE.LineBasicMaterial({ color: 0x94a3b8, transparent: true, opacity: 0.5 }));
+      bevel.position.copy(table.position); scene.add(bevel);
+    }
+
+    function buildBaseCoordinates() {
+      baseAxes = new THREE.Group(); baseAxes.position.copy(baseOriginPos);
+      baseAxes.add(createCustom3DAxes(2.45, 0.054, { x: "Base_X", y: "Base_Y", z: "Base_Z" }, 1.12, false, true, 0.80));
+      const ring = new THREE.Mesh(new THREE.RingGeometry(0.65, 0.84, 32), new THREE.MeshBasicMaterial({ color: 0x0284c7, side: THREE.DoubleSide, transparent: true, opacity: 0.70, depthTest: false }));
+      ring.rotation.x = Math.PI / 2; ring.position.y = 0.02; ring.renderOrder = 998; baseAxes.add(ring);
+      const centerDot = new THREE.Mesh(new THREE.SphereGeometry(0.10, 16, 16), new THREE.MeshBasicMaterial({ color: 0x0284c7, transparent: true, opacity: 0.80, depthTest: false }));
+      centerDot.renderOrder = 999; baseAxes.add(centerDot);
+      const originLabel = createTextSprite("Base Org (0,0,0)", "#0369a1", 24, "#ffffff");
+      originLabel.position.set(0, -0.32, 1.35); baseAxes.add(originLabel);
+      scene.add(baseAxes);
+    }
+
+    function buildMasterUF5() {
+      masterGroup = new THREE.Group(); masterGroup.position.copy(masterOrigin);
+      masterGroup.rotation.y = THREE.MathUtils.degToRad(ufParams.uf5_rz);
+
+      const boxGeo = new THREE.BoxGeometry(3.6, 1.0, 3.2); boxGeo.translate(1.2, -0.5, -0.6);
+      standMesh = new THREE.Mesh(boxGeo, new THREE.MeshBasicMaterial({ color: 0x94a3b8, transparent: true, opacity: 0.05, depthWrite: false })); masterGroup.add(standMesh);
+      standEdge = new THREE.LineSegments(new THREE.EdgesGeometry(boxGeo), new THREE.LineDashedMaterial({ color: 0x64748b, dashSize: 0.25, gapSize: 0.15, transparent: true, opacity: 0.45 }));
+      standEdge.computeLineDistances(); masterGroup.add(standEdge);
+      updateMasterStandHeight();
+      uf5AxesGroup = createCustom3DAxes(1.4, 0.024, { x: "UF5_X", y: "UF5_Y", z: "UF5_Z" }, 1.1, false, false, 1.0); masterGroup.add(uf5AxesGroup);
+      uf5OrgMesh = new THREE.Mesh(new THREE.SphereGeometry(0.10, 16, 16), new THREE.MeshBasicMaterial({ color: 0x2563eb, transparent: true, opacity: 1.0 })); masterGroup.add(uf5OrgMesh);
+      uf5OrgLabel = createTextSprite("Org (UF5 Ref)", "#1d4ed8", 28, "#ffffff"); uf5OrgLabel.position.set(0, 0.45, 0); masterGroup.add(uf5OrgLabel);
+
+      masterPointA = new THREE.Group(); masterPointA.position.copy(getPointALocalVector());
+      masterPointA.add(new THREE.Mesh(new THREE.CylinderGeometry(0.10, 0.10, 0.03, 16), new THREE.MeshBasicMaterial({ color: 0x64748b, transparent: true, opacity: 1.0 })));
+      const pLabelA = createTextSprite("Point A (마스터)", "#475569", 22, "#ffffff"); pLabelA.position.set(0, 0.35, 0); masterPointA.add(pLabelA); masterGroup.add(masterPointA);
+
+      masterPointB = new THREE.Group(); masterPointB.position.copy(getPointBLocalVector());
+      masterPointB.add(new THREE.Mesh(new THREE.CylinderGeometry(0.10, 0.10, 0.03, 16), new THREE.MeshBasicMaterial({ color: 0x0f766e, transparent: true, opacity: 1.0 })));
+      const pLabelB = createTextSprite("Point B (마스터)", "#0f766e", 22, "#ffffff"); pLabelB.position.set(0, 0.35, 0); masterPointB.add(pLabelB); masterGroup.add(masterPointB);
+
+      masterSealingLine = createSealingTube(0x64748b, 0.022);
+      updateSealingLineGeometry(masterSealingLine, getPointALocalVector(), getPointBLocalVector(), 1.0);
+      masterGroup.add(masterSealingLine); scene.add(masterGroup);
+      buildIndustrial3DScanner();
+    }
+
+    function updateMasterStandHeight() {
+      if (!standMesh || !standEdge) return;
+      const h = Math.max(0.01, masterOrigin.y - baseOriginPos.y);
+      standMesh.scale.y = h; standEdge.scale.y = h; standEdge.computeLineDistances();
+    }
+
+    function createATMFrontLogoMesh() {
+      const canvas = document.createElement('canvas'); canvas.width = 256; canvas.height = 96;
+      const ctx = canvas.getContext('2d');
+      ctx.font = "italic 900 76px 'Pretendard', sans-serif"; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillStyle = '#ff0000'; ctx.fillText('ATM', 128, 50);
+      return new THREE.Mesh(new THREE.PlaneGeometry(0.52, 0.20), new THREE.MeshBasicMaterial({ map: new THREE.CanvasTexture(canvas), transparent: true, side: THREE.DoubleSide }));
+    }
+
+    function buildIndustrial3DScanner() {
+      scannerGroup = new THREE.Group();
+      const SCALE_75 = 0.75;
+      const mountStem = new THREE.Mesh(new THREE.CylinderGeometry(0.036, 0.036, 1.05, 16), new THREE.MeshLambertMaterial({ color: 0x334155 }));
+      mountStem.position.set(0, 0.27 + 0.525, 0); scannerGroup.add(mountStem);
+      const scannerCore = new THREE.Group(); scannerCore.scale.set(SCALE_75, SCALE_75, SCALE_75); scannerGroup.add(scannerCore);
+      const wTop = 1.64, wBot = 1.46, hTop = 0.36, hBot = -0.34, bodyDepth = 0.48;
+      const frontShape = new THREE.Shape();
+      frontShape.moveTo(-wTop / 2, hTop); frontShape.quadraticCurveTo(0, hTop + 0.065, wTop / 2, hTop); frontShape.lineTo(wBot / 2, hBot);
+      frontShape.lineTo(0.26, hBot - 0.045); frontShape.quadraticCurveTo(0, hBot - 0.01, -0.26, hBot - 0.045); frontShape.lineTo(-wBot / 2, hBot); frontShape.closePath();
+      const bodyGeo = new THREE.ExtrudeGeometry(frontShape, { steps: 1, depth: bodyDepth, bevelEnabled: true, bevelThickness: 0.018, bevelSize: 0.018, bevelSegments: 3 });
+      bodyGeo.translate(0, 0, -bodyDepth / 2);
+      scannerCore.add(new THREE.Mesh(bodyGeo, new THREE.MeshStandardMaterial({ color: 0x18181b, metalness: 0.55, roughness: 0.38 })));
+      scannerCore.add(new THREE.LineSegments(new THREE.EdgesGeometry(bodyGeo, 18), new THREE.LineBasicMaterial({ color: 0x71717a })));
+
+      const atmLogoFront = createATMFrontLogoMesh(); atmLogoFront.position.set(0.45, 0.14, bodyDepth / 2 + 0.022); scannerCore.add(atmLogoFront);
+
+      const buildAngledFilterUnit = (posX, tiltAngleRad, isCamera) => {
+        const u = new THREE.Group(); u.position.set(posX, hBot - 0.018, 0); u.rotation.z = tiltAngleRad;
+        u.add(new THREE.Mesh(new THREE.BoxGeometry(0.38, 0.036, 0.34), new THREE.MeshStandardMaterial({ color: 0x27272a, metalness: 0.6, roughness: 0.35 })));
+        const g = new THREE.Mesh(new THREE.CylinderGeometry(0.14, 0.145, 0.026, 32), new THREE.MeshStandardMaterial({ color: 0x09090b })); g.position.y = -0.024; u.add(g);
+        const a = new THREE.Mesh(new THREE.CylinderGeometry(0.126, 0.126, 0.016, 32), new THREE.MeshBasicMaterial({ color: isCamera ? 0xdc2626 : 0xdc2626 })); a.position.y = -0.032; u.add(a);
+        const f = new THREE.Mesh(new THREE.CylinderGeometry(0.112, 0.112, 0.022, 32), new THREE.MeshStandardMaterial({ color: isCamera ? 0x2563eb : 0xef4444, emissive: isCamera ? 0x1d4ed8 : 0xdc2626, emissiveIntensity: 0.55 })); f.position.y = -0.042; u.add(f);
+        scannerCore.add(u);
+      };
+      buildAngledFilterUnit(-0.48, THREE.MathUtils.degToRad(4.5), false);
+      buildAngledFilterUnit(0.48, THREE.MathUtils.degToRad(-4.5), true);
+
+      cameraFlashMesh = new THREE.Mesh(new THREE.RingGeometry(0.02, 0.16, 32), new THREE.MeshBasicMaterial({ color: 0xffffff, side: THREE.DoubleSide, transparent: true, opacity: 0 }));
+      cameraFlashMesh.rotation.x = Math.PI / 2; cameraFlashMesh.position.set(0.48, hBot - 0.075, 0); scannerCore.add(cameraFlashMesh);
+
+      const scannerTag = createTextSprite("📷 AITZ 3DU[3DM]", "#0f172a", 25, "#ffffff");
+      scannerTag.scale.set(1.55, 0.46, 1); scannerTag.position.set(0, hTop * SCALE_75 + 0.26, 0); scannerGroup.add(scannerTag);
+
+      const scaledLensX = 0.48 * SCALE_75, scaledBotY = (hBot - 0.06) * SCALE_75, beamHeight = 5.4;
+      
+      scannerBeamMesh = new THREE.Mesh(new THREE.CylinderGeometry(0.085, 2.8, beamHeight, 4, 1, true), new THREE.MeshBasicMaterial({ color: 0xef4444, transparent: true, opacity: 0.0, side: THREE.DoubleSide, depthWrite: false }));
+      scannerBeamMesh.position.set(-scaledLensX, -beamHeight / 2 + scaledBotY, 0); scannerBeamMesh.rotation.y = Math.PI / 4; scannerGroup.add(scannerBeamMesh);
+
+      cameraBeamMesh = new THREE.Mesh(new THREE.CylinderGeometry(0.085, 2.8, beamHeight, 4, 1, true), new THREE.MeshBasicMaterial({ color: 0x38bdf8, transparent: true, opacity: 0.0, side: THREE.DoubleSide, depthWrite: false }));
+      cameraBeamMesh.position.set(scaledLensX, -beamHeight / 2 + scaledBotY, 0); cameraBeamMesh.rotation.y = Math.PI / 4; scannerGroup.add(cameraBeamMesh);
+
+      scanSweeperMesh = new THREE.Mesh(new THREE.PlaneGeometry(3.6, 0.06), new THREE.MeshBasicMaterial({ color: 0xff2a55, side: THREE.DoubleSide, transparent: true, opacity: 0 }));
+      scanSweeperMesh.rotation.x = Math.PI / 2; scannerGroup.add(scanSweeperMesh);
+
+      scannerGroup.position.copy(masterOrigin).add(new THREE.Vector3(1.2, 3.8, -0.6));
+      scene.add(scannerGroup);
+    }
+
+    function buildTransparentSheetUF6() {
+      sheetGroup = new THREE.Group(); sheetGroup.position.copy(masterOrigin);
+      const sW = 3.6, sH = 0.012, sD = 3.0;
+      const sheetGeo = new THREE.BoxGeometry(sW, sH, sD); sheetGeo.translate(1.2, -sH / 2, -0.6);
+      
+      sheetMeshRef = new THREE.Mesh(sheetGeo, new THREE.MeshBasicMaterial({ color: 0x38bdf8, transparent: true, opacity: 0.10, depthWrite: false })); 
+      sheetGroup.add(sheetMeshRef);
+      
+      sheetEdgeLinesRef = new THREE.LineSegments(new THREE.EdgesGeometry(sheetGeo), new THREE.LineBasicMaterial({ color: 0x0284c7, transparent: true, opacity: 0.22 }));
+      sheetEdgeLinesRef.position.copy(sheetMeshRef.position); 
+      sheetGroup.add(sheetEdgeLinesRef);
+
+      sheetBadgeSprite = createTextSprite("🗂️ UF6_Work", "#0369a1", 26, "#ffffff"); 
+      sheetBadgeSprite.position.set(1.2, 0.24, -2.1); 
+      sheetGroup.add(sheetBadgeSprite);
+
+      const uf6Labels = { x: "UF6_X", y: "UF6_Y", z: "UF6_Z" };
+      uf6DashedAxesGroup = createCustom3DDashedAxes(1.35, uf6Labels, 1.45, true); sheetGroup.add(uf6DashedAxesGroup);
+      uf6SolidAxesGroup = createCustom3DAxes(2.05, 0.025, uf6Labels, 1.15, true, false, 1.0); sheetGroup.add(uf6SolidAxesGroup);
+      orgPrimeSprite = createTextSprite("Org' (UF6)", "#ea580c", 28, "#ffffff"); orgPrimeSprite.position.set(0, 0.45, 0); sheetGroup.add(orgPrimeSprite);
+
+      sheetPointA = new THREE.Group(); sheetPointA.position.copy(getPointALocalVector());
+      const tmA = new THREE.Mesh(new THREE.TorusGeometry(0.14, 0.030, 16, 32), new THREE.MeshBasicMaterial({ color: 0xf59e0b, transparent: true, opacity: 1.0 }));
+      tmA.rotation.x = Math.PI / 2; sheetPointA.add(tmA);
+      sheetPointASprite = createTextSprite("Point A (UF6)", "#b45309", 28, "#ffffff"); sheetPointASprite.position.set(0, 0.48, 0); sheetPointA.add(sheetPointASprite);
+      sheetGroup.add(sheetPointA);
+
+      sheetPointB = new THREE.Group(); sheetPointB.position.copy(getPointBLocalVector());
+      const tmB = new THREE.Mesh(new THREE.TorusGeometry(0.14, 0.030, 16, 32), new THREE.MeshBasicMaterial({ color: 0x0d9488, transparent: true, opacity: 1.0 }));
+      tmB.rotation.x = Math.PI / 2; sheetPointB.add(tmB);
+      sheetPointBSprite = createTextSprite("Point B (UF6)", "#0f766e", 28, "#ffffff"); sheetPointBSprite.position.set(0, 0.48, 0); sheetPointB.add(sheetPointBSprite);
+      sheetGroup.add(sheetPointB);
+
+      sheetSealingLine = createSealingTube(0xea580c, 0.028);
+      updateSealingLineGeometry(sheetSealingLine, getPointALocalVector(), getPointBLocalVector(), 1.0);
+      sheetGroup.add(sheetSealingLine); 
+
+      const errGeo = new THREE.BufferGeometry().setFromPoints([getPointALocalVector(), getPointBLocalVector()]);
+      errorCompareLineMesh = new THREE.Line(errGeo, new THREE.LineDashedMaterial({ color: 0xe11d48, dashSize: 0.12, gapSize: 0.06, linewidth: 2, transparent: true, opacity: 0 }));
+      errorCompareLineMesh.computeLineDistances();
+      sheetGroup.add(errorCompareLineMesh);
+
+      scene.add(sheetGroup);
+    }
+
+    function createRobotFullModel() {
+      robotArmGroup = new THREE.Group(); robotArmGroup.position.copy(baseOriginPos); jointPivots = [];
+      const bodyYellow = new THREE.MeshStandardMaterial({ color: 0xf59e0b, metalness: 0.25, roughness: 0.35 });
+      const armYellow = new THREE.MeshStandardMaterial({ color: 0xfbbf24, metalness: 0.22, roughness: 0.32 });
+      const darkGraph = new THREE.MeshStandardMaterial({ color: 0x1e293b, metalness: 0.55, roughness: 0.38 });
+      const steelMetal = new THREE.MeshStandardMaterial({ color: 0x64748b, metalness: 0.70, roughness: 0.28 });
+      const orangeTool = new THREE.MeshStandardMaterial({ color: 0xea580c, metalness: 0.35, roughness: 0.35 });
+      const redTipMat = new THREE.MeshBasicMaterial({ color: 0xdc2626 });
+
+      const addBox = (p, s, pos, m) => { const mesh = new THREE.Mesh(new THREE.BoxGeometry(s[0], s[1], s[2]), m); mesh.position.set(pos[0], pos[1], pos[2]); p.add(mesh); };
+      const addCyl = (p, r1, r2, h, pos, m, ax = 'y') => { const mesh = new THREE.Mesh(new THREE.CylinderGeometry(r1, r2, h, 28), m); mesh.position.set(pos[0], pos[1], pos[2]); if (ax === 'x') mesh.rotation.z = Math.PI / 2; else if (ax === 'z') mesh.rotation.x = Math.PI / 2; p.add(mesh); };
+
+      addBox(robotArmGroup, [1.45, 0.16, 1.45], [0, 0.08, 0], darkGraph);
+      addCyl(robotArmGroup, 0.58, 0.66, 0.60, [0, 0.46, 0], darkGraph, 'y');
+      addCyl(robotArmGroup, 0.60, 0.60, 0.08, [0, 0.76, 0], steelMetal, 'y');
+
+      const j1 = new THREE.Group(); j1.position.set(0, 0.80, 0); robotArmGroup.add(j1); jointPivots.push(j1);
+      addCyl(j1, 0.50, 0.54, 0.45, [0, 0.22, 0], bodyYellow, 'y');
+      addBox(j1, [0.75, 0.62, 0.66], [0.18, 0.55, 0], bodyYellow);
+      addCyl(j1, 0.32, 0.32, 0.72, [ROBOT_DH.a1, 0.70, 0], darkGraph, 'z');
+
+      const j2 = new THREE.Group(); j2.position.set(ROBOT_DH.a1, 0.70, 0); j1.add(j2); jointPivots.push(j2);
+      addCyl(j2, 0.26, 0.26, 0.84, [0, 0, 0], darkGraph, 'z');
+      addCyl(j2, 0.20, 0.20, 0.90, [0, 0, 0], steelMetal, 'z');
+      const L2 = ROBOT_DH.L2;
+      addBox(j2, [L2, 0.38, 0.42], [L2 / 2, 0, 0], bodyYellow);
+      addBox(j2, [L2 - 0.6, 0.12, 0.46], [L2 / 2, 0.16, 0], darkGraph);
+      addCyl(j2, 0.30, 0.30, 0.54, [L2, 0, 0], bodyYellow, 'z');
+
+      const j3 = new THREE.Group(); j3.position.set(L2, 0, 0); j2.add(j3); jointPivots.push(j3);
+      addCyl(j3, 0.24, 0.24, 0.66, [0, 0, 0], darkGraph, 'z');
+      addBox(j3, [1.50, 0.32, 0.36], [0.75, 0, 0], armYellow);
+      addBox(j3, [1.20, 0.10, 0.38], [0.72, 0.14, 0], darkGraph);
+
+      const j4 = new THREE.Group(); j4.position.set(1.50, 0, 0); j3.add(j4); jointPivots.push(j4);
+      addCyl(j4, 0.17, 0.20, 0.24, [0.12, 0, 0], darkGraph, 'x');
+      addCyl(j4, 0.145, 0.165, 1.95, [1.20, 0, 0], armYellow, 'x');
+      addBox(j4, [0.36, 0.28, 0.32], [2.20, 0, 0], darkGraph);
+
+      const j5 = new THREE.Group(); j5.position.set(2.30, 0, 0); j4.add(j5); jointPivots.push(j5);
+      addCyl(j5, 0.18, 0.18, 0.38, [0, 0, 0], orangeTool, 'z');
+      addBox(j5, [ROBOT_DH.toolX, 0.22, 0.22], [ROBOT_DH.toolX / 2, 0, 0], darkGraph);
+
+      const j6 = new THREE.Group(); j6.position.set(ROBOT_DH.toolX, 0, 0); j5.add(j6); jointPivots.push(j6);
+      addCyl(j6, 0.14, 0.14, 0.10, [0, -0.05, 0], steelMetal, 'y');
+      addBox(j6, [0.22, 0.20, 0.22], [0, -0.18, 0], orangeTool);
+      addCyl(j6, 0.065, 0.08, 0.14, [0, -0.33, 0], darkGraph, 'y');
+
+      const nozzleCone = new THREE.Mesh(new THREE.ConeGeometry(0.055, 0.18, 24), redTipMat);
+      nozzleCone.rotation.x = Math.PI; nozzleCone.position.set(0, -0.47, 0); j6.add(nozzleCone);
+      const tcpBall = new THREE.Mesh(new THREE.SphereGeometry(0.038, 16, 16), redTipMat);
+      tcpBall.position.set(0, -ROBOT_DH.toolY, 0); j6.add(tcpBall);
+
+      const tpTag = createTextSprite("Tool", "#dc2626", 24, "#ffffff"); 
+      tpTag.position.set(0.40, -0.52, 0); 
+      j6.add(tpTag);
+
+      [{ node: j1, text: "J1", pos: [0, 0.35, 0.58] }, { node: j2, text: "J2", pos: [0, 0.40, 0.48] }, { node: j3, text: "J3", pos: [0, 0.38, 0.38] },
+       { node: j4, text: "J4", pos: [0.36, 0.32, 0] }, { node: j5, text: "J5", pos: [0, 0.32, 0.24] }, { node: j6, text: "J6", pos: [0.22, -0.10, 0] }].forEach(cfg => {
+        const sp = createJointBadgeSprite(cfg.text); sp.position.set(cfg.pos[0], cfg.pos[1], cfg.pos[2]); cfg.node.add(sp);
+      });
+      scene.add(robotArmGroup);
+    }
+
+    function buildFocusedToolAssembly() {
+      robotGroup = new THREE.Group();
+      lockOnBeam = new THREE.Mesh(new THREE.RingGeometry(0.12, 0.16, 24), new THREE.MeshBasicMaterial({ color: 0xdc2626, side: THREE.DoubleSide, transparent: true, opacity: 0 }));
+      lockOnBeam.rotation.x = Math.PI / 2; lockOnBeam.position.y = 0.01; robotGroup.add(lockOnBeam);
+      scene.add(robotGroup);
+    }
+
+    function updateRobotFullModel(tcpPosition, targetQuatIn = null) {
+      if (!robotArmGroup || jointPivots.length < 6) return;
+      robotArmGroup.visible = true;
+      const targetQuat = targetQuatIn || new THREE.Quaternion();
+      const toolUpVec = new THREE.Vector3(0, ROBOT_DH.toolY, 0).applyQuaternion(targetQuat);
+      const pJ6 = tcpPosition.clone().add(toolUpVec);
+      let q1 = Math.atan2(-(pJ6.z - baseOriginPos.z), pJ6.x - baseOriginPos.x), pJ5 = new THREE.Vector3();
+      for (let iter = 0; iter < 4; iter++) {
+        const uR = new THREE.Vector3(Math.cos(q1), 0, -Math.sin(q1)), toolUpDir = toolUpVec.clone().normalize();
+        const proj = uR.clone().sub(toolUpDir.clone().multiplyScalar(uR.dot(toolUpDir)));
+        if (proj.lengthSq() > 1e-6) proj.normalize(); else proj.copy(uR);
+        pJ5.copy(pJ6).addScaledVector(proj, -ROBOT_DH.toolX);
+        q1 = Math.atan2(-(pJ5.z - baseOriginPos.z), pJ5.x - baseOriginPos.x);
+      }
+      const dx = pJ5.x - baseOriginPos.x, dz = pJ5.z - baseOriginPos.z;
+      const rHoriz = Math.hypot(dx, dz) - ROBOT_DH.a1, yVert = (pJ5.y - baseOriginPos.y) - ROBOT_DH.d1;
+      const L2 = ROBOT_DH.L2, L3 = ROBOT_DH.L3, clampedDist = Math.min(Math.max(0.05, Math.hypot(rHoriz, yVert)), L2 + L3 - 0.05);
+      const q3 = -Math.acos(THREE.MathUtils.clamp((clampedDist * clampedDist - L2 * L2 - L3 * L3) / (2 * L2 * L3), -0.9999, 0.9999));
+      const q2 = Math.atan2(yVert, rHoriz) + Math.acos(THREE.MathUtils.clamp((L2 * L2 + clampedDist * clampedDist - L3 * L3) / (2 * L2 * clampedDist), -0.9999, 0.9999));
+      const q03 = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), q1).multiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), q2 + q3));
+      const wristEuler = new THREE.Euler().setFromQuaternion(q03.clone().invert().multiply(targetQuat), 'XZY');
+      const [j1, j2, j3, j4, j5, j6] = jointPivots;
+      j1.rotation.set(0, q1, 0); j2.rotation.set(0, 0, q2); j3.rotation.set(0, 0, q3);
+      j4.rotation.set(wristEuler.x, 0, 0); j5.rotation.set(0, 0, wristEuler.z); j6.rotation.set(0, wristEuler.y, 0);
+      robotJointAngles = [q1, q2, q3, wristEuler.x, wristEuler.z, wristEuler.y].map(rad => Math.round(THREE.MathUtils.radToDeg(rad)));
+    }
+
+    function initTrajectoryTrail() { resetTrajectoryTrail(); resetMoveMotionTrails(); }
+
+    function recordTrajectoryPoint(newPos) {
+      if (!showTrail || (currentStep !== 5 && currentStep !== 9)) return;
+      if (trajectoryPoints.length > 0 && trajectoryPoints[trajectoryPoints.length - 1].distanceTo(newPos) < 0.02) return;
+      trajectoryPoints.push(newPos.clone());
+      if (trajectoryPoints.length > MAX_TRAIL_POINTS) trajectoryPoints.shift();
+
+      if (trajectoryPoints.length >= 2) {
+        const curve = new THREE.CatmullRomCurve3(trajectoryPoints);
+        const isCompStep = (currentStep === 9);
+        const radius = isCompStep ? 0.044 : 0.020;
+        const tubeGeom = new THREE.TubeGeometry(curve, trajectoryPoints.length * 2, radius, 10, false);
+        const mainColor = isCompStep ? 0x7c3aed : 0x10b981;
+        const emiColor = isCompStep ? 0xc084fc : 0x059669;
+        const emiIntensity = isCompStep ? 1.10 : 0.55;
+
+        if (!trajectoryMesh) {
+          trajectoryMesh = new THREE.Mesh(tubeGeom, new THREE.MeshStandardMaterial({
+            color: mainColor, emissive: emiColor, emissiveIntensity: emiIntensity, metalness: 0.30, roughness: 0.18
+          }));
+          trajectoryMesh.renderOrder = 10;
+          scene.add(trajectoryMesh);
+        } else {
+          trajectoryMesh.material.color.setHex(mainColor);
+          trajectoryMesh.material.emissive.setHex(emiColor);
+          trajectoryMesh.material.emissiveIntensity = emiIntensity;
+          trajectoryMesh.geometry.dispose();
+          trajectoryMesh.geometry = tubeGeom;
+        }
+      }
+    }
+
+    function resetTrajectoryTrail() {
+      trajectoryPoints = [];
+      if (trajectoryMesh) { scene.remove(trajectoryMesh); trajectoryMesh.geometry.dispose(); trajectoryMesh = null; }
+    }
+
+    function toggleTrajectoryTrail() {
+      showTrail = !showTrail;
+      const btn = document.getElementById('btnMobileTrail');
+      if (btn) btn.className = showTrail ? "px-3 py-1 bg-purple-100 text-purple-800 rounded-lg font-extrabold border border-purple-300" : "px-3 py-1 bg-slate-100 text-slate-500 rounded-lg font-extrabold border border-slate-200";
+      if (trajectoryMesh) trajectoryMesh.visible = showTrail;
+    }
+
+    function applyPresetCase(caseType) {
+      if (caseType === 'A') { ufParams.dx = 0.50; ufParams.dy = -0.25; ufParams.dz = 0.25; ufParams.rx = 5; ufParams.ry = -4; ufParams.rz = 10; }
+      else if (caseType === 'B') { ufParams.dx = 0.25; ufParams.dy = 0.25; ufParams.dz = 1.25; ufParams.rx = 0; ufParams.ry = 0; ufParams.rz = 0; }
+      else if (caseType === 'C') { ufParams.dx = -0.50; ufParams.dy = 0.50; ufParams.dz = -0.25; ufParams.rx = 14; ufParams.ry = -12; ufParams.rz = -8; }
+      else if (caseType === 'D') { ufParams.dx = 0.75; ufParams.dy = -0.50; ufParams.dz = 0.00; ufParams.rx = 0; ufParams.ry = 0; ufParams.rz = 32; }
+      syncDispUI();
+      recalculateParameters();
+      if (masterGroup) { masterGroup.position.copy(masterOrigin); updateMasterStandHeight(); }
+      checkToleranceStatus();
+      goToStep(7);
+    }
+
+    function startCinematicDemo(type) {
+      if (autoPlayTimer) toggleAutoPlay();
+      demoModeType = type;
+      if (type === 'OK') applyPresetCase('A');
+      else applyPresetCase('B');
+      
+      resetTrajectoryTrail(); resetMoveMotionTrails();
+      goToStep(0); setCameraView('iso');
+      
+      const pText = document.getElementById('playText');
+      if (pText) pText.innerText = type === 'OK' ? "데모(OK)" : "데모(NG)";
+      autoPlayTimer = true; scheduleNextAutoStep();
+    }
+
+    function setGroupOpacity(group, opacity) {
+      if (!group) return;
+      group.traverse(child => { if (child.material) { child.material.transparent = true; child.material.opacity = opacity; } });
+    }
+
+    function applyStepTransforms(t = 1) {
+      if (!masterGroup || !sheetGroup || !robotGroup) return;
+      const masterRadY = THREE.MathUtils.degToRad(ufParams.uf5_rz);
+      const ptaLocal = getPointALocalVector(), ptbLocal = getPointBLocalVector();
+
+      if (scannerGroup) {
+        scannerGroup.visible = true;
+        // 지반 박스 상단 중심 위치 추종 및 항상 정면(Front) 응시 고정
+        const scannerOffset = new THREE.Vector3(1.2, 3.8, -0.6).applyAxisAngle(new THREE.Vector3(0, 1, 0), masterRadY);
+        scannerGroup.position.copy(masterOrigin).add(scannerOffset);
+        scannerGroup.rotation.set(0, 0, 0);
+      }
+      if (robotArmGroup) robotArmGroup.visible = true;
+      robotGroup.visible = true;
+      masterGroup.visible = (currentStep >= 1);
+      masterGroup.rotation.y = masterRadY;
+
+      const showPoints = (currentStep >= 3);
+      if (masterPointA) masterPointA.visible = showPoints;
+      if (masterPointB) masterPointB.visible = showPoints;
+      if (sheetPointA) sheetPointA.visible = showPoints;
+      if (sheetPointB) sheetPointB.visible = showPoints;
+
+      if (masterSealingLine && sheetSealingLine) {
+        if (currentStep < 3 || currentStep === 4) { masterSealingLine.visible = false; sheetSealingLine.visible = false; }
+        else if (currentStep === 5) {
+          const lp = (t <= 0.346) ? 0.0 : THREE.MathUtils.clamp((t - 0.346) / (0.731 - 0.346), 0.0, 1.0);
+          masterSealingLine.visible = (lp > 0.01); sheetSealingLine.visible = (lp > 0.01);
+          updateSealingLineGeometry(masterSealingLine, ptaLocal, ptbLocal, lp);
+          updateSealingLineGeometry(sheetSealingLine, ptaLocal, ptbLocal, lp);
+        } else {
+          masterSealingLine.visible = true; sheetSealingLine.visible = true;
+          updateSealingLineGeometry(masterSealingLine, ptaLocal, ptbLocal, 1.0);
+          updateSealingLineGeometry(sheetSealingLine, ptaLocal, ptbLocal, 1.0);
+        }
+      }
+
+      sheetGroup.visible = (currentStep >= 2);
+      if (currentStep >= 8) {
+        setGroupOpacity(uf5AxesGroup, 0.4);
+        if (uf5OrgMesh) { uf5OrgMesh.material.transparent = true; uf5OrgMesh.material.opacity = 0.4; }
+        if (uf5OrgLabel) uf5OrgLabel.material.opacity = 0.4;
+        setGroupOpacity(masterPointA, 0.45); setGroupOpacity(masterPointB, 0.45);
+        if (masterSealingLine) masterSealingLine.material.opacity = 0.35;
+      } else {
+        setGroupOpacity(uf5AxesGroup, 1.0);
+        if (uf5OrgMesh) { uf5OrgMesh.material.transparent = false; uf5OrgMesh.material.opacity = 1.0; }
+        if (uf5OrgLabel) uf5OrgLabel.material.opacity = 1.0;
+        setGroupOpacity(masterPointA, 1.0); setGroupOpacity(masterPointB, 1.0);
+        if (masterSealingLine) masterSealingLine.material.opacity = 0.95;
+      }
+
+      if (sheetBadgeSprite) sheetBadgeSprite.visible = (currentStep === 2);
+
+      if (sheetMeshRef) {
+        sheetMeshRef.material.opacity = currentStep >= 8 ? THREE.MathUtils.lerp(0.10, 0.20, t) : 0.10;
+        if (sheetEdgeLinesRef) sheetEdgeLinesRef.material.opacity = currentStep >= 8 ? THREE.MathUtils.lerp(0.22, 0.45, t) : 0.22;
+      }
+
+      if (currentStep <= 5) {
+        sheetGroup.position.copy(masterOrigin); sheetGroup.rotation.set(0, masterRadY, 0);
+        uf6DashedAxesGroup.visible = true; uf6SolidAxesGroup.visible = false;
+        const dOp = (currentStep === 2) ? 0.65 : 0.95;
+        setGroupOpacity(uf6DashedAxesGroup, dOp);
+        if (orgPrimeSprite) orgPrimeSprite.material.opacity = dOp;
+        if (sheetPointASprite) sheetPointASprite.material.opacity = (currentStep === 2) ? 0.65 : 1.0;
+        if (sheetPointBSprite) sheetPointBSprite.material.opacity = (currentStep === 2) ? 0.65 : 1.0;
+        if (sheetSealingLine) sheetSealingLine.material.opacity = dOp;
+      } else if (currentStep === 6) {
+        sheetGroup.position.lerpVectors(masterOrigin, masterOrigin.clone().add(dynamicSheetShift.pos), t);
+        sheetGroup.quaternion.copy(getUF6WorldQuaternion(t));
+        uf6DashedAxesGroup.visible = true; uf6SolidAxesGroup.visible = false;
+        setGroupOpacity(uf6DashedAxesGroup, THREE.MathUtils.lerp(0.95, 0.30, t));
+      } else if (currentStep === 7) {
+        sheetGroup.position.copy(masterOrigin).add(dynamicSheetShift.pos);
+        sheetGroup.quaternion.copy(getUF6WorldQuaternion(1.0));
+        uf6DashedAxesGroup.visible = true; uf6SolidAxesGroup.visible = false;
+        setGroupOpacity(uf6DashedAxesGroup, 0.30);
+      } else if (currentStep >= 8) {
+        sheetGroup.position.copy(masterOrigin).add(dynamicSheetShift.pos);
+        sheetGroup.quaternion.copy(getUF6WorldQuaternion(1.0));
+        uf6DashedAxesGroup.visible = false; uf6SolidAxesGroup.visible = true;
+        setGroupOpacity(uf6SolidAxesGroup, 1.0);
+      }
+
+      if (scannerBeamMesh && cameraBeamMesh && cameraFlashMesh && scanSweeperMesh) {
+        if (currentStep === 7) {
+          scannerBeamMesh.material.opacity = THREE.MathUtils.lerp(0.20, 0.45, (Math.sin(performance.now() * 0.006) + 1) * 0.5);
+          scanSweeperMesh.material.opacity = 0.90;
+          const sweepZ = Math.sin(t * Math.PI * 2.5) * 1.4;
+          scanSweeperMesh.position.set(0, -3.8 + 0.05, sweepZ);
+
+          if (t >= 0.15 && t <= 0.95) {
+            const blinkProgress = (t - 0.15) / 0.80;
+            const isBlinkOn = Math.sin(blinkProgress * Math.PI * 14) > 0.20 ? 1.0 : 0.0;
+            cameraBeamMesh.material.opacity = isBlinkOn * 0.45;
+            cameraFlashMesh.material.opacity = isBlinkOn * 1.0;
+          } else { cameraBeamMesh.material.opacity = 0.0; cameraFlashMesh.material.opacity = 0.0; }
+        } else { 
+          scannerBeamMesh.material.opacity = 0.0; cameraBeamMesh.material.opacity = 0.0; cameraFlashMesh.material.opacity = 0.0; 
+          scanSweeperMesh.material.opacity = 0.0;
+        }
+      }
+
+      scene.updateMatrixWorld(true);
+      const masterPointAWorld = new THREE.Vector3(); masterPointA.getWorldPosition(masterPointAWorld);
+      const masterPointBWorld = new THREE.Vector3(); masterPointB.getWorldPosition(masterPointBWorld);
+      const sheetPointAWorld = new THREE.Vector3(); sheetPointA.getWorldPosition(sheetPointAWorld);
+      const sheetPointBWorld = new THREE.Vector3(); sheetPointB.getWorldPosition(sheetPointBWorld);
+
+      const showDispArrows = (currentStep >= 6 && currentStep <= 9);
+      const arrowProgress = (currentStep === 6) ? t : 1.0;
+      updateDisplacementDashedLines(masterPointAWorld, sheetPointAWorld, masterPointBWorld, sheetPointBWorld, showDispArrows, arrowProgress);
+
+      const homePos = baseOriginPos.clone().add(new THREE.Vector3(2.0, 2.8, -0.7));
+      const oldSheetOverPos = masterOrigin.clone().add(new THREE.Vector3(0.8, 1.4, -0.6).applyAxisAngle(new THREE.Vector3(0, 1, 0), masterRadY));
+      const readyPos = new THREE.Vector3().lerpVectors(homePos, oldSheetOverPos, 0.5); readyPos.y += 0.25;
+      const aboveA_1m = masterPointAWorld.clone().add(new THREE.Vector3(0, 1.0, 0));
+      const aboveB_1m = masterPointBWorld.clone().add(new THREE.Vector3(0, 1.0, 0));
+
+      let targetPos = new THREE.Vector3(), targetQuat = new THREE.Quaternion();
+      const qMasterRadY = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), masterRadY);
+
+      const cycleBanner = document.getElementById('cycleCompleteBanner'), bannerBox = document.getElementById('cycleBannerBox'), bannerIcon = document.getElementById('cycleBannerIcon'), bannerSub = document.getElementById('cycleBannerSub'), bannerTitle = document.getElementById('cycleBannerTitle');
+      
+      if (cycleBanner && bannerBox) {
+        if (currentStep === 10) {
+          if (isToleranceError) {
+            bannerBox.className = "bg-rose-50/95 backdrop-blur-md px-4 py-2 rounded-2xl border-2 border-rose-500 shadow-xl flex items-center gap-2.5";
+            bannerIcon.className = "w-6 h-6 rounded-full bg-rose-600 text-white flex items-center justify-center text-xs font-black shrink-0"; bannerIcon.innerText = "✕";
+            bannerSub.className = "text-[9px] font-extrabold text-rose-600 tracking-wider uppercase"; bannerSub.innerText = "Interlock Tripped";
+            bannerTitle.className = "text-xs font-black text-rose-950"; bannerTitle.innerText = "The work Fails! (안전 홈 복귀)";
+            cycleBanner.classList.add('opacity-100', 'translate-y-0'); cycleBanner.classList.remove('opacity-0', 'translate-y-2');
+          } else if (t >= 0.80) {
+            bannerBox.className = "bg-white/95 backdrop-blur-md px-4 py-2 rounded-2xl border-2 border-blue-500 shadow-xl flex items-center gap-2.5";
+            bannerIcon.className = "w-6 h-6 rounded-full bg-emerald-500 text-white flex items-center justify-center text-xs font-black shrink-0"; bannerIcon.innerText = "✓";
+            bannerSub.className = "text-[9px] font-extrabold text-blue-600 tracking-wider uppercase"; bannerSub.innerText = "Process Done";
+            bannerTitle.className = "text-xs font-black text-slate-900"; bannerTitle.innerText = "Cycle Completed !! (실링 완제품)";
+            cycleBanner.classList.add('opacity-100', 'translate-y-0'); cycleBanner.classList.remove('opacity-0', 'translate-y-2');
+          } else {
+            cycleBanner.classList.add('opacity-0', 'translate-y-2'); cycleBanner.classList.remove('opacity-100', 'translate-y-0');
+          }
+        } else {
+          cycleBanner.classList.add('opacity-0', 'translate-y-2'); cycleBanner.classList.remove('opacity-100', 'translate-y-0');
+        }
+      }
+
+      if (errorCompareLineMesh) {
+        errorCompareLineMesh.material.opacity = (currentStep === 9 && !isToleranceError) ? 0.75 : 0.0;
+      }
+
+      const elTool = document.getElementById('toolCoord');
+      const elTarget = document.getElementById('targetCoord');
+
+      if (currentStep <= 1) {
+        targetPos.copy(homePos); targetQuat.copy(qMasterRadY);
+        if (lockOnBeam) lockOnBeam.material.opacity = 0.0;
+        if (elTool) elTool.innerText = "대기 중";
+        if (elTarget) elTarget.innerText = (currentStep === 0) ? "홈 대기" : "UF5 생성";
+      } else if (currentStep === 2) {
+        interpolateMove(homePos, readyPos, t, { mode: 'P_SWING', swingHeight: 1.0, swingOut: 0.8 }, targetPos); targetQuat.copy(qMasterRadY);
+        if (lockOnBeam) lockOnBeam.material.opacity = 0.0;
+        if (elTarget) elTarget.innerText = "대기 위치 진입";
+      } else if (currentStep === 3) {
+        targetPos.copy(readyPos); targetQuat.copy(qMasterRadY);
+        if (lockOnBeam) lockOnBeam.material.opacity = 0.0;
+        if (elTarget) elTarget.innerText = "Point A/B 준비";
+      } else if (currentStep === 4) {
+        targetQuat.copy(qMasterRadY);
+        if (t <= 0.14) { 
+          interpolateMove(readyPos, aboveA_1m, t / 0.14, { mode: 'P_HOP', hopHeight: 0.35 }, targetPos); 
+          lockOnBeam.material.opacity = 0; recordMoveMotionTrails(targetPos, 'P');
+        } else if (t <= 0.27) { 
+          const st = (t - 0.14) / 0.13; 
+          interpolateMove(aboveA_1m, masterPointAWorld, st, { mode: 'L' }, targetPos); 
+          lockOnBeam.material.opacity = 0.6 * st; recordMoveMotionTrails(targetPos, 'L');
+        } else if (t <= 0.42) { 
+          targetPos.copy(masterPointAWorld); lockOnBeam.material.opacity = 1.0; 
+        } else if (t <= 0.52) { 
+          interpolateMove(masterPointAWorld, aboveA_1m, (t - 0.42) / 0.10, { mode: 'L' }, targetPos); 
+          lockOnBeam.material.opacity = 0; recordMoveMotionTrails(targetPos, 'L');
+        } else if (t <= 0.64) { 
+          interpolateMove(aboveA_1m, aboveB_1m, (t - 0.52) / 0.12, { mode: 'P_HOP', hopHeight: 0.4 }, targetPos); 
+          lockOnBeam.material.opacity = 0; recordMoveMotionTrails(targetPos, 'P');
+        } else if (t <= 0.75) { 
+          const st = (t - 0.64) / 0.11; 
+          interpolateMove(aboveB_1m, masterPointBWorld, st, { mode: 'L' }, targetPos); 
+          lockOnBeam.material.opacity = 0.6 * st; recordMoveMotionTrails(targetPos, 'L');
+        } else if (t <= 0.90) { 
+          targetPos.copy(masterPointBWorld); lockOnBeam.material.opacity = 1.0; 
+        } else { 
+          interpolateMove(masterPointBWorld, aboveB_1m, Math.min(1, (t - 0.90) / 0.07), { mode: 'L' }, targetPos); 
+          lockOnBeam.material.opacity = 0; recordMoveMotionTrails(targetPos, 'L');
+        }
+        if (elTarget) elTarget.innerText = "티칭 기록 중";
+      } else if (currentStep === 5) {
+        targetQuat.copy(qMasterRadY);
+        if (t <= 0.12) { 
+          interpolateMove(aboveB_1m, aboveA_1m, t / 0.12, { mode: 'P_HOP', hopHeight: 0.35 }, targetPos); 
+          lockOnBeam.material.opacity = 0; recordMoveMotionTrails(targetPos, 'P');
+        } else if (t <= 0.346) { 
+          const st = (t - 0.12) / 0.226; 
+          interpolateMove(aboveA_1m, masterPointAWorld, st, { mode: 'L' }, targetPos); 
+          lockOnBeam.material.opacity = 0.8 * st; recordMoveMotionTrails(targetPos, 'L');
+        } else if (t <= 0.731) { 
+          const st = (t - 0.346) / 0.385; 
+          interpolateMove(masterPointAWorld, masterPointBWorld, st, { mode: 'L' }, targetPos); 
+          lockOnBeam.material.opacity = 0.95; recordMoveMotionTrails(targetPos, 'L');
+        } else if (t <= 0.846) { 
+          interpolateMove(masterPointBWorld, aboveB_1m, (t - 0.731) / 0.115, { mode: 'L' }, targetPos); 
+          lockOnBeam.material.opacity = 0; recordMoveMotionTrails(targetPos, 'L');
+        } else { 
+          interpolateMove(aboveB_1m, readyPos, (t - 0.846) / 0.154, { mode: 'P_HOP', hopHeight: 0.5 }, targetPos); 
+          lockOnBeam.material.opacity = 0; recordMoveMotionTrails(targetPos, 'P');
+        }
+        if (elTarget) elTarget.innerText = "A-B 선형 검증";
+      } else if (currentStep >= 6 && currentStep <= 8) {
+        targetPos.copy(readyPos); targetQuat.copy(qMasterRadY); lockOnBeam.material.opacity = 0;
+        if (elTarget) elTarget.innerText = currentStep === 6 ? "부품 변위 인입" : (currentStep === 7 ? "3D 비전 스캔 중" : "ICP 정합 완료");
+      } else if (currentStep === 9) {
+        const qSheetFull = sheetGroup.quaternion.clone();
+        const aboveA_Prime = sheetPointAWorld.clone().add(new THREE.Vector3(0, 1.0, 0).applyQuaternion(qSheetFull));
+
+        if (t <= 0.22) {
+          resetTrajectoryTrail();
+          interpolateMove(readyPos, aboveA_Prime, t / 0.22, { mode: 'P_HOP', hopHeight: 0.35 }, targetPos);
+          targetQuat.copy(qMasterRadY).slerp(qSheetFull, t / 0.22);
+          lockOnBeam.material.opacity = 0;
+        } else if (t <= 0.40) {
+          resetTrajectoryTrail();
+          interpolateMove(aboveA_Prime, sheetPointAWorld, (t - 0.22) / 0.18, { mode: 'L' }, targetPos);
+          targetQuat.copy(qSheetFull);
+          lockOnBeam.material.opacity = (t - 0.22) / 0.18 * 0.95;
+        } else if (t <= 0.82) {
+          const st = (t - 0.40) / 0.42;
+          interpolateMove(sheetPointAWorld, sheetPointBWorld, st, { mode: 'L' }, targetPos);
+          targetQuat.copy(qSheetFull);
+          lockOnBeam.material.opacity = 0.95;
+          recordTrajectoryPoint(targetPos);
+        } else {
+          targetPos.copy(sheetPointBWorld);
+          targetQuat.copy(qSheetFull);
+          lockOnBeam.material.opacity = 0.95;
+          recordTrajectoryPoint(targetPos);
+        }
+        if (elTarget) elTarget.innerText = "보정 실링 주행";
+      } else if (currentStep === 10) {
+        const startPos = !isAnimating ? homePos : (isToleranceError ? readyPos : sheetPointBWorld);
+        const qSheetFull = sheetGroup.quaternion.clone();
+        interpolateMove(startPos, homePos, t, { mode: 'P_SWING', swingHeight: 1.0, swingOut: 0.8 }, targetPos);
+        targetQuat.copy(isToleranceError ? qMasterRadY : qSheetFull.slerp(qMasterRadY, t));
+        lockOnBeam.material.opacity = 0;
+        if (elTarget) elTarget.innerText = isToleranceError ? "작업 중단" : "공정 완료";
+      }
+
+      robotGroup.position.copy(targetPos); robotGroup.quaternion.copy(targetQuat);
+      updateRobotFullModel(targetPos, targetQuat);
+      const bx = targetPos.x - baseOriginPos.x, by = baseOriginPos.z - targetPos.z, bz = targetPos.y - baseOriginPos.y;
+      if (elTool) elTool.innerText = `X:${bx.toFixed(1)} Y:${by.toFixed(1)} Z:${bz.toFixed(1)}`;
+      updateICPMiniView(t);
+    }
+
+    function updateStepUI() {
+      const data = stepData[currentStep];
+      document.getElementById('mobileStepBadge').innerText = data.badge;
+      document.getElementById('mobileStepTitle').innerText = data.heading;
+      
+      document.getElementById('prevBtn').disabled = (currentStep === 0);
+      document.getElementById('nextBtn').disabled = (currentStep === stepData.length - 1);
+      buildStepListSheet();
+      trigger3DAnimation();
+    }
+
+    function trigger3DAnimation() {
+      animProgress = 0; isAnimating = true; const startTime = performance.now();
+      let duration = 1000;
+      if (currentStep === 4) duration = 6500; 
+      else if (currentStep === 5) duration = 5200; 
+      else if (currentStep === 9) duration = 4800; 
+      else if (currentStep === 7) duration = 5200; 
+      else if (currentStep === 8) duration = 1800; 
+      else if (currentStep === 2 || currentStep === 10) duration = 2400;
+      
+      function stepAnim(now) {
+        const linearT = Math.min(1, (now - startTime) / duration);
+        animProgress = (currentStep === 2 || currentStep === 10) ? (1 - Math.pow(1 - linearT, 3)) : linearT;
+        applyStepTransforms(animProgress);
+        if (linearT < 1) requestAnimationFrame(stepAnim); else { isAnimating = false; applyStepTransforms(1); }
+      }
+      requestAnimationFrame(stepAnim);
+    }
+
+    // [요청 2] 기준 관점 구도 최적화 (로봇이 화면 좌측에 오고 박스가 우측에 배치되도록 lookAt/camPos 재조정)
+    function setCameraView(view, animateCam = true) {
+      if (!controls || !camera) return;
+      currentCameraMode = view;
+      const bIso = document.getElementById('btnCamIso'), bFocus = document.getElementById('btnCamFocus');
+      if (view === 'iso') {
+        if (bIso) bIso.classList.add('active-cam');
+        if (bFocus) bFocus.classList.remove('active-cam');
+      } else {
+        if (bFocus) bFocus.classList.add('active-cam');
+        if (bIso) bIso.classList.remove('active-cam');
+      }
+
+      const targetCamPos = new THREE.Vector3(), targetLookAt = new THREE.Vector3();
+      if (view === 'iso') { 
+        targetCamPos.set(0.4, 7.8, 11.6); 
+        targetLookAt.set(-0.8, 1.5, 0.6); 
+      } else if (view === 'focus_ab') {
+        if (sheetGroup && masterGroup && currentStep >= 6) {
+          sheetGroup.position.copy(masterOrigin).add(dynamicSheetShift.pos);
+          sheetGroup.quaternion.copy(getUF6WorldQuaternion(1.0));
+          scene.updateMatrixWorld(true);
+        }
+        const ptAWorld = new THREE.Vector3(), ptBWorld = new THREE.Vector3();
+        if (currentStep >= 6 && sheetPointA && sheetPointB) { 
+          sheetPointA.getWorldPosition(ptAWorld); 
+          sheetPointB.getWorldPosition(ptBWorld); 
+        } else { 
+          masterPointA.getWorldPosition(ptAWorld); 
+          masterPointB.getWorldPosition(ptBWorld); 
+        }
+        
+        const midAB = new THREE.Vector3().addVectors(ptAWorld, ptBWorld).multiplyScalar(0.5);
+        const distFactor = Math.max(3.2, ptAWorld.distanceTo(ptBWorld) * 1.95);
+        targetLookAt.copy(midAB).add(new THREE.Vector3(-0.25, 0.35, -0.15));
+        targetCamPos.copy(midAB).add(new THREE.Vector3(distFactor * 0.95, distFactor * 1.25, distFactor * 1.65));
+      }
+
+      if (!animateCam) { 
+        camTransition.active = false; 
+        camera.position.copy(targetCamPos); 
+        controls.target.copy(targetLookAt); 
+        controls.update(); 
+        return; 
+      }
+      camTransition.active = true; 
+      camTransition.startTime = performance.now(); 
+      camTransition.duration = 620;
+      camTransition.startPos.copy(camera.position); 
+      camTransition.endPos.copy(targetCamPos);
+      camTransition.startTarget.copy(controls.target); 
+      camTransition.endTarget.copy(targetLookAt);
+    }
+
+    function goToStep(idx) {
+      const tol = checkToleranceStatus();
+
+      if (tol.isOver && (idx === 8 || idx === 9)) {
+        idx = 10;
+      }
+
+      if (!(currentStep === 9 && idx === 10)) {
+        if (idx <= 5 || idx === 0) resetTrajectoryTrail();
+      }
+
+      if (idx === 0 || idx >= 6) {
+        resetMoveMotionTrails();
+      }
+      
+      currentStep = idx;
+      updateStepUI();
+
+      if (currentStep === 9 && !isToleranceError) setCameraView('focus_ab');
+      else if (currentStep === 10) setCameraView('iso');
+    }
+
+    function nextStep() { if (currentStep < stepData.length - 1) goToStep(currentStep + 1); }
+    function prevStep() { if (currentStep > 0) goToStep(currentStep - 1); }
+
+    function scheduleNextAutoStep() {
+      if (!autoPlayTimer) return;
+      let waitTime = 4200;
+      if (currentStep === 4) waitTime = 7200; 
+      else if (currentStep === 5) waitTime = 5900; 
+      else if (currentStep === 7) waitTime = 5800; 
+      else if (currentStep === 9) waitTime = 5400; 
+      else if (currentStep === 10) waitTime = 3000;
+
+      autoPlayTimer = setTimeout(() => {
+        if (!autoPlayTimer) return;
+        if (currentStep < stepData.length - 1) {
+          goToStep(currentStep + 1);
+          scheduleNextAutoStep();
+        } else {
+          clearTimeout(autoPlayTimer); autoPlayTimer = null;
+          demoModeType = null;
+          document.getElementById('playIcon').innerText = "▶"; document.getElementById('playText').innerText = "자동 재생";
+        }
+      }, waitTime);
+    }
+
+    function toggleAutoPlay() {
+      if (autoPlayTimer) {
+        clearTimeout(autoPlayTimer); autoPlayTimer = null;
+        demoModeType = null;
+        document.getElementById('playIcon').innerText = "▶"; document.getElementById('playText').innerText = "자동 재생";
+      } else {
+        if (currentStep === stepData.length - 1) { resetTrajectoryTrail(); resetMoveMotionTrails(); goToStep(0); setCameraView('iso'); }
+        document.getElementById('playIcon').innerText = "⏸"; document.getElementById('playText').innerText = "일시 정지";
+        autoPlayTimer = true; scheduleNextAutoStep();
+      }
+    }
+
+    function onWindowResize() {
+      const container = document.getElementById('canvas-container');
+      const width = container.clientWidth || window.innerWidth, height = container.clientHeight || window.innerHeight;
+      camera.aspect = width / height; camera.updateProjectionMatrix(); renderer.setSize(width, height);
+      if (icpRenderer && icpCamera) {
+        const icpContainer = document.getElementById('icpCanvasContainer');
+        if (icpContainer && icpContainer.clientWidth > 0) {
+          icpCamera.aspect = icpContainer.clientWidth / icpContainer.clientHeight;
+          icpCamera.updateProjectionMatrix();
+          icpRenderer.setSize(icpContainer.clientWidth, icpContainer.clientHeight);
+        }
+      }
+    }
+
+    let icpScene, icpCamera, icpRenderer, icpMasterGroup, icpMeasuredGroup, icpMasterPoints, icpMeasuredPoints;
+    let icpBasePositions = new Float32Array(180 * 3);
+
+    function initICPMiniView() {
+      const container = document.getElementById('icpCanvasContainer');
+      if (!container) return;
+      const w = container.clientWidth || 280, h = container.clientHeight || 150;
+      icpScene = new THREE.Scene(); icpScene.background = new THREE.Color(0xf1f5f9);
+      icpCamera = new THREE.PerspectiveCamera(42, w / h, 0.1, 30); icpCamera.position.set(0.0, 2.35, 3.15); icpCamera.lookAt(0, 0, 0);
+      icpRenderer = new THREE.WebGLRenderer({ antialias: true });
+      icpRenderer.setSize(w, h); icpRenderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+      container.innerHTML = ''; container.appendChild(icpRenderer.domElement);
+      const miniGrid = new THREE.GridHelper(3.6, 8, 0x94a3b8, 0xcbd5e1); miniGrid.position.y = -0.35; icpScene.add(miniGrid);
+      
+      let idx = 0;
+      for (let i = 0; i < 100; i++) {
+        const r = i / 100;
+        let x = 0, z = 0;
+        if (r < 0.25) { x = -1.3 + (r * 4) * 2.6; z = -1.0; }
+        else if (r < 0.50) { x = 1.3; z = -1.0 + ((r - 0.25) * 4) * 2.0; }
+        else if (r < 0.75) { x = 1.3 - ((r - 0.50) * 4) * 2.6; z = 1.0; }
+        else { x = -1.3; z = 1.0 - ((r - 0.75) * 4) * 2.0; }
+        icpBasePositions[idx * 3] = x; icpBasePositions[idx * 3 + 1] = Math.sin(i * 1.7) * 0.03; icpBasePositions[idx * 3 + 2] = z; idx++;
+      }
+      for (let i = 0; i < 80; i++) {
+        const s = i / 79;
+        const spread = (i % 2 === 0 ? 1 : -1) * ((i % 5) * 0.045);
+        icpBasePositions[idx * 3] = THREE.MathUtils.lerp(-0.4, 1.0, s) + spread * 0.5;
+        icpBasePositions[idx * 3 + 1] = 0.08 * Math.sin(s * Math.PI);
+        icpBasePositions[idx * 3 + 2] = THREE.MathUtils.lerp(0.6, -0.6, s) + spread;
+        idx++;
+      }
+
+      const masterGeo = new THREE.BufferGeometry(); masterGeo.setAttribute('position', new THREE.BufferAttribute(icpBasePositions.slice(), 3));
+      const measuredGeo = new THREE.BufferGeometry(); measuredGeo.setAttribute('position', new THREE.BufferAttribute(icpBasePositions.slice(), 3));
+      icpMasterPoints = new THREE.Points(masterGeo, new THREE.PointsMaterial({ color: 0x2563eb, size: 0.10, transparent: true, opacity: 0.95 }));
+      icpMeasuredPoints = new THREE.Points(measuredGeo, new THREE.PointsMaterial({ color: 0xea580c, size: 0.11, transparent: true, opacity: 0.95 }));
+      icpMasterGroup = new THREE.Group(); icpMasterGroup.add(icpMasterPoints); icpScene.add(icpMasterGroup);
+      icpMeasuredGroup = new THREE.Group(); icpMeasuredGroup.add(icpMeasuredPoints); icpScene.add(icpMeasuredGroup);
+    }
+
+    function updateICPMiniView(t = 1) {
+      if (!icpRenderer || !icpMasterGroup || !icpMeasuredGroup) return;
+      const vs = 0.45;
+      const shiftVec = new THREE.Vector3(ufParams.dx * vs, ufParams.dz * vs, -ufParams.dy * vs);
+      const qShifted = new THREE.Quaternion().setFromEuler(new THREE.Euler(THREE.MathUtils.degToRad(ufParams.rx), THREE.MathUtils.degToRad(ufParams.rz), -THREE.MathUtils.degToRad(ufParams.ry), 'ZYX'));
+      const baseRmse = Math.max(0.012, Math.hypot(ufParams.dx, ufParams.dy, ufParams.dz) + Math.hypot(ufParams.rx, ufParams.ry, ufParams.rz) * 0.015);
+      const rmseEl = document.getElementById('icpRmseVal');
+
+      if (currentStep === 7) {
+        icpMeasuredGroup.position.copy(shiftVec); icpMeasuredGroup.quaternion.copy(qShifted);
+        icpMeasuredPoints.material.opacity = THREE.MathUtils.clamp((t - 0.15) / 0.65, 0.15, 0.95);
+        if (rmseEl) rmseEl.innerText = baseRmse.toFixed(3);
+      } else {
+        const convT = (currentStep === 8) ? (1 - Math.pow(1 - THREE.MathUtils.clamp(t, 0, 1), 3)) : 1.0;
+        const rem = 1.0 - convT;
+        icpMeasuredGroup.position.copy(shiftVec).multiplyScalar(rem);
+        icpMeasuredGroup.quaternion.copy(qShifted).slerp(new THREE.Quaternion(), convT);
+        if (rmseEl) rmseEl.innerText = (baseRmse * rem).toFixed(3);
+      }
+      icpRenderer.render(icpScene, icpCamera);
+    }
+
+    function animate() {
+      requestAnimationFrame(animate);
+      if (camTransition.active && camera && controls) {
+        const rawT = Math.min(1.0, (performance.now() - camTransition.startTime) / camTransition.duration);
+        const easeT = 1.0 - Math.pow(1.0 - rawT, 3);
+        camera.position.lerpVectors(camTransition.startPos, camTransition.endPos, easeT);
+        controls.target.lerpVectors(camTransition.startTarget, camTransition.endTarget, easeT);
+        if (rawT >= 1.0) camTransition.active = false;
+      }
+      if (controls) controls.update();
+      if (!isAnimating) applyStepTransforms(1);
+      else if (currentStep >= 7 && currentStep <= 10) updateICPMiniView(animProgress);
+      renderer.render(scene, camera);
+    }
+
+    window.onload = function() { init3D(); };
+  </script>
+</body>
+</html>
