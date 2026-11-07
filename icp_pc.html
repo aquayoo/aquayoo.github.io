@@ -25,17 +25,19 @@
       - 예제(OK/NG) 모드 및 직경 12px 대형 6축 공차 판정 LED 모니터 신설
       - STEP 3 스캔 완료 시점 LED 점등 및 NG 시 STEP 4 스킵, [R|T] 전 성분 '?' 마스킹
     
-    ■ ver 1.0 (Official Stable Release - Nov. 08, 2026)
-      1. 작업대(정반) 가림/잘림 현상 원천 차단:
-         - 정반(Table) 윗면 높이를 Z= -0.1로 내리고 depthWrite: false, polygonOffset 적용
-         - 포인트 클라우드(REF, Scene) 및 대응선(Rays)에 renderOrder: 99 및 depthTest 보정
-         - 카메라를 어떤 각도에서 보아도 점군이 정반 뒤로 숨거나 가려지지 않고 선명하게 부유 표시
-      2. UI 레이아웃 완성형 전면 재배치 (1920x1080 최적화):
+    ■ ver 1.0 (Official Stable Final Release - Nov. 08, 2026)
+      1. 마스터 모델 기반(작업대 정반) 100% 완전 투명화 및 가림 현상 원천 차단:
+         - 작업대 상판(Table Mesh) 투명도를 100% 투명(opacity: 0.0, depthWrite: false)으로 설정
+         - 바닥 그리드(Grid) 및 정반 외곽선(TableEdge) 역시 depthWrite: false 처리하여 깊이 버퍼 간섭 완전 제거
+         - 점군(REF, Scene) 및 직교좌표계(X, Y, Z축)가 정반에 의해 가려지거나 잘리는 현상 100% 영구 해결
+      2. Base 원점 직교 좌표계(X:Red, Y:Green, Z:Blue) 최상위 레이어(topLayer: renderOrder 999) 렌더링 보장:
+         - X축 및 Y축 원기둥 및 원뿔 헤드가 바닥에 묻히지 않고 어떤 각도에서도 완벽하게 선명 표시
+      3. UI 레이아웃 완성형 전면 재배치 (1920x1080 최적화):
          - [동차변환행렬 [R|T] 창]: 좌측 공정 단계 제어창 바로 아래로 이동, 가로폭 w-[208px] 일치
          - [로그 터미널 창]: 하단 중앙 좌측(left-[222px])으로 전진 배치하여 가독 영역 대폭 확장
          - [실시간 모니터 창]: 하단 로그창 우측 끝으로 이동, 기존 길이의 약 70%(w-[240px])로 슬림화 밀착
          - [성공/실패 결과 배너]: 모니터창과 가로폭 100% 동일(w-[240px]), 3행 체제로 작업대 우측 하단 안착
-      3. 타이틀 및 라벨 디테일 최적화:
+      4. 타이틀 및 라벨 디테일 최적화:
          - 우측 속성창 헤더: 'Lotus.Mv.' 문구 제거 -> 'ICPAligner 속성'으로 축소 (Default, Random, CLOSE 완벽 노출)
          - 상공 AITZ 3DU[3DM] 스캐너 라벨: 텍스트 스프라이트 크기를 20% 확대하여 시인성 극대화
     ========================================================================================
@@ -665,10 +667,10 @@
       fillLight.position.set(-100, 100, -100);
       scene.add(fillLight);
 
-      // 1) [요청사항] 작업대 가림/잘림 원천 차단된 고정 정반(Work Table) 및 그리드 구축
+      // 1) [요청사항] 마스터 모델 기반(작업대 정반) 100% 완전 투명화 및 가림 원천 차단
       buildFloorAndTable();
 
-      // 2) 작업대 좌측 전면 Base 직교 좌표계 (Red:X, Green:Y, Blue:Z)
+      // 2) [요청사항] Base 원점 직교 좌표계 (Red:X, Green:Y, Blue:Z) 최상위 렌더링
       buildBaseCoordinates();
 
       // 3) 상공 AITZ 3DU[3DM] 구조광 스캐너 모델링 (라벨 20% 확대 반영)
@@ -679,19 +681,18 @@
       pointCount = basePoints.length;
       currentSceneCoords = basePoints.map(p => p.clone());
 
-      // 1) REF Point Cloud: [100% 완전 불투명 딥 네이비 #0f2b5c, size 3.5]
+      // 1) REF Point Cloud: [100% 완전 불투명 딥 네이비 #0f2b5c, size 3.6]
       const refWorldPoints = basePoints.map(p => modelToWorld(p));
       const refGeo = new THREE.BufferGeometry().setFromPoints(refWorldPoints);
       const refMat = new THREE.PointsMaterial({ 
         color: 0x0f2b5c, 
-        size: 3.5, 
+        size: 3.6, 
         transparent: false,
         opacity: 1.0,
-        depthTest: true,
-        depthWrite: true
+        depthTest: true
       });
       refCloud = new THREE.Points(refGeo, refMat);
-      refCloud.renderOrder = 99; // 작업대보다 항상 상위에 렌더링!
+      refCloud.renderOrder = 500;
       scene.add(refCloud);
 
       // 2) Scene Point Cloud: [100% 완전 불투명 비비드 오렌지 #ff5500, size 3.8]
@@ -702,11 +703,10 @@
         size: 3.8, 
         transparent: false,
         opacity: 1.0,
-        depthTest: true,
-        depthWrite: true
+        depthTest: true
       });
       sceneCloud = new THREE.Points(sceneGeo, sceneMat);
-      sceneCloud.renderOrder = 100; // 최우선 렌더링!
+      sceneCloud.renderOrder = 501;
       scene.add(sceneCloud);
 
       // 3) 점-대응선: [선명한 보라색 #8b00ff, opacity 0.85]
@@ -719,7 +719,7 @@
         depthTest: true 
       });
       rayLinesMesh = new THREE.LineSegments(rayGeo, rayMat);
-      rayLinesMesh.renderOrder = 98;
+      rayLinesMesh.renderOrder = 499;
       scene.add(rayLinesMesh);
 
       window.addEventListener('resize', onWindowResize);
@@ -728,31 +728,40 @@
       animate();
     }
 
-    /* [요청사항] 점군이 가려지지 않도록 깊이 버퍼와 높이를 완벽 보정한 작업대 */
+    /* [요청사항] 작업대 기반(정반) 100% 완전 투명화 처리
+       - TableMesh: opacity 0.0 (100% 투명) 및 depthWrite: false 적용
+       - Grid & TableEdge 역시 depthWrite: false로 설정하여 점군이나 좌표축을 결코 가리지 않음
+    */
     function buildFloorAndTable() {
+      // 바닥 그리드: depthWrite false로 가림 배제
+      const gridMat = new THREE.LineBasicMaterial({ color: 0xcbd5e1, transparent: true, opacity: 0.6, depthWrite: false });
       const grid = new THREE.GridHelper(260, 26, 0x94a3b8, 0xe2e8f0);
-      grid.position.y = -0.5;
-      grid.renderOrder = 1;
+      grid.position.y = -0.01;
+      grid.material.depthWrite = false;
+      grid.renderOrder = 0;
       scene.add(grid);
 
-      // 고정 정반 지그 (윗면을 Z= -0.5로 내려 점군 바닥면 Z=0과 완벽 분리)
+      // 작업대 정반 박스: 100% 완전 투명(opacity 0.0, depthWrite false)
       const tableGeo = new THREE.BoxGeometry(160, 8, 120);
-      const tableMat = new THREE.MeshStandardMaterial({ 
+      const tableMat = new THREE.MeshBasicMaterial({ 
         color: 0xcfd8e3, 
-        roughness: 0.45, 
-        metalness: 0.25,
-        polygonOffset: true,
-        polygonOffsetFactor: 1.0,
-        polygonOffsetUnits: 1.0
+        transparent: true, 
+        opacity: 0.0,      // 100% 투명화!
+        depthWrite: false, // 깊이 버퍼 기록 금지 -> 점군 및 축선 절대 가리지 않음!
+        depthTest: false
       });
       const table = new THREE.Mesh(tableGeo, tableMat);
-      table.position.set(0, -4.5, 0); // 윗면이 Y = -0.5에 위치하여 점군(Y >= 0)에 전혀 간섭 없음!
-      table.renderOrder = 2;
+      table.position.set(0, -4.0, 0);
+      table.renderOrder = 0;
       scene.add(table);
 
-      const tableEdge = new THREE.LineSegments(new THREE.EdgesGeometry(tableGeo), new THREE.LineBasicMaterial({ color: 0x64748b, linewidth: 1.5 }));
+      // 정반 외곽선(은은한 프레임): 점군을 가리지 않도록 depthWrite: false 설정
+      const tableEdge = new THREE.LineSegments(
+        new THREE.EdgesGeometry(tableGeo), 
+        new THREE.LineBasicMaterial({ color: 0x94a3b8, transparent: true, opacity: 0.45, depthWrite: false })
+      );
       tableEdge.position.copy(table.position);
-      tableEdge.renderOrder = 3;
+      tableEdge.renderOrder = 1;
       scene.add(tableEdge);
     }
 
@@ -768,29 +777,36 @@
       return sprite;
     }
 
-    /* 작업대 좌측 전면 Base 원점 및 X(Red), Y(Green), Z(Blue) 직교 좌표계 */
+    /* [요청사항] Base 원점 직교 좌표계(X:Red, Y:Green, Z:Blue) 최상위 레이어 렌더링 (renderOrder: 999, depthTest: false) */
     function buildBaseCoordinates() {
-      const baseOrigin = new THREE.Vector3(-65, 0.2, 45);
+      const baseOrigin = new THREE.Vector3(-65, 0.5, 45); // 정반 모서리
       const baseGroup = new THREE.Group();
       baseGroup.position.copy(baseOrigin);
 
-      const axisLen = 22;
-      const radius = 0.65;
+      const axisLen = 24;
+      const radius = 0.85; // 두께를 0.85로 두툼하게 하여 시인성 보장
 
       const createAxis = (dirWorld, colorHex, label) => {
         const ag = new THREE.Group();
-        const mat = new THREE.MeshBasicMaterial({ color: colorHex, depthTest: false });
+        const mat = new THREE.MeshBasicMaterial({ color: colorHex, depthTest: false, depthWrite: false });
+        
         const stem = new THREE.Mesh(new THREE.CylinderGeometry(radius, radius, axisLen, 16), mat);
         stem.position.y = axisLen / 2;
-        const head = new THREE.Mesh(new THREE.ConeGeometry(radius * 2.4, 4.5, 16), mat);
-        head.position.y = axisLen + 2.25;
+        stem.renderOrder = 999; // 최상위 렌더링!
+        
+        const head = new THREE.Mesh(new THREE.ConeGeometry(radius * 2.4, 5.0, 16), mat);
+        head.position.y = axisLen + 2.5;
+        head.renderOrder = 999; // 최상위 렌더링!
+        
         ag.add(stem); ag.add(head);
 
         const upVec = new THREE.Vector3(0, 1, 0);
         ag.quaternion.setFromUnitVectors(upVec, dirWorld.clone().normalize());
 
-        const sp = createTextSprite(label, colorHex, 32);
-        sp.position.copy(dirWorld.clone().multiplyScalar(axisLen + 6.0));
+        const sp = createTextSprite(label, colorHex, 34);
+        sp.position.copy(dirWorld.clone().multiplyScalar(axisLen + 7.0));
+        sp.renderOrder = 1000;
+        
         baseGroup.add(ag);
         baseGroup.add(sp);
       };
@@ -803,13 +819,16 @@
       createAxis(new THREE.Vector3(0, 1, 0), '#2563eb', 'Z');
 
       // 원점 링 & 라벨
-      const dot = new THREE.Mesh(new THREE.SphereGeometry(1.6, 16, 16), new THREE.MeshBasicMaterial({ color: 0x0284c7, depthTest: false }));
+      const dot = new THREE.Mesh(new THREE.SphereGeometry(2.0, 16, 16), new THREE.MeshBasicMaterial({ color: 0x0284c7, depthTest: false, depthWrite: false }));
+      dot.renderOrder = 1000;
       baseGroup.add(dot);
+      
       const orgLabel = createTextSprite("Base (0,0,0)", "#0369a1", 24);
-      orgLabel.position.set(0, -3.5, 4.0);
+      orgLabel.position.set(0, -4.0, 4.0);
+      orgLabel.renderOrder = 1000;
       baseGroup.add(orgLabel);
 
-      baseGroup.renderOrder = 101;
+      baseGroup.renderOrder = 999;
       scene.add(baseGroup);
     }
 
@@ -822,7 +841,7 @@
       return new THREE.Mesh(new THREE.PlaneGeometry(16, 6), new THREE.MeshBasicMaterial({ map: new THREE.CanvasTexture(canvas), transparent: true, side: THREE.DoubleSide }));
     }
 
-    /* [요청사항] 사내 공인 AITZ 3DU[3DM] 구조광 3D 스캐너 완전 이식 (라벨 20% 확대) */
+    /* 사내 공인 AITZ 3DU[3DM] 구조광 3D 스캐너 완전 이식 (라벨 20% 확대) */
     function buildIndustrialScanner() {
       scannerGroup = new THREE.Group();
       const mountH = 125;
@@ -892,7 +911,7 @@
 
       // 5) [요청사항] 상단 제품명 스프라이트 라벨: '📷 AITZ 3DU[3DM]' 20% 확대 (40 -> 48)
       const tagSprite = createTextSprite("📷 AITZ 3DU[3DM]", "#0f172a", 32);
-      tagSprite.scale.set(48, 12, 1); // 20% 확대!
+      tagSprite.scale.set(48, 12, 1);
       tagSprite.position.set(0, 15, 0);
       scannerGroup.add(tagSprite);
 
@@ -1632,12 +1651,15 @@
         camera.position.set(110, 140, 170);
         controls.target.set(0, 15, 0);
       } else if (view === 'top') {
+        // 평면도 (Top): 화면 가로 X, 세로 Y
         camera.position.set(0, 260, 0);
         controls.target.set(0, 0, 0);
       } else if (view === 'front') {
+        // 정면도 (Front): 화면 가로 X, 수직 상하 Z
         camera.position.set(0, 15, 260);
         controls.target.set(0, 15, 0);
       } else if (view === 'side') {
+        // 측면도 (Side)
         camera.position.set(260, 15, 0);
         controls.target.set(0, 15, 0);
       }
