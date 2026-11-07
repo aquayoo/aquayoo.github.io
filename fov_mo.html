@@ -322,43 +322,44 @@
           </div>
         </div>
 
-        <!-- 3) 센서 크기(가로/세로 Width/Height 명기) + 조리개 선택창 -->
+      <!-- 3) 센서 크기(가로/세로 Width/Height 명기) + 조리개 선택창 가로 2열 배치 (수정본) -->
         <div class="flex gap-2 pt-1 border-t border-slate-800">
-          <!-- 좌측 60%: 센서 가로(Width) / 세로(Height) -->
-          <div class="w-[62%] space-y-1.5 pr-1 border-r border-slate-800">
+          
+          <!-- 좌측 58%: 센서 크기 가로/세로 직접입력 + 0.1mm 대형 증감 버튼 -->
+          <div class="w-[58%] space-y-2 pr-2 border-r border-slate-800 flex flex-col justify-center">
             <span class="text-[11px] font-bold text-slate-300 block">센서 크기 (±0.1mm)</span>
             
-            <!-- 가로 (Width) -->
-            <div class="flex items-center justify-between gap-1 text-xs">
+            <!-- 센서 가로 (Width) -->
+            <div class="flex items-center justify-between text-xs">
               <span class="text-slate-300 text-[10px] font-medium leading-tight">가로<br><span class="text-slate-500 text-[9px]">(Width)</span></span>
-              <div class="flex items-center gap-0.5">
-                <button onclick="stepSensor('W', -0.1)" class="w-7 h-7 rounded bg-slate-800 hover:bg-slate-700 active:bg-blue-600 text-white font-black text-base border border-slate-700 flex items-center justify-center">
+              <div class="flex items-center gap-1 flex-shrink-0">
+                <button onclick="stepSensor('W', -0.1)" class="w-7 h-7 rounded bg-slate-800 hover:bg-slate-700 active:bg-blue-600 text-white font-black text-base border border-slate-700 flex items-center justify-center select-none flex-shrink-0">
                   -
                 </button>
-                <input type="number" id="inputSensorW" step="0.1" class="w-13 bg-slate-900 border border-slate-700 text-center font-mono text-blue-400 font-bold py-0.5 rounded text-xs focus:border-blue-500 outline-none" value="7.2">
-                <button onclick="stepSensor('W', 0.1)" class="w-7 h-7 rounded bg-slate-800 hover:bg-slate-700 active:bg-blue-600 text-white font-black text-base border border-slate-700 flex items-center justify-center">
+                <input type="number" id="inputSensorW" step="0.1" class="w-12 bg-slate-900 border border-slate-700 text-center font-mono text-blue-400 font-bold py-1 rounded text-xs focus:border-blue-500 outline-none flex-shrink-0" value="7.2">
+                <button onclick="stepSensor('W', 0.1)" class="w-7 h-7 rounded bg-slate-800 hover:bg-slate-700 active:bg-blue-600 text-white font-black text-base border border-slate-700 flex items-center justify-center select-none flex-shrink-0">
                   +
                 </button>
               </div>
             </div>
 
-            <!-- 세로 (Height) -->
-            <div class="flex items-center justify-between gap-1 text-xs">
+            <!-- 센서 세로 (Height) -->
+            <div class="flex items-center justify-between text-xs">
               <span class="text-slate-300 text-[10px] font-medium leading-tight">세로<br><span class="text-slate-500 text-[9px]">(Height)</span></span>
-              <div class="flex items-center gap-0.5">
-                <button onclick="stepSensor('H', -0.1)" class="w-7 h-7 rounded bg-slate-800 hover:bg-slate-700 active:bg-blue-600 text-white font-black text-base border border-slate-700 flex items-center justify-center">
+              <div class="flex items-center gap-1 flex-shrink-0">
+                <button onclick="stepSensor('H', -0.1)" class="w-7 h-7 rounded bg-slate-800 hover:bg-slate-700 active:bg-blue-600 text-white font-black text-base border border-slate-700 flex items-center justify-center select-none flex-shrink-0">
                   -
                 </button>
-                <input type="number" id="inputSensorH" step="0.1" class="w-13 bg-slate-900 border border-slate-700 text-center font-mono text-blue-400 font-bold py-0.5 rounded text-xs focus:border-blue-500 outline-none" value="5.4">
-                <button onclick="stepSensor('H', 0.1)" class="w-7 h-7 rounded bg-slate-800 hover:bg-slate-700 active:bg-blue-600 text-white font-black text-base border border-slate-700 flex items-center justify-center">
+                <input type="number" id="inputSensorH" step="0.1" class="w-12 bg-slate-900 border border-slate-700 text-center font-mono text-blue-400 font-bold py-1 rounded text-xs focus:border-blue-500 outline-none flex-shrink-0" value="5.4">
+                <button onclick="stepSensor('H', 0.1)" class="w-7 h-7 rounded bg-slate-800 hover:bg-slate-700 active:bg-blue-600 text-white font-black text-base border border-slate-700 flex items-center justify-center select-none flex-shrink-0">
                   +
                 </button>
               </div>
             </div>
           </div>
 
-          <!-- 우측 38%: 조리개 선택창 -->
-          <div class="w-[38%] space-y-1">
+          <!-- 우측 42%: 조리개 선택창 -->
+          <div class="w-[42%] space-y-1">
             <span class="text-[11px] font-bold text-slate-300 block">조리개 (F)</span>
             <div class="grid grid-cols-2 gap-1 text-[10px]">
               <button onclick="setAperture(1.4)" class="f-btn py-1 rounded bg-slate-800 text-slate-300 border border-slate-700">F1.4</button>
@@ -372,7 +373,7 @@
             </div>
           </div>
 
-        </div>
+        </div>  
       </div>
 
     </div>
