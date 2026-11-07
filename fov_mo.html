@@ -47,17 +47,17 @@
 </head>
 <body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col font-sans overflow-x-hidden">
 
-  <!-- 1. 헤더: 콤팩트 2행 버전 박스 + 중앙 타이틀 + 우측 로고(홈링크) + 2단 프리셋 -->
+  <!-- 1. 헤더: 콤팩트 2행 버전 박스(V1.8) + 중앙 타이틀 + 우측 로고(홈링크) + 2단 프리셋 -->
   <header class="bg-slate-900/95 backdrop-blur border-b border-slate-800 px-3 py-2 sticky top-0 z-30 space-y-2">
     <!-- 타이틀 바 -->
     <div class="flex items-center justify-between gap-2">
       <!-- 2행 중앙 정렬 콤팩트 버전 박스 -->
       <div class="flex flex-col items-center justify-center px-1.5 py-0.5 rounded bg-blue-500/20 border border-blue-500/40 font-mono flex-shrink-0 leading-tight">
-        <span class="text-[10px] font-extrabold text-blue-400">V1.7</span>
+        <span class="text-[10px] font-extrabold text-blue-400">V1.8</span>
         <span class="text-[8px] text-blue-300/80">(Nov.07)</span>
       </div>
 
-      <!-- 영문 단독 타이틀 (가독성 최대 확보) -->
+      <!-- 영문 단독 타이틀 -->
       <h1 class="text-xs sm:text-base font-extrabold tracking-tight text-white font-mono truncate flex-1 text-center sm:text-left">
         FOV & WD Optical System
       </h1>
@@ -70,7 +70,7 @@
 
     <!-- 프리셋 버튼 그룹 (2줄 구조) -->
     <div class="space-y-1.5">
-      <!-- 1행: 주력 4종 -->
+      <!-- 1행: 주력 4종 (3DU, 3DM) -->
       <div class="grid grid-cols-4 gap-1.5">
         <button onclick="selectPreset('3DU_16')" id="btn_3DU_16" class="preset-btn py-1.5 text-xs font-bold rounded border bg-blue-600 border-blue-400 text-white shadow-sm transition-all text-center">3DU (16)</button>
         <button onclick="selectPreset('3DU_12')" id="btn_3DU_12" class="preset-btn py-1.5 text-xs font-bold rounded border bg-slate-800 border-slate-700 text-slate-300 hover:bg-slate-700 transition-all text-center">3DU (12)</button>
@@ -108,7 +108,7 @@
       </div>
     </div>
 
-    <!-- 하단 조작 패널 -->
+    <!-- 하단 조작 패널 (모바일 툴바 여백 pb-12) -->
     <div class="w-full lg:w-[460px] flex flex-col bg-slate-900 p-3 pb-12 gap-2.5 overflow-y-auto">
       
       <!-- [1구역] 2D Sensor View (32%) + 광학 계산기 (68%) -->
@@ -125,8 +125,9 @@
               <div class="w-full h-[1px] bg-slate-400"></div>
               <div class="h-full w-[1px] bg-slate-400 absolute"></div>
             </div>
-            <div id="sensorTargetBox" class="bg-amber-500/25 border-2 border-amber-400 rounded-sm transition-all duration-150 flex items-center justify-center shadow-lg" style="width: 60%; height: 60%;">
-              <span class="text-[8px] font-bold text-amber-300 tracking-wider">TARGET</span>
+            <!-- 타깃 결상 박스 -->
+            <div id="sensorTargetBox" class="bg-amber-500/25 border-2 border-amber-400 rounded-sm transition-all duration-150 flex items-center justify-center shadow-lg" style="width: 70%; height: 70%;">
+              <span id="targetBoxLabel" class="text-[8px] font-bold text-amber-300 tracking-wider">A4</span>
             </div>
           </div>
 
@@ -239,7 +240,7 @@
         </div>
       </div>
 
-      <!-- [★ 3구역] 중요 광학 공식 카드 (약 20% 폰트 확대 & 한눈에 들어오는 디자인) -->
+      <!-- [3구역] 중요 광학 공식 카드 -->
       <div class="bg-gradient-to-br from-slate-950 to-blue-950/50 p-3 rounded-lg border border-blue-500/40 space-y-2.5 shadow-md">
         <div class="flex items-center justify-between border-b border-slate-800 pb-1.5">
           <div class="flex items-center gap-1.5">
@@ -249,7 +250,6 @@
           <span class="text-[11px] text-blue-400 font-mono font-semibold">비례식 닮음비</span>
         </div>
 
-        <!-- 약 20% 확대된 분수 수식 표현 (text-base ~ text-lg 적용) -->
         <div class="flex items-center justify-center gap-3 py-1.5">
           <span class="text-base sm:text-lg font-black text-amber-300 font-mono">FOV<sub class="text-xs text-amber-200">(W)</sub> =</span>
           <div class="flex flex-col items-center">
@@ -262,7 +262,6 @@
           </div>
         </div>
 
-        <!-- 실시간 동적 수치 대입 힌트 박스 (시인성 강화) -->
         <div class="bg-slate-900/95 rounded-md p-2 text-center font-mono border border-slate-800 shadow-inner">
           <span class="text-slate-400 text-[10px] block mb-0.5">현재 장비 실시간 수치 대입:</span>
           <span id="formulaDynamicText" class="text-emerald-400 font-black text-xs sm:text-sm tracking-wide">
@@ -271,37 +270,38 @@
         </div>
       </div>
 
-      <!-- [4구역] 커스텀 전용 패널 (타깃 조정 + 센서 가로/세로(Width/Height) + 조리개) -->
+      <!-- [4구역] 커스텀 전용 패널 (표준 A4 / 대형 A2 프리셋 + 센서 58% 최적 레이아웃) -->
       <div id="customControlPanel" class="hidden bg-slate-950 p-2.5 rounded-lg border border-blue-900/50 space-y-3">
         <div class="text-xs font-bold text-blue-400 flex items-center justify-between border-b border-slate-800 pb-1">
           <span>커스텀 파라미터 세부설정</span>
           <span class="text-[10px] text-slate-400">자유 변경 모드</span>
         </div>
 
-        <!-- 1) 측정 부품 (Target) 크기 조정 -->
+        <!-- 1) 측정 부품 (Target) 크기 조정 (A4 및 A2 기준) -->
         <div class="space-y-1.5 bg-slate-900/70 p-2 rounded border border-slate-800">
           <div class="flex justify-between items-center text-xs">
             <div class="flex items-center gap-1.5">
               <span class="w-2 h-2 rounded bg-amber-400"></span>
               <span class="font-bold text-slate-200 whitespace-nowrap">측정 부품 (Target) 조정</span>
             </div>
+            <!-- 소형 / 표준 A4 / 대형 A2 원클릭 프리셋 -->
             <div class="flex gap-1 text-[9px]">
-              <button onclick="setTargetPreset(50, 35)" class="px-1 py-0.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded border border-slate-700">소형(50×35)</button>
-              <button onclick="setTargetPreset(200, 150)" class="px-1 py-0.5 bg-slate-800 hover:bg-slate-700 text-amber-300 font-semibold rounded border border-slate-700">표준(200×150)</button>
-              <button onclick="setTargetPreset(350, 250)" class="px-1 py-0.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded border border-slate-700">대형(350×250)</button>
+              <button onclick="setTargetPreset(50, 35, '소형')" class="px-1 py-0.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded border border-slate-700">소형(50×35)</button>
+              <button onclick="setTargetPreset(297, 210, 'A4')" class="px-1.5 py-0.5 bg-slate-800 hover:bg-slate-700 text-amber-300 font-bold rounded border border-amber-500/50">표준 A4(297×210)</button>
+              <button onclick="setTargetPreset(594, 420, 'A2')" class="px-1.5 py-0.5 bg-slate-800 hover:bg-slate-700 text-blue-300 font-bold rounded border border-blue-500/50">대형 A2(594×420)</button>
             </div>
           </div>
           
           <div class="flex items-center justify-between text-xs pt-0.5">
             <div class="flex items-center gap-1">
               <span class="text-slate-400 text-[11px]">부품 가로(W):</span>
-              <input type="number" id="inputTargetW" class="w-14 bg-slate-950 border border-slate-700 text-right font-mono text-amber-300 font-bold px-1 py-0.5 rounded focus:border-amber-400 outline-none" value="200">
+              <input type="number" id="inputTargetW" class="w-16 bg-slate-950 border border-slate-700 text-right font-mono text-amber-300 font-bold px-1 py-0.5 rounded focus:border-amber-400 outline-none" value="297">
               <span class="text-[10px] text-slate-400">mm</span>
             </div>
             <span class="text-slate-500 font-bold">×</span>
             <div class="flex items-center gap-1">
               <span class="text-slate-400 text-[11px]">부품 세로(H):</span>
-              <input type="number" id="inputTargetH" class="w-14 bg-slate-950 border border-slate-700 text-right font-mono text-amber-300 font-bold px-1 py-0.5 rounded focus:border-amber-400 outline-none" value="150">
+              <input type="number" id="inputTargetH" class="w-16 bg-slate-950 border border-slate-700 text-right font-mono text-amber-300 font-bold px-1 py-0.5 rounded focus:border-amber-400 outline-none" value="210">
               <span class="text-[10px] text-slate-400">mm</span>
             </div>
           </div>
@@ -322,43 +322,44 @@
           </div>
         </div>
 
-        <!-- 3) 센서 크기(가로/세로 Width/Height 명기) + 조리개 선택창 -->
+        <!-- 3) 센서 크기 + 조리개 선택창 (58% : 42% 최적 패치 버전) -->
         <div class="flex gap-2 pt-1 border-t border-slate-800">
-          <!-- 좌측 60%: 센서 가로(Width) / 세로(Height) -->
-          <div class="w-[62%] space-y-1.5 pr-1 border-r border-slate-800">
+          
+          <!-- 좌측 58%: 센서 크기 가로/세로 직접입력 + 0.1mm 대형 증감 버튼 -->
+          <div class="w-[58%] space-y-2 pr-2 border-r border-slate-800 flex flex-col justify-center">
             <span class="text-[11px] font-bold text-slate-300 block">센서 크기 (±0.1mm)</span>
             
-            <!-- 가로 (Width) -->
-            <div class="flex items-center justify-between gap-1 text-xs">
+            <!-- 센서 가로 (Width) -->
+            <div class="flex items-center justify-between text-xs">
               <span class="text-slate-300 text-[10px] font-medium leading-tight">가로<br><span class="text-slate-500 text-[9px]">(Width)</span></span>
-              <div class="flex items-center gap-0.5">
-                <button onclick="stepSensor('W', -0.1)" class="w-7 h-7 rounded bg-slate-800 hover:bg-slate-700 active:bg-blue-600 text-white font-black text-base border border-slate-700 flex items-center justify-center">
+              <div class="flex items-center gap-1 flex-shrink-0">
+                <button onclick="stepSensor('W', -0.1)" class="w-7 h-7 rounded bg-slate-800 hover:bg-slate-700 active:bg-blue-600 text-white font-black text-base border border-slate-700 flex items-center justify-center select-none flex-shrink-0">
                   -
                 </button>
-                <input type="number" id="inputSensorW" step="0.1" class="w-13 bg-slate-900 border border-slate-700 text-center font-mono text-blue-400 font-bold py-0.5 rounded text-xs focus:border-blue-500 outline-none" value="7.2">
-                <button onclick="stepSensor('W', 0.1)" class="w-7 h-7 rounded bg-slate-800 hover:bg-slate-700 active:bg-blue-600 text-white font-black text-base border border-slate-700 flex items-center justify-center">
+                <input type="number" id="inputSensorW" step="0.1" class="w-12 bg-slate-900 border border-slate-700 text-center font-mono text-blue-400 font-bold py-1 rounded text-xs focus:border-blue-500 outline-none flex-shrink-0" value="7.2">
+                <button onclick="stepSensor('W', 0.1)" class="w-7 h-7 rounded bg-slate-800 hover:bg-slate-700 active:bg-blue-600 text-white font-black text-base border border-slate-700 flex items-center justify-center select-none flex-shrink-0">
                   +
                 </button>
               </div>
             </div>
 
-            <!-- 세로 (Height) -->
-            <div class="flex items-center justify-between gap-1 text-xs">
+            <!-- 센서 세로 (Height) -->
+            <div class="flex items-center justify-between text-xs">
               <span class="text-slate-300 text-[10px] font-medium leading-tight">세로<br><span class="text-slate-500 text-[9px]">(Height)</span></span>
-              <div class="flex items-center gap-0.5">
-                <button onclick="stepSensor('H', -0.1)" class="w-7 h-7 rounded bg-slate-800 hover:bg-slate-700 active:bg-blue-600 text-white font-black text-base border border-slate-700 flex items-center justify-center">
+              <div class="flex items-center gap-1 flex-shrink-0">
+                <button onclick="stepSensor('H', -0.1)" class="w-7 h-7 rounded bg-slate-800 hover:bg-slate-700 active:bg-blue-600 text-white font-black text-base border border-slate-700 flex items-center justify-center select-none flex-shrink-0">
                   -
                 </button>
-                <input type="number" id="inputSensorH" step="0.1" class="w-13 bg-slate-900 border border-slate-700 text-center font-mono text-blue-400 font-bold py-0.5 rounded text-xs focus:border-blue-500 outline-none" value="5.4">
-                <button onclick="stepSensor('H', 0.1)" class="w-7 h-7 rounded bg-slate-800 hover:bg-slate-700 active:bg-blue-600 text-white font-black text-base border border-slate-700 flex items-center justify-center">
+                <input type="number" id="inputSensorH" step="0.1" class="w-12 bg-slate-900 border border-slate-700 text-center font-mono text-blue-400 font-bold py-1 rounded text-xs focus:border-blue-500 outline-none flex-shrink-0" value="5.4">
+                <button onclick="stepSensor('H', 0.1)" class="w-7 h-7 rounded bg-slate-800 hover:bg-slate-700 active:bg-blue-600 text-white font-black text-base border border-slate-700 flex items-center justify-center select-none flex-shrink-0">
                   +
                 </button>
               </div>
             </div>
           </div>
 
-          <!-- 우측 38%: 조리개 선택창 -->
-          <div class="w-[38%] space-y-1">
+          <!-- 우측 42%: 조리개 선택창 -->
+          <div class="w-[42%] space-y-1">
             <span class="text-[11px] font-bold text-slate-300 block">조리개 (F)</span>
             <div class="grid grid-cols-2 gap-1 text-[10px]">
               <button onclick="setAperture(1.4)" class="f-btn py-1 rounded bg-slate-800 text-slate-300 border border-slate-700">F1.4</button>
@@ -380,7 +381,7 @@
 
   <script>
     /* ============================================================
-       1. 프리셋 데이터 (V1.7)
+       1. 프리셋 데이터 (V1.8)
        ============================================================ */
     const PRESETS = {
       '3DU_16': {
@@ -444,7 +445,9 @@
     let currentKey = '3DU_16';
     let currentParams = { ...PRESETS['3DU_16'], wd: 700 };
     let showDof = false;
-    let targetSpec = { w: 200, h: 150 };
+
+    // [V1.8 핵심] 기본 타깃 크기: A4 용지 규격 (297 x 210 mm)
+    let targetSpec = { w: 297, h: 210, label: 'A4' };
 
     /* ============================================================
        2. Three.js & CSS2DRenderer
@@ -484,7 +487,7 @@
     grid.position.y = -350;
     scene.add(grid);
 
-    // 카메라 메쉬
+    // 카메라 바디
     const camGroup = new THREE.Group();
     const camBody = new THREE.Mesh(
       new THREE.BoxGeometry(60, 60, 90),
@@ -502,7 +505,7 @@
     camGroup.add(lens);
     scene.add(camGroup);
 
-    // 타깃 메쉬
+    // 타깃 메쉬 (A4 기본 생성)
     let targetMesh = null;
     function buildTargetMesh() {
       if (targetMesh) scene.remove(targetMesh);
@@ -601,7 +604,7 @@
         pCam.x, pCam.y, pCam.z, pBL.x, pBL.y, pBL.z, pBR.x, pBR.y, pBR.z,
         pCam.x, pCam.y, pCam.z, pTL.x, pTL.y, pTL.z, pBL.x, pBL.y, pBL.z
       ];
-      const pyrGeo = new THREE.BufferGeometry();
+      pyrGeo = new THREE.BufferGeometry();
       pyrGeo.setAttribute('position', new THREE.Float32BufferAttribute(pyrPositions, 3));
       pyrGeo.computeVertexNormals();
       frustumMesh = new THREE.Mesh(pyrGeo, new THREE.MeshBasicMaterial({ 
@@ -683,7 +686,6 @@
         document.getElementById('dofRangeText').innerText = `${Math.round(Dn)} ~ ${Math.round(Df)} mm (${Math.round(totalDof)}mm)`;
       }
 
-      // [V1.7 강화] 실시간 동적 대입 수치 텍스트 갱신
       const formulaEl = document.getElementById('formulaDynamicText');
       if (formulaEl) {
         formulaEl.innerText = `( ${Math.round(wd)} × ${sensorW.toFixed(1)} ) ÷ ${focal.toFixed(0)} = ${Math.round(fovW)} mm`;
@@ -692,6 +694,9 @@
       // 2D Sensor View
       const targetBox = document.getElementById('sensorTargetBox');
       const badge = document.getElementById('targetStatusBadge');
+      const boxLabel = document.getElementById('targetBoxLabel');
+
+      boxLabel.innerText = targetSpec.label || 'TARGET';
 
       const pctW = Math.min(96, Math.max(8, (targetSpec.w / fovW) * 85));
       const pctH = Math.min(96, Math.max(8, (targetSpec.h / fovH) * 85));
@@ -833,6 +838,7 @@
       const val = parseFloat(e.target.value);
       if (!isNaN(val) && val > 0) {
         targetSpec.w = val;
+        targetSpec.label = 'CUSTOM';
         buildTargetMesh();
         syncAll();
       }
@@ -841,14 +847,17 @@
       const val = parseFloat(e.target.value);
       if (!isNaN(val) && val > 0) {
         targetSpec.h = val;
+        targetSpec.label = 'CUSTOM';
         buildTargetMesh();
         syncAll();
       }
     });
 
-    window.setTargetPreset = function(w, h) {
+    // 타깃 프리셋 설정 (소형 / 표준 A4 / 대형 A2)
+    window.setTargetPreset = function(w, h, label) {
       targetSpec.w = w;
       targetSpec.h = h;
+      targetSpec.label = label;
       document.getElementById('inputTargetW').value = w;
       document.getElementById('inputTargetH').value = h;
       buildTargetMesh();
