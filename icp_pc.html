@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <!-- 
     ========================================================================================
-    [ATM / 3D Vision ICP 정합 Simulator (ver 0.7 - PC Full HD 1920x1080 Edition)]
+    [ATM / 3D Vision ICP 정합 Simulator (ver 0.8 - PC Full HD 1920x1080 Edition)]
     Release Date: November 8, 2026
     Author: 교육관 유재광 (jaekwang.yoo@atmc.co.kr)
     
@@ -12,51 +12,54 @@
     ----------------------------------------------------------------------------------------
     ■ ver 0.3 (Baseline)
       - Three.js 기반 3D 비대칭 차체 브라켓(1,480 pts) 렌더링 및 공분산 ICP 루프 구현
-      - 다크 테마(#0a1117) 기반 개발자용 단일 HTML 뷰어 형태
-      - ZYX 오일러 회전 역산 및 4x4 동차변환행렬 [R|T] 터미널 출력
+      - 다크 테마(#0a1117) 기반 단일 HTML 뷰어 형태
     
-    ■ ver 0.4 (Conceptual Design)
-      - 신입사원 교육 목적에 맞춘 단계별(Step-by-Step) 공정 인터랙션 구조 기획
-      - 수식 표면 노출 지양, 최근접 점-대응선(Correspondence Rays) 시각화 아이디어 도출
-      - 180° 반전 및 대칭 축 착시를 이용한 Local Minima(수렴 실패) 체감 교육 시나리오 수립
+    ■ ver 0.4 ~ 0.6 (Design & PC Integration Prototype)
+      - uf6_pc.html의 Clean White 산업용 고대비 레이아웃 이식
+      - 5단계 공정 시나리오 및 최근접 점-대응선(Correspondence Rays) 시각화 기획
+      - 1920x1080 Full HD 최적화 및 뷰포트 레이아웃 구성
     
-    ■ ver 0.5 (PC Architecture Migration)
-      - uf6_pc.html (ATM V8.5)의 Clean White 산업용 고대비 레이아웃(Tailwind CSS + Pretendard) 완전 이식
-      - 5단계 공정 시나리오(모델 안착 -> 6축 왜곡 -> 레이저 스캔 -> ICP 정합 -> [R|T] 확정) 체계화
-      - 하단 4x4 [R|T] 매트릭스 카드 및 TCP/IP 실시간 패킷 로그 터미널 장착
+    ■ ver 0.7 (Contrast Fix)
+      - 딥 네이비 vs 앰버 오렌지 vs 퍼플 대응선 고대비 배색 초안
     
-    ■ ver 0.6 (Design & Contrast Fix / Prototype)
-      - 화이트 배경에서 점군 및 스캐너가 하얗게 날아가는 시인성 이슈 확인 및 배색 계획 수립
-      - RGB 축선(X:빨강, Y:초록, Z:파랑)과의 시각적 충돌 방지용 고대비 팔레트 선정
-      - 1920x1080 해상도에 최적화된 시야각(FOV 45°) 및 카메라 앵글 좌표 산출
-    
-    ■ ver 0.7 (Current Official Release - Nov. 08, 2026)
-      1. 고대비 점군 & 대응선 전면 배색 개편 (화이트 배경 최적화):
-         - 마스터 모델(REF.ply): 딥 네이비 / 코발트 블루(#1e3a8a, size: 2.8) -> 흰색 바탕에서 뚜렷한 외곽선 확보
-         - 스캔 왜곡 모델(Scene.ply): 비비드 번트 오렌지(#ea580c, size: 3.0) -> REF와 완벽한 보색 대비 형성
-         - 점-대응선(Correspondence Rays): 일렉트릭 퍼플(#7c3aed, opacity: 0.55) -> 두 점군을 잇는 매칭 거미줄 선명 시각화
-         - 작업 정반(Work Table): 솔리드 슬레이트(#cbd5e1 상판, #64748b 엣지)로 배경과 명확히 분리
-         - UI 범례(Scene Hierarchy) 및 헤더 뱃지 색상을 3D 점군 배색과 100% 일치 동기화
-      2. 사내 공인 AITZ 3DU[3DM] 산업용 3D 스캐너 완전 이식:
-         - uf6_pc.html 사양 100% 반영: 다크 아연 다이캐스팅 바디, 듀얼 4.5° 경사 틸트 렌즈 링
-         - 전면 및 상단 공인 붉은색 'ATM' 이탤릭 CI 로고 캔버스 텍스처 부착
-         - 상단 라벨 스프라이트 '📷 AITZ 3DU[3DM]' 명기 및 상공 지주 마운트 스템 구현
-         - STEP 3 적색 구조광 슬릿 레이저 및 90° 직교 교차 스윕 애니메이션 탑재
-      3. 상단 헤더 및 타이틀 규격 정돈:
-         - 버전 버튼: 2행 분할 레이아웃 확정 [1행: V0.7 / 2행: (Nov.08)]
-         - 타이틀: 간결하고 명확한 '3D Vision ICP 정합 Simulator'로 정돈 ('[과제1]' 문구 삭제)
-      4. 1920x1080 해상도 시야각 및 시네마틱 카메라 동선 최적화:
-         - 좌측 208px, 우측 316px, 하단 136px 패널 간섭을 완벽히 배제한 중앙 3D 뷰포트 배치
-         - 기본 화각 FOV 45° 표준 렌즈 왜곡 방지 및 카메라 중심점 (0, 12, 0) 고정
-      5. 원클릭 인터랙티브 교육 기능 완성:
-         - [데모(OK)]: 안전 수렴 영역 내 정상 정합 완벽 시연
-         - [데모(NG)]: 180° Yaw Flip으로 인한 Local Minima 함정 및 엉뚱한 정합 현상 직접 목격
-         - 교육관 유재광 배지 마우스 오버 시 연수 수료 축하 골드 토스트 팝업 연동
+    ■ ver 0.8 (Current Official Major Release - Nov. 08, 2026)
+      1. 산업용 Z-Up 직교 좌표계 표준화 (긴급 버그 패치):
+         - Three.js 내부 월드 좌표계의 Y/Z 반전 이슈 전면 해결
+         - 평면도(Top View): X축(좌우), Y축(전후) 완벽 일치
+         - 정면도(Front View): X축(좌우), Z축(수직 상하 방향) 정렬
+         - 작업대 좌측 전면 Base 원점에 굵은 3D 직교 좌표계(X:Red, Y:Green, Z:Blue) 상시 표시
+      2. 포인트 클라우드 및 스캐너 투명도 제거 & 100% 불투명 솔리드 고대비 시인성 극대화:
+         - Three.js Fog(안개) 효과 완전 제거 (배경 흐림 및 색 바램 현상 차단)
+         - 마스터 모델(REF.ply): 100% 완전 불투명(opaque) 딥 네이비(#0f2b5c, size: 3.5)
+         - 스캔 왜곡 모델(Scene.ply): 100% 완전 불투명 비비드 오렌지(#ff5500, size: 3.8)
+         - 대응선(Rays): 선명한 보라색(#8b00ff, opacity: 0.85)
+         - AITZ 3DU 스캐너: 다크 챠콜(#111827) 메탈 바디, 붉은색 ATM CI 로고 및 지주대 선명화
+      3. Lotus.Mv.ICP 속성창 제어 인터페이스 개편:
+         - [Default] 버튼: 오차 전체 0 리셋
+         - [Random] 버튼: 전체 한계 범위 내 6축 무작위 변위 주입
+         - 오차 범위: dX, dY, dZ [-65 ~ +65mm], dRx, dRy [-20.0 ~ +20.0°], dRz [-30.0 ~ +30.0°]
+      4. 예제(OK) vs 예제(NG) 로직 및 판정 기준 확립:
+         - 라벨 수정: '데모' -> '예제(OK)', '예제(NG)'
+         - OK 조건: |dX, dY, dZ| ≤ 50mm AND |dRx, dRy| ≤ 15° AND |dRz| ≤ 20°
+         - NG 조건: 위 조건 중 단 1개라도 벗어날 시 즉시 불량 판정
+      5. 우측 하단 대형 6축 공차 LED 모니터 (직경 12px) 신설:
+         - 포인트클라우드 계층 카드 바로 아래 배치
+         - dX, dY, dZ, dRx, dRy, dRz 각 축별 대형 LED (정상 Green, 초과 Red 점멸)
+         - STEP 3 스캔 완료 시점에 즉각 판정 점등
+      6. NG 발생 시 STEP 4 스킵 및 인터록 처리:
+         - NG 시 STEP 4(정합 루프)를 즉시 건너뛰고 STEP 5로 직행
+         - 4x4 [R|T] 행렬 성분 전체를 '?'로 마스킹 처리하여 보정 불가 표시
+      7. 완료/실패 배너 위치 최적화:
+         - 상단 간섭을 피해 중앙 3D 작업대 화면의 [우측 하단(안쪽)]에 배치
+         - 성공: 초록색 [Cycle Completed !!]
+         - 실패: 붉은색 [The work Fails! (Tolerance Over)]
+      8. AITZ 3DU 프로젝터 & 듀얼 카메라 직교 레이저 이중 샷 스캔 시각화:
+         - X축 및 Y축 직교 교차 스위퍼 레이저 + 듀얼 렌즈 플래시 링 번쩍임 연출
     ========================================================================================
   -->
-  <meta name="application-version" content="0.7">
+  <meta name="application-version" content="0.8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>3D Vision ICP 정합 Simulator (ver 0.7)</title>
+  <title>3D Vision ICP 정합 Simulator</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
@@ -72,27 +75,31 @@
     input[type="range"]::-webkit-slider-thumb:hover { transform: scale(1.2); background-color: #eab308; }
     input[type="range"]::-moz-range-thumb { width: 13px; height: 13px; border-radius: 50%; background-color: #facc15; border: 2px solid #ca8a04; cursor: pointer; }
     
-    .pm-btn { width: 19px; height: 19px; display: inline-flex; align-items: center; justify-content: center; border-radius: 4px; background-color: #e2e8f0; color: #0f172a; font-weight: 900; font-size: 14px; line-height: 1; border: 1px solid #cbd5e1; transition: all 0.12s; flex-shrink: 0; padding-bottom: 1px; }
-    .pm-btn:hover { background-color: #2563eb; color: #ffffff; border-color: #1d4ed8; }
-    .pm-btn:active { transform: scale(0.90); }
+    .btn-running-ok { outline: 2px solid #10b981 !important; box-shadow: 0 0 10px rgba(16, 185, 129, 0.7) !important; }
+    .btn-running-ng { outline: 2px solid #ef4444 !important; box-shadow: 0 0 10px rgba(239, 68, 68, 0.7) !important; }
+    .btn-running-auto { outline: 2px solid #3b82f6 !important; box-shadow: 0 0 10px rgba(59, 130, 246, 0.7) !important; }
 
     ::-webkit-scrollbar { width: 4px; height: 4px; }
     ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
     #packetLogList::-webkit-scrollbar { width: 6px; height: 6px; }
     #packetLogList::-webkit-scrollbar-track { background: #e2e8f0; }
     #packetLogList::-webkit-scrollbar-thumb { background: #94a3b8; border-radius: 4px; }
-    .icp-card-enter { animation: icpSlideIn 0.3s cubic-bezier(0.16,1,0.3,1) forwards; }
-    @keyframes icpSlideIn { from { opacity: 0; transform: translateY(-6px) scale(0.98); } to { opacity: 1; transform: translateY(0) scale(1); } }
 
     .rt-matrix-table { width: 100%; border-collapse: separate; border-spacing: 2px; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; font-size: 10px; table-layout: fixed; }
     .rt-matrix-table td { padding: 2px 3px; text-align: right; border-radius: 4px; font-weight: 700; letter-spacing: -0.02em; overflow: hidden; white-space: nowrap; }
     .rt-cell-r { background-color: #eff6ff; color: #1e3a8a; border: 1px solid #bfdbfe; }
     .rt-cell-t { background-color: #fffbeb; color: #b45309; border: 1px solid #fde68a; font-weight: 800 !important; }
     .rt-cell-h { background-color: #f1f5f9; color: #64748b; border: 1px solid #e2e8f0; text-align: center !important; font-weight: 700; }
+    .rt-cell-ng { background-color: #fef2f2; color: #dc2626; border: 1px solid #fecaca; text-align: center !important; font-weight: 900; }
 
-    .btn-running-ok { outline: 2px solid #34d399 !important; box-shadow: 0 0 10px rgba(16, 185, 129, 0.6) !important; }
-    .btn-running-ng { outline: 2px solid #fb7185 !important; box-shadow: 0 0 10px rgba(244, 63, 94, 0.6) !important; }
-    .btn-running-auto { outline: 2px solid #60a5fa !important; box-shadow: 0 0 10px rgba(59, 130, 246, 0.6) !important; }
+    #cycleResultBanner {
+      transition: opacity 0.35s cubic-bezier(0.16,1,0.3,1), transform 0.35s cubic-bezier(0.16,1,0.3,1);
+    }
+    #cycleResultBanner.show-banner {
+      opacity: 1 !important;
+      transform: translateY(0) scale(1) !important;
+      pointer-events: auto !important;
+    }
 
     #goldToastPopup {
       position: absolute;
@@ -116,9 +123,9 @@
   <!-- Header Section -->
   <header class="w-full bg-white rounded-xl shadow-xs border border-slate-200 px-4 py-1.5 flex items-center justify-between shrink-0 mb-1.5">
     <div class="flex items-center gap-2.5">
-      <!-- 2행 버전 배지: V0.7 / (Nov.08) -->
+      <!-- 2행 버전 배지: V1.0b / (Nov.08) -->
       <div class="bg-blue-600 text-white px-2.5 py-0.5 rounded-md shadow-xs flex flex-col items-center justify-center leading-tight">
-        <span class="text-[11px] font-black tracking-tight">V0.7</span>
+        <span class="text-[11px] font-black tracking-tight">V1.0b</span>
         <span class="text-[8.5px] font-bold opacity-90 leading-none">(Nov.08)</span>
       </div>
       <h1 class="text-sm md:text-base font-extrabold text-slate-900 tracking-tight whitespace-nowrap">
@@ -131,7 +138,7 @@
       <div class="hidden lg:flex items-center gap-3 text-xs font-mono bg-slate-50 px-3.5 py-1 rounded-lg border border-slate-200">
         <div><span class="text-slate-500 font-bold">CORE:</span> <span class="font-extrabold text-blue-600">Lotus.Mv.ICP</span></div>
         <div class="border-l border-slate-300 pl-2.5"><span class="text-slate-500 font-bold">POINTS:</span> <span class="font-extrabold text-slate-900">1,480 pts</span></div>
-        <div class="border-l border-slate-300 pl-2.5"><span class="text-slate-500 font-bold">STATE:</span> <span id="headerIcpStatus" class="font-extrabold text-emerald-600">대기 중</span></div>
+        <div class="border-l border-slate-300 pl-2.5"><span class="text-slate-500 font-bold">TOL:</span> <span id="headerTolBadge" class="font-extrabold text-emerald-600">대기 중</span></div>
         <div class="border-l border-slate-300 pl-2.5"><span class="text-slate-500 font-bold">RMSE:</span> <span id="headerRmseVal" class="font-extrabold text-amber-600">0.00 mm</span></div>
       </div>
 
@@ -160,13 +167,13 @@
       <!-- 상단 카메라 뷰 프리셋 & 시각화 토글 옵션 -->
       <div class="absolute top-2.5 left-[222px] flex items-center gap-1.5 bg-white/95 backdrop-blur-md p-1.5 rounded-xl border border-slate-300 text-xs z-10 shadow-sm">
         <button id="camBtn_iso" onclick="setCameraView('iso')" class="cam-preset-btn active-cam px-2.5 py-1 bg-slate-100 hover:bg-blue-600 hover:text-white text-slate-700 rounded-lg transition font-bold border border-slate-200">입체(ISO)</button>
-        <button id="camBtn_top" onclick="setCameraView('top')" class="cam-preset-btn px-2.5 py-1 bg-slate-100 hover:bg-blue-600 hover:text-white text-slate-700 rounded-lg transition font-bold border border-slate-200">평면도(Top)</button>
-        <button id="camBtn_front" onclick="setCameraView('front')" class="cam-preset-btn px-2.5 py-1 bg-slate-100 hover:bg-blue-600 hover:text-white text-slate-700 rounded-lg transition font-bold border border-slate-200">정면(Front)</button>
+        <button id="camBtn_top" onclick="setCameraView('top')" class="cam-preset-btn px-2.5 py-1 bg-slate-100 hover:bg-blue-600 hover:text-white text-slate-700 rounded-lg transition font-bold border border-slate-200" title="평면도: 가로 X, 세로 Y">평면도(Top)</button>
+        <button id="camBtn_front" onclick="setCameraView('front')" class="cam-preset-btn px-2.5 py-1 bg-slate-100 hover:bg-blue-600 hover:text-white text-slate-700 rounded-lg transition font-bold border border-slate-200" title="정면도: 가로 X, 수직상하 Z">정면(Front)</button>
         <button id="camBtn_side" onclick="setCameraView('side')" class="cam-preset-btn px-2.5 py-1 bg-slate-100 hover:bg-blue-600 hover:text-white text-slate-700 rounded-lg transition font-bold border border-slate-200">측면(Side)</button>
         
-        <!-- 점-대응선(Correspondence Lines) 토글 버튼 (일렉트릭 퍼플 테마) -->
+        <!-- 점-대응선(Correspondence Lines) 토글 버튼 -->
         <button id="btnToggleRays" onclick="toggleCorrespondenceRays()" class="px-2 py-1 bg-purple-100 text-purple-800 rounded-lg transition font-extrabold border border-purple-400 flex items-center gap-1 shadow-2xs" title="최근접 점-대응(Correspondence) 선 표시 토글">
-          <span class="w-2 h-2 rounded-full bg-[#7c3aed] inline-block"></span><span>대응선(Rays)</span>
+          <span class="w-2 h-2 rounded-full bg-[#8b00ff] inline-block"></span><span>대응선(Rays)</span>
         </button>
 
         <!-- 화각(FOV) 슬라이더 (기본 45° 표준) -->
@@ -177,7 +184,18 @@
         </div>
       </div>
 
-      <!-- 좌측 영역: 5단계 공정 제어 패널 + 원클릭 시연 데모 -->
+      <!-- [V0.8] 성공/실패 결과 배너: 작업대 화면 [우측 하단 안쪽] 배치 (다른 창과 겹침 완벽 차단) -->
+      <div id="cycleResultBanner" class="pointer-events-none absolute bottom-[150px] right-[336px] w-[280px] z-30 opacity-0 translate-y-2 scale-95 flex flex-col items-stretch">
+        <div id="cycleResultBox" class="w-full bg-white/95 backdrop-blur-md px-3.5 py-2.5 rounded-2xl border-2 border-blue-500 shadow-2xl flex items-center gap-2.5">
+          <span id="cycleResultIcon" class="w-7 h-7 rounded-full bg-emerald-500 text-white flex items-center justify-center text-sm font-black shadow-xs shrink-0">✓</span>
+          <div class="flex flex-col min-w-0">
+            <span id="cycleResultSub" class="text-[9.5px] font-extrabold text-blue-600 tracking-wider uppercase truncate">Process Evaluation</span>
+            <span id="cycleResultTitle" class="text-sm font-black text-slate-900 tracking-tight leading-tight truncate">Cycle Completed !!</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 좌측 영역: 5단계 공정 제어 패널 + 예제(OK) / 예제(NG) -->
       <div class="absolute top-2.5 left-2.5 w-[208px] z-20 flex flex-col gap-2 max-h-[96%] overflow-y-auto pr-0.5">
         <div class="bg-white/95 backdrop-blur-md p-2.5 rounded-xl shadow-lg border border-slate-300 text-xs flex flex-col gap-1.5">
           <div class="flex items-center justify-between border-b border-slate-200 pb-1">
@@ -185,13 +203,13 @@
             <button id="btnToggleStepPanel" onclick="toggleStepPanel()" class="px-2 py-0.5 bg-blue-50 text-blue-700 border border-blue-200 rounded text-[11px] font-bold">CLOSE</button>
           </div>
           
-          <!-- 원클릭 자동 시연 모드: 정상 수렴 OK vs 로컬 미니마 NG -->
+          <!-- 원클릭 예제 모드: 예제(OK) vs 예제(NG) -->
           <div class="grid grid-cols-2 gap-1 p-1 bg-slate-100 rounded-lg border border-slate-200 text-[10.5px] font-bold">
-            <button id="btnDemoOK" onclick="startCinematicDemo('OK')" class="py-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded transition shadow-xs flex items-center justify-center gap-1" title="정상 변위 주입 후 완벽 정합 시연">
-              <span>🎬 데모(OK)</span>
+            <button id="btnDemoOK" onclick="startExampleMode('OK')" class="py-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded transition shadow-xs flex items-center justify-center gap-1" title="공차 내 안전 변위(OK) 주입 후 정합 완결">
+              <span>🎬 예제(OK)</span>
             </button>
-            <button id="btnDemoNG" onclick="startCinematicDemo('NG')" class="py-1 bg-rose-600 hover:bg-rose-700 text-white rounded transition shadow-xs flex items-center justify-center gap-1" title="180° 반전/대칭 착시로 인한 Local Minima 실패 시연">
-              <span>⚠️ 데모(NG)</span>
+            <button id="btnDemoNG" onclick="startExampleMode('NG')" class="py-1 bg-rose-600 hover:bg-rose-700 text-white rounded transition shadow-xs flex items-center justify-center gap-1" title="공차 초과 변위(NG) 주입 -> STEP 4 스킵 및 인터록 실패">
+              <span>⚠️ 예제(NG)</span>
             </button>
           </div>
 
@@ -225,39 +243,9 @@
             </button>
           </div>
         </div>
-
-        <!-- 모델 계층 (Hierarchy) 카드 (고대비 배색 적용) -->
-        <div class="bg-white/95 backdrop-blur-md p-2.5 rounded-xl shadow-lg border border-slate-300 text-xs flex flex-col gap-1.5">
-          <div class="font-black text-slate-900 text-xs border-b border-slate-200 pb-1 flex items-center gap-1.5">
-            <span class="text-blue-600">🗂️</span><span>포인트 클라우드 계층</span>
-          </div>
-          <div class="space-y-1 pt-0.5">
-            <div class="flex items-center justify-between bg-slate-50 px-2 py-1 rounded border border-slate-200">
-              <div class="flex items-center gap-1.5">
-                <span class="w-2.5 h-2.5 rounded-sm bg-[#1e3a8a] border border-[#172554]"></span>
-                <span class="font-bold text-[11px] text-[#1e3a8a]">REF.ply (마스터)</span>
-              </div>
-              <span class="font-mono text-[10px] text-slate-500 font-bold">Target</span>
-            </div>
-            <div class="flex items-center justify-between bg-slate-50 px-2 py-1 rounded border border-slate-200">
-              <div class="flex items-center gap-1.5">
-                <span class="w-2.5 h-2.5 rounded-sm bg-[#ea580c] border border-[#9a3412]"></span>
-                <span class="font-bold text-[11px] text-[#ea580c]">Scene.ply (스캔)</span>
-              </div>
-              <span class="font-mono text-[10px] text-amber-700 font-bold">Source</span>
-            </div>
-            <div class="flex items-center justify-between bg-slate-50 px-2 py-1 rounded border border-slate-200">
-              <div class="flex items-center gap-1.5">
-                <span class="w-2.5 h-0.5 bg-[#7c3aed]"></span>
-                <span class="font-bold text-[11px] text-purple-700">대응선 (Rays)</span>
-              </div>
-              <span class="font-mono text-[10px] text-purple-600 font-bold">Nearest</span>
-            </div>
-          </div>
-        </div>
       </div>
 
-      <!-- 우측 영역: Lotus.Mv.ICP 파라미터 + 6-DOF 오차 슬라이더 -->
+      <!-- 우측 영역: Lotus.Mv.ICP 속성 + 계층 범례 + 대형 6축 LED 모니터 -->
       <div class="absolute top-2.5 right-2.5 w-[316px] z-20 flex flex-col gap-2 max-h-[96%] overflow-y-auto pl-0.5">
         
         <!-- 1. Lotus.Mv.ICPAligner 속성 패널 -->
@@ -267,7 +255,8 @@
               <span class="text-blue-600">⚙️</span><span>Lotus.Mv.ICPAligner 속성</span>
             </div>
             <div class="flex items-center gap-1">
-              <button onclick="applyPreset('default')" class="px-2 py-0.5 bg-blue-50 text-blue-700 border border-blue-200 hover:bg-blue-100 rounded text-[11px] font-bold transition">기본 프리셋</button>
+              <button onclick="applyDefaultPreset()" class="px-2 py-0.5 bg-blue-50 text-blue-700 border border-blue-200 hover:bg-blue-100 rounded text-[11px] font-bold transition">Default</button>
+              <button onclick="applyRandomPreset()" class="px-2 py-0.5 bg-purple-50 text-purple-700 border border-purple-200 hover:bg-purple-100 rounded text-[11px] font-bold transition">Random</button>
               <button id="btnTogglePanel" onclick="toggleParamPanel()" class="px-2 py-0.5 bg-slate-200 text-slate-800 rounded text-[11px] font-bold">CLOSE</button>
             </div>
           </div>
@@ -305,54 +294,54 @@
               </div>
             </div>
 
-            <!-- 인위적 6-DOF 오차 주입 (Manual Error Injection) -->
+            <!-- 인위적 6-DOF 오차 주입 (요청 범위: dX,dY,dZ ±65 / dRx,dRy ±20 / dRz ±30) -->
             <div class="bg-amber-50/80 p-2 rounded-lg border border-amber-200">
               <div class="flex justify-between items-center mb-1 font-bold text-amber-900 text-xs">
                 <span>🔄 6-DOF 인위적 오차 주입</span>
-                <button onclick="resetSliders()" class="text-[10.5px] text-amber-800 underline font-bold">오차 0 초기화</button>
+                <span class="text-[10px] text-amber-800 font-mono">OK: ±50mm/±15°/±20°</span>
               </div>
 
-              <!-- 직진 변위 -->
+              <!-- 직진 변위: -65 ~ +65 mm -->
               <div class="space-y-1 border-b border-amber-200 pb-1.5 mb-1.5">
                 <div class="text-[10px] text-amber-900 font-extrabold flex justify-between">
                   <span>직진 변위 (Translation, mm)</span>
                 </div>
                 <div class="flex items-center gap-1">
                   <span class="w-6 font-mono text-red-600 font-extrabold text-[11px]">ΔX:</span>
-                  <input type="range" id="sl-dx" min="-60" max="60" step="1" value="25" oninput="onSliderChange()" class="flex-1 h-1.5 bg-amber-200 rounded cursor-pointer">
-                  <span id="txt-dx" class="w-11 font-mono text-right text-slate-900 font-bold text-[11px]">+25mm</span>
+                  <input type="range" id="sl-dx" min="-65" max="65" step="1" value="25" oninput="onSliderChange()" class="flex-1 h-1.5 bg-amber-200 rounded cursor-pointer">
+                  <span id="txt-dx" class="w-12 font-mono text-right text-slate-900 font-bold text-[11px]">+25mm</span>
                 </div>
                 <div class="flex items-center gap-1">
                   <span class="w-6 font-mono text-green-600 font-extrabold text-[11px]">ΔY:</span>
-                  <input type="range" id="sl-dy" min="-60" max="60" step="1" value="-20" oninput="onSliderChange()" class="flex-1 h-1.5 bg-amber-200 rounded cursor-pointer">
-                  <span id="txt-dy" class="w-11 font-mono text-right text-slate-900 font-bold text-[11px]">-20mm</span>
+                  <input type="range" id="sl-dy" min="-65" max="65" step="1" value="-20" oninput="onSliderChange()" class="flex-1 h-1.5 bg-amber-200 rounded cursor-pointer">
+                  <span id="txt-dy" class="w-12 font-mono text-right text-slate-900 font-bold text-[11px]">-20mm</span>
                 </div>
                 <div class="flex items-center gap-1">
                   <span class="w-6 font-mono text-blue-600 font-extrabold text-[11px]">ΔZ:</span>
-                  <input type="range" id="sl-dz" min="-40" max="40" step="1" value="15" oninput="onSliderChange()" class="flex-1 h-1.5 bg-amber-200 rounded cursor-pointer">
-                  <span id="txt-dz" class="w-11 font-mono text-right text-slate-900 font-bold text-[11px]">+15mm</span>
+                  <input type="range" id="sl-dz" min="-65" max="65" step="1" value="15" oninput="onSliderChange()" class="flex-1 h-1.5 bg-amber-200 rounded cursor-pointer">
+                  <span id="txt-dz" class="w-12 font-mono text-right text-slate-900 font-bold text-[11px]">+15mm</span>
                 </div>
               </div>
 
-              <!-- 회전 변위 -->
+              <!-- 회전 변위: dRx, dRy ±20° / dRz ±30° -->
               <div class="space-y-1">
                 <div class="text-[10px] text-amber-900 font-extrabold flex justify-between">
                   <span>회전 변위 (ZYX Euler, deg)</span>
                 </div>
                 <div class="flex items-center gap-1">
                   <span class="w-6 font-mono text-red-600 font-extrabold text-[11px]">ΔRx:</span>
-                  <input type="range" id="sl-rx" min="-30" max="30" step="0.5" value="6" oninput="onSliderChange()" class="flex-1 h-1.5 bg-amber-200 rounded cursor-pointer">
-                  <span id="txt-rx" class="w-11 font-mono text-right text-slate-900 font-bold text-[11px]">+6.0°</span>
+                  <input type="range" id="sl-rx" min="-20" max="20" step="0.5" value="6" oninput="onSliderChange()" class="flex-1 h-1.5 bg-amber-200 rounded cursor-pointer">
+                  <span id="txt-rx" class="w-12 font-mono text-right text-slate-900 font-bold text-[11px]">+6.0°</span>
                 </div>
                 <div class="flex items-center gap-1">
                   <span class="w-6 font-mono text-green-600 font-extrabold text-[11px]">ΔRy:</span>
-                  <input type="range" id="sl-ry" min="-30" max="30" step="0.5" value="-3" oninput="onSliderChange()" class="flex-1 h-1.5 bg-amber-200 rounded cursor-pointer">
-                  <span id="txt-ry" class="w-11 font-mono text-right text-slate-900 font-bold text-[11px]">-3.0°</span>
+                  <input type="range" id="sl-ry" min="-20" max="20" step="0.5" value="-3" oninput="onSliderChange()" class="flex-1 h-1.5 bg-amber-200 rounded cursor-pointer">
+                  <span id="txt-ry" class="w-12 font-mono text-right text-slate-900 font-bold text-[11px]">-3.0°</span>
                 </div>
                 <div class="flex items-center gap-1">
                   <span class="w-6 font-mono text-blue-600 font-extrabold text-[11px]">ΔRz:</span>
-                  <input type="range" id="sl-rz" min="-180" max="180" step="1" value="15" oninput="onSliderChange()" class="flex-1 h-1.5 bg-amber-200 rounded cursor-pointer">
-                  <span id="txt-rz" class="w-11 font-mono text-right text-slate-900 font-bold text-[11px]">+15.0°</span>
+                  <input type="range" id="sl-rz" min="-30" max="30" step="0.5" value="15" oninput="onSliderChange()" class="flex-1 h-1.5 bg-amber-200 rounded cursor-pointer">
+                  <span id="txt-rz" class="w-12 font-mono text-right text-slate-900 font-bold text-[11px]">+15.0°</span>
                 </div>
               </div>
             </div>
@@ -369,7 +358,74 @@
           </div>
         </div>
 
-        <!-- 2. 정합 모니터 & Overlap 게이지 카드 -->
+        <!-- 2. 포인트클라우드 계층 윈도우 (고대비 불투명 배색) -->
+        <div class="bg-white/95 backdrop-blur-md p-2.5 rounded-xl shadow-lg border border-slate-300 text-xs flex flex-col gap-1.5 shrink-0">
+          <div class="font-black text-slate-900 text-xs border-b border-slate-200 pb-1 flex items-center gap-1.5">
+            <span class="text-blue-600">🗂️</span><span>포인트 클라우드 계층</span>
+          </div>
+          <div class="space-y-1 pt-0.5">
+            <div class="flex items-center justify-between bg-slate-50 px-2 py-1 rounded border border-slate-200">
+              <div class="flex items-center gap-2">
+                <span class="w-3 h-3 rounded-xs bg-[#0f2b5c] border border-black shadow-xs"></span>
+                <span class="font-black text-[11px] text-[#0f2b5c]">REF.ply (마스터 모델)</span>
+              </div>
+              <span class="font-mono text-[10px] text-slate-600 font-black">100% 불투명</span>
+            </div>
+            <div class="flex items-center justify-between bg-slate-50 px-2 py-1 rounded border border-slate-200">
+              <div class="flex items-center gap-2">
+                <span class="w-3 h-3 rounded-xs bg-[#ff5500] border border-black shadow-xs"></span>
+                <span class="font-black text-[11px] text-[#ff5500]">Scene.ply (스캔 부품)</span>
+              </div>
+              <span class="font-mono text-[10px] text-amber-800 font-black">100% 불투명</span>
+            </div>
+            <div class="flex items-center justify-between bg-slate-50 px-2 py-1 rounded border border-slate-200">
+              <div class="flex items-center gap-2">
+                <span class="w-3 h-1 bg-[#8b00ff]"></span>
+                <span class="font-bold text-[11px] text-purple-800">최근접 대응선 (Rays)</span>
+              </div>
+              <span class="font-mono text-[10px] text-purple-700 font-bold">Nearest</span>
+            </div>
+          </div>
+
+          <!-- [요청사항] 계층 윈도우 바로 아래 장착된 6-DOF 대형 공차 LED 모니터 (직경 12px) -->
+          <div class="mt-1 pt-1.5 border-t border-slate-200 bg-slate-100/80 p-2 rounded-lg border border-slate-200 flex flex-col gap-1.5">
+            <div class="flex justify-between items-center text-[10px] font-mono font-bold text-slate-700 px-0.5">
+              <span>6-DOF TOLERANCE MONITOR</span>
+              <span id="tolLedSummary" class="text-slate-500 font-black">STANDBY</span>
+            </div>
+            <div class="grid grid-cols-6 gap-1 text-center font-mono text-[9px] font-extrabold">
+              <div class="bg-white py-1 rounded border border-slate-200 flex flex-col items-center justify-center gap-1 shadow-2xs">
+                <span id="led_dx" class="w-3 h-3 rounded-full bg-slate-300 border border-slate-400"></span>
+                <span class="text-slate-700 font-black">dX</span>
+              </div>
+              <div class="bg-white py-1 rounded border border-slate-200 flex flex-col items-center justify-center gap-1 shadow-2xs">
+                <span id="led_dy" class="w-3 h-3 rounded-full bg-slate-300 border border-slate-400"></span>
+                <span class="text-slate-700 font-black">dY</span>
+              </div>
+              <div class="bg-white py-1 rounded border border-slate-200 flex flex-col items-center justify-center gap-1 shadow-2xs">
+                <span id="led_dz" class="w-3 h-3 rounded-full bg-slate-300 border border-slate-400"></span>
+                <span class="text-slate-700 font-black">dZ</span>
+              </div>
+              <div class="bg-white py-1 rounded border border-slate-200 flex flex-col items-center justify-center gap-1 shadow-2xs">
+                <span id="led_rx" class="w-3 h-3 rounded-full bg-slate-300 border border-slate-400"></span>
+                <span class="text-slate-700 font-black">dRx</span>
+              </div>
+              <div class="bg-white py-1 rounded border border-slate-200 flex flex-col items-center justify-center gap-1 shadow-2xs">
+                <span id="led_ry" class="w-3 h-3 rounded-full bg-slate-300 border border-slate-400"></span>
+                <span class="text-slate-700 font-black">dRy</span>
+              </div>
+              <div class="bg-white py-1 rounded border border-slate-200 flex flex-col items-center justify-center gap-1 shadow-2xs">
+                <span id="led_rz" class="w-3 h-3 rounded-full bg-slate-300 border border-slate-400"></span>
+                <span class="text-slate-700 font-black">dRz</span>
+              </div>
+            </div>
+            <div id="tolDiagMsg" class="text-[9.5px] font-mono text-center text-slate-500 truncate bg-white py-0.5 px-1 rounded border border-slate-200">
+              STEP 3 스캔 계측 대기 중...
+            </div>
+          </div>
+        </div>
+
+        <!-- 3. 실시간 RMSE & Overlap 게이지 -->
         <div id="icpMonitorCard" class="bg-white/95 backdrop-blur-md p-2.5 rounded-xl shadow-lg border border-slate-300 text-xs flex flex-col gap-1.5 shrink-0">
           <div class="flex items-center justify-between border-b border-slate-200 pb-1">
             <div class="flex items-center gap-1.5 font-black text-slate-900 text-[11px] whitespace-nowrap">
@@ -379,11 +435,10 @@
             <span id="iterationBadge" class="px-1.5 py-0.5 bg-blue-50 text-blue-700 border border-blue-200 rounded text-[10px] font-mono font-bold">ITER: 0</span>
           </div>
 
-          <!-- RMSE 및 일치율 게이지 바 -->
           <div class="space-y-1.5 pt-0.5">
             <div class="flex justify-between items-center text-[10.5px] font-mono">
               <span class="text-slate-600 font-bold">RMSE 오차:</span>
-              <span id="valRmseDisplay" class="font-black text-amber-600 text-xs">28.45 mm</span>
+              <span id="valRmseDisplay" class="font-black text-amber-600 text-xs">0.00 mm</span>
             </div>
             <div class="flex justify-between items-center text-[10.5px] font-mono">
               <span class="text-slate-600 font-bold">정합 일치율 (Overlap):</span>
@@ -394,12 +449,13 @@
             </div>
           </div>
         </div>
+
       </div>
 
       <!-- 하단 플로팅 바: [R|T] 4x4 동차변환행렬 + TCP/IP 패킷 로그 터미널 -->
       <div class="absolute bottom-[14px] left-[222px] right-[326px] z-20 flex items-stretch gap-2 pointer-events-none">
         
-        <!-- 하단 좌측: 4x4 동차변환행렬 [R|T] 카드 (uf6_pc.html 스타일) -->
+        <!-- 하단 좌측: 4x4 동차변환행렬 [R|T] 카드 -->
         <div class="pointer-events-auto w-[290px] h-[136px] bg-white/95 backdrop-blur-md p-2 rounded-xl border border-slate-300 shadow-xl flex flex-col justify-between text-xs shrink-0">
           <div class="flex items-center justify-between border-b border-slate-200 pb-1">
             <div class="flex items-center gap-1 font-black text-slate-900 text-[11px] whitespace-nowrap">
@@ -426,9 +482,9 @@
           </div>
 
           <div class="flex items-center justify-between text-[9px] font-mono bg-slate-50 px-1.5 py-0.5 rounded border border-slate-200 text-slate-600">
-            <span id="rtSummaryT" class="font-bold text-amber-800 truncate">T:[+25.0, -20.0, +15.0]mm</span>
+            <span id="rtSummaryT" class="font-bold text-amber-800 truncate">T:[+0.00, +0.00, +0.00]mm</span>
             <span class="text-slate-300">|</span>
-            <span id="rtSummaryR" class="font-bold text-blue-800 truncate">R:[+6.0°, -3.0°, +15.0°]</span>
+            <span id="rtSummaryR" class="font-bold text-blue-800 truncate">R:[+0.0°, +0.0°, +0.0°]</span>
           </div>
         </div>
 
@@ -445,7 +501,7 @@
             </div>
           </div>
           <div id="packetLogList" class="flex-1 overflow-y-auto overflow-x-auto px-3 py-1.5 font-mono text-[9.5px] space-y-0.5 select-text bg-slate-50/90">
-            <div class="text-slate-600 whitespace-nowrap">[SYS] AbeoSCAN Lotus.Mv.ICP Simulator (ver 0.7) Ready. Port: 5000</div>
+            <div class="text-slate-600 whitespace-nowrap">[SYS] AbeoSCAN Lotus.Mv.ICP Simulator (ver 0.8) Ready. Port: 5000</div>
           </div>
         </div>
 
@@ -495,14 +551,14 @@
 
   <script>
     /* =========================================================================
-       1. 5단계 공정 시나리오 데이터 정의 (ver 0.7 배색 반영)
+       1. 5단계 공정 시나리오 데이터 정의
        ========================================================================= */
     const stepData = [
       { badge: "STEP 1", icon: "🏭", heading: "1. 작업대 고정 및 기준 모델(REF.ply) 안착", body: "정반 위에 비대칭 차체 브라켓 기준 포인트 클라우드(1,480 pts, 딥 네이비)와 상공의 AITZ 3DU[3DM] 스캐너가 대기합니다." },
       { badge: "STEP 2", icon: "🔄", heading: "2. 조립 부품 6-DOF 인위적 위치 변위 인입 (Scene.ply)", body: "작업물이 6축(ΔX, ΔY, ΔZ, ΔRx, ΔRy, ΔRz)으로 비틀려 공급되며 선명한 주황색(Amber) 왜곡 포인트 클라우드가 형성됩니다." },
-      { badge: "STEP 3", icon: "📸", heading: "3. AITZ 3DU[3DM] 구조광 십자 직교 레이저 스캔", body: "상공 스캐너에서 적색 슬릿 레이저가 X축 및 Y축 방향으로 교차 주사되며 3D 점군을 취득합니다." },
+      { badge: "STEP 3", icon: "📸", heading: "3. AITZ 3DU[3DM] 구조광 십자 직교 레이저 스캔 & 판정", body: "상공 스캐너에서 적색 슬릿 레이저가 X/Y 교차 주사되며 3D 점군을 취득하고, 6축 LED 공차 판정이 즉각 점등됩니다." },
       { badge: "STEP 4", icon: "✨", heading: "4. Lotus.Mv.ICP 최근접 반복 정합 수렴 (Local Minima 검증)", body: "보라색 최근접 대응선(Correspondence Rays)을 추적하고 6-DOF 동차변환을 반복 계산하여 최적 일치점으로 수렴합니다." },
-      { badge: "STEP 5", icon: "🏁", heading: "5. 최종 [R|T] 4×4 변환 행렬 도출 및 로봇 위치보정 확정", body: "도출된 4×4 동차변환행렬과 오일러 회전각(ΔRx, ΔRy, ΔRz)을 로봇 제어기로 전송하여 위치보정을 확정합니다." }
+      { badge: "STEP 5", icon: "🏁", heading: "5. 최종 [R|T] 4×4 변환 행렬 도출 및 로봇 위치보정 확정", body: "도출된 4×4 동차변환행렬과 오일러 회전각을 로봇 제어기로 전송하여 위치보정을 확정합니다 (불량 시 인터록 '?' 표기)." }
     ];
 
     let currentStep = 0, isAutoPlaying = false, autoPlayTimeoutId = null, autoStepProgressTimer = null;
@@ -510,59 +566,82 @@
     let demoModeType = null, packetSeqNo = 1;
     let showCorrespondenceRays = true;
 
+    // 공차 허용 한계값 (OK 범위)
+    const TOL_LIMITS = {
+      dx: 50, dy: 50, dz: 50,
+      rx: 15.0, ry: 15.0, rz: 20.0
+    };
+    let isToleranceNG = false;
+    let ngCausesList = [];
+
     /* Three.js Context */
     let scene, camera, renderer, controls;
     let basePoints = [], pointCount = 0;
     let refCloud, sceneCloud, rayLinesMesh = null;
-    let scannerGroup, scannerBeamMesh, scanSweeperMesh;
+    let scannerGroup, scannerBeamMesh, scanSweeperMesh, flashRingLeft, flashRingRight;
     let currentSceneCoords = [];
 
-    // 6-DOF 오차 상태
+    // 6-DOF 오차 상태 (산업용 좌표계: X 좌우, Y 전후, Z 수직 상하)
     const currentShift = { dx: 25, dy: -20, dz: 15, rx: 6, ry: -3, rz: 15 };
-    let initialShift = { ...currentShift };
 
     /* =========================================================================
-       2. 비대칭 3D 브라켓 형상 포인트 클라우드 생성 (1,480 pts)
+       2. 비대칭 3D 브라켓 형상 포인트 클라우드 생성 (Z-Up 산업용 표준)
+          - X: -35 ~ +35 (좌우)
+          - Y: -20 ~ +20 (전후)
+          - Z: 0 ~ +35   (수직 상하 높이)
        ========================================================================= */
     function generateAsymmetricWorkpiece() {
       const pts = [];
-      // 바닥 플레이트 (Plate) + 원형 홀 형상 (Hole)
+      // 1) 바닥 플레이트: Z = 0 (X: -35~35, Y: -20~20, 중앙 홀 제외)
       for (let x = -35; x <= 35; x += 3) {
-        for (let z = -20; z <= 20; z += 3) {
-          if (Math.hypot(x - 12, z) > 7) {
-            pts.push(new THREE.Vector3(x, 0, z));
+        for (let y = -20; y <= 20; y += 3) {
+          if (Math.hypot(x - 12, y) > 7) {
+            pts.push(new THREE.Vector3(x, y, 0));
           }
         }
       }
-      // 수직 플랜지 1 (X = -35 벽체)
-      for (let y = 0; y <= 35; y += 3) {
-        for (let z = -20; z <= 20; z += 3) {
+      // 2) 수직 플랜지 벽체 1: X = -35 (Z: 0~35 수직 벽, Y: -20~20)
+      for (let z = 0; z <= 35; z += 3) {
+        for (let y = -20; y <= 20; y += 3) {
           pts.push(new THREE.Vector3(-35, y, z));
         }
       }
-      // 보강 리브 2 (비대칭성 부여용 Z = 20 보강 턱)
-      for (let y = 0; y <= 20; y += 3) {
+      // 3) 비대칭 보강 리브 2: Y = 20 보강 턱 (Z: 0~20, X: 0~35)
+      for (let z = 0; z <= 20; z += 3) {
         for (let x = 0; x <= 35; x += 3) {
-          pts.push(new THREE.Vector3(x, y, 20));
+          pts.push(new THREE.Vector3(x, 20, z));
         }
       }
       return pts;
     }
 
+    /* Three.js 월드 헬퍼: 3D 직교 좌표계 Z-Up 축 변환
+       Three.js는 기본이 Y-Up이므로:
+       World_X = Model_X
+       World_Y = Model_Z (수직 상하)
+       World_Z = -Model_Y (전후)
+    */
+    function modelToWorld(v) {
+      return new THREE.Vector3(v.x, v.z, -v.y);
+    }
+    function worldToModel(v) {
+      return new THREE.Vector3(v.x, -v.z, v.y);
+    }
+
     /* =========================================================================
-       3. Three.js 초기화 및 씬 구축 (FHD 1920x1080 최적화 & 고대비 배색)
+       3. Three.js 초기화 및 씬 구축 (Fog 제거, 100% 불투명 솔리드)
        ========================================================================= */
     function init3D() {
       const container = document.getElementById('canvas-container');
       const width = container.clientWidth, height = container.clientHeight;
 
       scene = new THREE.Scene();
+      // 배경색 완전 솔리드 화이트-슬레이트 (Fog 완전 제거로 색바램 차단!)
       scene.background = new THREE.Color(0xf8fafc);
-      scene.fog = new THREE.FogExp2(0xf8fafc, 0.0035);
 
-      // FHD 1920x1080 시야각 FOV 45° 표준
+      // FHD 1920x1080 표준 화각 FOV 45°
       camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 1500);
-      camera.position.set(110, 130, 160);
+      camera.position.set(110, 140, 170);
 
       renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' });
       renderer.setSize(width, height);
@@ -572,40 +651,59 @@
       controls = new THREE.OrbitControls(camera, renderer.domElement);
       controls.enableDamping = true;
       controls.dampingFactor = 0.08;
-      controls.target.set(0, 10, 0);
+      controls.target.set(0, 15, 0);
 
-      // 조명 설정 (흰색 배경에서 형상이 묻히지 않도록 입체 명암 부여)
-      scene.add(new THREE.AmbientLight(0xffffff, 0.85));
-      const dirLight = new THREE.DirectionalLight(0xffffff, 0.65);
-      dirLight.position.set(80, 180, 120);
-      scene.add(dirLight);
+      // 밝고 선명한 3점 라이팅 (투명도 없이 입체 솔리드 질감 극대화)
+      scene.add(new THREE.AmbientLight(0xffffff, 0.95));
+      const mainLight = new THREE.DirectionalLight(0xffffff, 0.75);
+      mainLight.position.set(100, 220, 140);
+      scene.add(mainLight);
 
-      // 고정 정반(Work Table) 및 그리드 (솔리드 슬레이트 그레이)
+      const fillLight = new THREE.DirectionalLight(0xe2e8f0, 0.4);
+      fillLight.position.set(-100, 100, -100);
+      scene.add(fillLight);
+
+      // 1) 고정 정반(Work Table) 및 그리드
       buildFloorAndTable();
 
-      // 상공 AITZ 3DU[3DM] 구조광 스캐너 모델링 (uf6_pc.html 완전 이식)
+      // 2) 작업대 좌측 전면 Base 직교 좌표계 (Red:X, Green:Y, Blue:Z)
+      buildBaseCoordinates();
+
+      // 3) 상공 AITZ 3DU[3DM] 구조광 스캐너 모델링
       buildIndustrialScanner();
 
-      // 포인트 클라우드 생성
+      // 4) 포인트 클라우드 생성 (100% 불투명 고대비 솔리드)
       basePoints = generateAsymmetricWorkpiece();
       pointCount = basePoints.length;
       currentSceneCoords = basePoints.map(p => p.clone());
 
-      // 1) REF Point Cloud: [딥 네이비 / 코발트 블루 #1e3a8a] - 흰색 바탕에서 뚜렷함
-      const refGeo = new THREE.BufferGeometry().setFromPoints(basePoints);
-      const refMat = new THREE.PointsMaterial({ color: 0x1e3a8a, size: 2.8, transparent: true, opacity: 0.95 });
+      // 1) REF Point Cloud: [100% 완전 불투명 딥 네이비 #0f2b5c, size 3.5]
+      const refWorldPoints = basePoints.map(p => modelToWorld(p));
+      const refGeo = new THREE.BufferGeometry().setFromPoints(refWorldPoints);
+      const refMat = new THREE.PointsMaterial({ 
+        color: 0x0f2b5c, 
+        size: 3.5, 
+        transparent: false, // 완전 불투명!
+        opacity: 1.0 
+      });
       refCloud = new THREE.Points(refGeo, refMat);
       scene.add(refCloud);
 
-      // 2) Scene Point Cloud: [비비드 번트 오렌지 #ea580c] - REF와 강렬한 보색 대비
-      const sceneGeo = new THREE.BufferGeometry().setFromPoints(currentSceneCoords);
-      const sceneMat = new THREE.PointsMaterial({ color: 0xea580c, size: 3.0, transparent: true, opacity: 0.95 });
+      // 2) Scene Point Cloud: [100% 완전 불투명 비비드 오렌지 #ff5500, size 3.8]
+      const sceneWorldPoints = currentSceneCoords.map(p => modelToWorld(p));
+      const sceneGeo = new THREE.BufferGeometry().setFromPoints(sceneWorldPoints);
+      const sceneMat = new THREE.PointsMaterial({ 
+        color: 0xff5500, 
+        size: 3.8, 
+        transparent: false, // 완전 불투명!
+        opacity: 1.0 
+      });
       sceneCloud = new THREE.Points(sceneGeo, sceneMat);
       scene.add(sceneCloud);
 
-      // 3) 점-대응선: [일렉트릭 퍼플 #7c3aed] - RGB 축과 혼동되지 않는 매칭 선
+      // 3) 점-대응선: [선명한 보라색 #8b00ff, opacity 0.85]
       const rayGeo = new THREE.BufferGeometry();
-      const rayMat = new THREE.LineBasicMaterial({ color: 0x7c3aed, transparent: true, opacity: 0.55, linewidth: 1.5 });
+      const rayMat = new THREE.LineBasicMaterial({ color: 0x8b00ff, transparent: true, opacity: 0.85, linewidth: 2 });
       rayLinesMesh = new THREE.LineSegments(rayGeo, rayMat);
       scene.add(rayLinesMesh);
 
@@ -617,26 +715,82 @@
 
     function buildFloorAndTable() {
       const grid = new THREE.GridHelper(260, 26, 0x94a3b8, 0xe2e8f0);
-      grid.position.y = -18;
+      grid.position.y = -0.1;
       scene.add(grid);
 
-      // 고정 정반 지그 (슬레이트 그레이 상판)
-      const tableGeo = new THREE.BoxGeometry(150, 10, 110);
+      // 고정 정반 지그 (슬레이트 그레이)
+      const tableGeo = new THREE.BoxGeometry(160, 8, 120);
       const tableMat = new THREE.MeshStandardMaterial({ color: 0xcfd8e3, roughness: 0.45, metalness: 0.25 });
       const table = new THREE.Mesh(tableGeo, tableMat);
-      table.position.set(0, -23, 0);
+      table.position.set(0, -4.1, 0);
       scene.add(table);
 
-      const tableEdge = new THREE.LineSegments(new THREE.EdgesGeometry(tableGeo), new THREE.LineBasicMaterial({ color: 0x64748b }));
+      const tableEdge = new THREE.LineSegments(new THREE.EdgesGeometry(tableGeo), new THREE.LineBasicMaterial({ color: 0x64748b, linewidth: 1.5 }));
       tableEdge.position.copy(table.position);
       scene.add(tableEdge);
     }
 
-    /* 캔버스 기반 붉은색 ATM 전면/상단 로고 텍스처 (uf6_pc.html 동일) */
+    /* 텍스트 2D 스프라이트 생성 헬퍼 */
+    function createTextSprite(text, color = '#0f172a', fontSize = 28) {
+      const canvas = document.createElement('canvas'); canvas.width = 300; canvas.height = 90;
+      const ctx = canvas.getContext('2d');
+      ctx.font = `900 ${fontSize}px 'Pretendard', sans-serif`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 6; ctx.strokeText(text, 150, 45);
+      ctx.fillStyle = color; ctx.fillText(text, 150, 45);
+      const sprite = new THREE.Sprite(new THREE.SpriteMaterial({ map: new THREE.CanvasTexture(canvas), depthTest: false, transparent: true }));
+      sprite.scale.set(16, 4.8, 1);
+      return sprite;
+    }
+
+    /* [요청사항] 작업대 좌측 전면 Base 원점 및 X(Red), Y(Green), Z(Blue) 직교 좌표계 렌더링 */
+    function buildBaseCoordinates() {
+      const baseOrigin = new THREE.Vector3(-65, 0.2, 45); // 정반 좌측 전면 모서리
+      const baseGroup = new THREE.Group();
+      baseGroup.position.copy(baseOrigin);
+
+      const axisLen = 22;
+      const radius = 0.65;
+
+      const createAxis = (dirWorld, colorHex, label) => {
+        const ag = new THREE.Group();
+        const mat = new THREE.MeshBasicMaterial({ color: colorHex, depthTest: false });
+        const stem = new THREE.Mesh(new THREE.CylinderGeometry(radius, radius, axisLen, 16), mat);
+        stem.position.y = axisLen / 2;
+        const head = new THREE.Mesh(new THREE.ConeGeometry(radius * 2.4, 4.5, 16), mat);
+        head.position.y = axisLen + 2.25;
+        ag.add(stem); ag.add(head);
+
+        const upVec = new THREE.Vector3(0, 1, 0);
+        ag.quaternion.setFromUnitVectors(upVec, dirWorld.clone().normalize());
+
+        const sp = createTextSprite(label, colorHex, 32);
+        sp.position.copy(dirWorld.clone().multiplyScalar(axisLen + 6.0));
+        baseGroup.add(ag);
+        baseGroup.add(sp);
+      };
+
+      // X축 (좌우): World +X (빨간색)
+      createAxis(new THREE.Vector3(1, 0, 0), '#dc2626', 'X');
+      // Y축 (전후): World -Z (초록색)
+      createAxis(new THREE.Vector3(0, 0, -1), '#16a34a', 'Y');
+      // Z축 (수직 상하): World +Y (파란색)
+      createAxis(new THREE.Vector3(0, 1, 0), '#2563eb', 'Z');
+
+      // 원점 링 & 라벨
+      const dot = new THREE.Mesh(new THREE.SphereGeometry(1.6, 16, 16), new THREE.MeshBasicMaterial({ color: 0x0284c7, depthTest: false }));
+      baseGroup.add(dot);
+      const orgLabel = createTextSprite("Base (0,0,0)", "#0369a1", 24);
+      orgLabel.position.set(0, -3.5, 4.0);
+      baseGroup.add(orgLabel);
+
+      scene.add(baseGroup);
+    }
+
+    /* 캔버스 기반 붉은색 ATM 전면/상단 로고 */
     function createATMFrontLogoMesh() {
       const canvas = document.createElement('canvas'); canvas.width = 256; canvas.height = 96;
       const ctx = canvas.getContext('2d');
-      ctx.font = "italic 900 76px 'Pretendard', sans-serif"; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      ctx.font = "italic 900 80px 'Pretendard', sans-serif"; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
       ctx.fillStyle = '#ff0000'; ctx.fillText('ATM', 128, 50);
       return new THREE.Mesh(new THREE.PlaneGeometry(16, 6), new THREE.MeshBasicMaterial({ map: new THREE.CanvasTexture(canvas), transparent: true, side: THREE.DoubleSide }));
     }
@@ -644,15 +798,15 @@
     /* 사내 공인 AITZ 3DU[3DM] 구조광 3D 스캐너 완전 이식 */
     function buildIndustrialScanner() {
       scannerGroup = new THREE.Group();
-      const mountH = 115;
+      const mountH = 125;
       const SCALE = 24.0;
 
-      // 1) 천장/상단 고정 마운트 스템
-      const mountStem = new THREE.Mesh(new THREE.CylinderGeometry(2.5, 2.5, 35, 16), new THREE.MeshLambertMaterial({ color: 0x334155 }));
-      mountStem.position.set(0, 22, 0);
+      // 1) 고정 마운트 스템 (다크 챠콜)
+      const mountStem = new THREE.Mesh(new THREE.CylinderGeometry(2.5, 2.5, 40, 16), new THREE.MeshLambertMaterial({ color: 0x1e293b }));
+      mountStem.position.set(0, 24, 0);
       scannerGroup.add(mountStem);
 
-      // 2) 스캐너 코어 하우징 (사다리꼴 베벨 바디)
+      // 2) 스캐너 코어 하우징
       const scannerCore = new THREE.Group();
       scannerCore.scale.set(SCALE, SCALE, SCALE);
       scannerGroup.add(scannerCore);
@@ -669,9 +823,9 @@
 
       const bodyGeo = new THREE.ExtrudeGeometry(frontShape, { steps: 1, depth: bodyDepth, bevelEnabled: true, bevelThickness: 0.018, bevelSize: 0.018, bevelSegments: 3 });
       bodyGeo.translate(0, 0, -bodyDepth / 2);
-      const bodyMesh = new THREE.Mesh(bodyGeo, new THREE.MeshStandardMaterial({ color: 0x18181b, metalness: 0.55, roughness: 0.38 }));
+      const bodyMesh = new THREE.Mesh(bodyGeo, new THREE.MeshStandardMaterial({ color: 0x111827, metalness: 0.65, roughness: 0.35 }));
       scannerCore.add(bodyMesh);
-      scannerCore.add(new THREE.LineSegments(new THREE.EdgesGeometry(bodyGeo, 18), new THREE.LineBasicMaterial({ color: 0x71717a })));
+      scannerCore.add(new THREE.LineSegments(new THREE.EdgesGeometry(bodyGeo, 18), new THREE.LineBasicMaterial({ color: 0x64748b })));
 
       // 3) ATM 붉은색 로고 부착 (전면 & 상단)
       const atmLogoFront = createATMFrontLogoMesh();
@@ -685,7 +839,7 @@
       atmLogoTop.position.set(0.40, hTop + 0.06, 0);
       scannerCore.add(atmLogoTop);
 
-      // 4) 듀얼 카메라 및 4.5° 경사 필터 유닛 (좌우)
+      // 4) 듀얼 카메라 및 4.5° 경사 필터 유닛 & 이중 샷 플래시 링
       const buildAngledFilterUnit = (posX, tiltAngleRad, isCamera) => {
         const u = new THREE.Group();
         u.position.set(posX, hBot - 0.018, 0);
@@ -695,40 +849,42 @@
         g.position.y = -0.024; u.add(g);
         const a = new THREE.Mesh(new THREE.CylinderGeometry(0.126, 0.126, 0.016, 32), new THREE.MeshBasicMaterial({ color: isCamera ? 0xdc2626 : 0x059669 }));
         a.position.y = -0.032; u.add(a);
-        const f = new THREE.Mesh(new THREE.CylinderGeometry(0.112, 0.112, 0.022, 32), new THREE.MeshStandardMaterial({ color: isCamera ? 0x2563eb : 0x10b981, emissive: isCamera ? 0x1d4ed8 : 0x059669, emissiveIntensity: 0.55 }));
+        const f = new THREE.Mesh(new THREE.CylinderGeometry(0.112, 0.112, 0.022, 32), new THREE.MeshStandardMaterial({ color: isCamera ? 0x2563eb : 0x10b981, emissive: isCamera ? 0x1d4ed8 : 0x059669, emissiveIntensity: 0.6 }));
         f.position.y = -0.042; u.add(f);
+
+        // 플래시 링
+        const flashRing = new THREE.Mesh(new THREE.RingGeometry(0.02, 0.16, 32), new THREE.MeshBasicMaterial({ color: 0xffffff, side: THREE.DoubleSide, transparent: true, opacity: 0 }));
+        flashRing.rotation.x = Math.PI / 2;
+        flashRing.position.y = -0.055;
+        u.add(flashRing);
+        if (posX < 0) flashRingLeft = flashRing; else flashRingRight = flashRing;
+
         scannerCore.add(u);
       };
       buildAngledFilterUnit(-0.48, THREE.MathUtils.degToRad(4.5), false);
       buildAngledFilterUnit(0.48, THREE.MathUtils.degToRad(-4.5), true);
 
       // 5) 상단 제품명 스프라이트 라벨: '📷 AITZ 3DU[3DM]'
-      const canvasTag = document.createElement('canvas'); canvasTag.width = 360; canvasTag.height = 80;
-      const ctxTag = canvasTag.getContext('2d');
-      ctxTag.fillStyle = 'rgba(15, 23, 42, 0.82)';
-      ctxTag.beginPath(); ctxTag.roundRect(10, 10, 340, 60, 12); ctxTag.fill();
-      ctxTag.font = "bold 26px 'Pretendard', sans-serif"; ctxTag.textAlign = 'center'; ctxTag.textBaseline = 'middle';
-      ctxTag.fillStyle = '#ffffff'; ctxTag.fillText('📷 AITZ 3DU[3DM]', 180, 40);
-      const tagSprite = new THREE.Sprite(new THREE.SpriteMaterial({ map: new THREE.CanvasTexture(canvasTag), transparent: true }));
-      tagSprite.scale.set(45, 10, 1);
+      const tagSprite = createTextSprite("📷 AITZ 3DU[3DM]", "#0f172a", 28);
+      tagSprite.scale.set(40, 10, 1);
       tagSprite.position.set(0, 14, 0);
       scannerGroup.add(tagSprite);
 
       // 6) 적색 구조광 슬릿 레이저 프로젝션 콘 & 직교 스위퍼 플레인
-      const beamHeight = 105;
+      const beamHeight = 115;
       scannerBeamMesh = new THREE.Mesh(
-        new THREE.CylinderGeometry(3.5, 65, beamHeight, 32, 1, true),
+        new THREE.CylinderGeometry(3.5, 68, beamHeight, 32, 1, true),
         new THREE.MeshBasicMaterial({ color: 0xef4444, transparent: true, opacity: 0.0, side: THREE.DoubleSide, depthWrite: false })
       );
       scannerBeamMesh.position.set(0, -beamHeight / 2 - 2, 0);
       scannerGroup.add(scannerBeamMesh);
 
       scanSweeperMesh = new THREE.Mesh(
-        new THREE.PlaneGeometry(85, 2.2),
-        new THREE.MeshBasicMaterial({ color: 0xff1e56, side: THREE.DoubleSide, transparent: true, opacity: 0.0, depthTest: false })
+        new THREE.PlaneGeometry(90, 2.5),
+        new THREE.MeshBasicMaterial({ color: 0xff0044, side: THREE.DoubleSide, transparent: true, opacity: 0.0, depthTest: false })
       );
       scanSweeperMesh.rotation.x = Math.PI / 2;
-      scanSweeperMesh.position.set(0, -105, 0);
+      scanSweeperMesh.position.set(0, -115, 0);
       scannerGroup.add(scanSweeperMesh);
 
       scannerGroup.position.set(0, mountH, 0);
@@ -736,7 +892,7 @@
     }
 
     /* =========================================================================
-       4. 슬라이더 조작 및 6-DOF 오차 반영
+       4. 슬라이더 조작 및 6-DOF 오차 반영 (Z-Up 산업용 표준)
        ========================================================================= */
     function onSliderChange() {
       currentShift.dx = parseFloat(document.getElementById('sl-dx').value);
@@ -753,12 +909,12 @@
       document.getElementById('txt-ry').innerText = (currentShift.ry > 0 ? '+' : '') + currentShift.ry.toFixed(1) + '°';
       document.getElementById('txt-rz').innerText = (currentShift.rz > 0 ? '+' : '') + currentShift.rz.toFixed(1) + '°';
 
-      initialShift = { ...currentShift };
       updateFromSliders();
       appendPacketLog('SYS', `오차 변위 주입: [ΔX:${currentShift.dx}, ΔY:${currentShift.dy}, ΔZ:${currentShift.dz} | ΔRx:${currentShift.rx}°, ΔRy:${currentShift.ry}°, ΔRz:${currentShift.rz}°]`);
     }
 
     function updateFromSliders() {
+      // Z-Up 표준 ZYX Euler 회전 행렬 산출
       const rxRad = THREE.MathUtils.degToRad(currentShift.rx);
       const ryRad = THREE.MathUtils.degToRad(currentShift.ry);
       const rzRad = THREE.MathUtils.degToRad(currentShift.rz);
@@ -768,40 +924,48 @@
 
       const posArray = sceneCloud.geometry.attributes.position.array;
       for (let i = 0; i < pointCount; i++) {
+        // Model 상에서 회전 및 평행이동 적용
         const bp = basePoints[i].clone().applyMatrix4(rotMat);
         bp.x += currentShift.dx;
         bp.y += currentShift.dy;
         bp.z += currentShift.dz;
 
-        posArray[i * 3] = bp.x;
-        posArray[i * 3 + 1] = bp.y;
-        posArray[i * 3 + 2] = bp.z;
-
         currentSceneCoords[i].copy(bp);
+
+        // World 좌표로 변환하여 렌더링 버퍼 갱신
+        const wp = modelToWorld(bp);
+        posArray[i * 3] = wp.x;
+        posArray[i * 3 + 1] = wp.y;
+        posArray[i * 3 + 2] = wp.z;
       }
       sceneCloud.geometry.attributes.position.needsUpdate = true;
       updateCorrespondenceRays();
       updateMetricsDisplay(computeCurrentRMSE());
     }
 
-    function resetSliders() {
-      ['dx','dy','dz','rx','ry','rz'].forEach(k => {
-        const el = document.getElementById(`sl-${k}`);
-        if (el) el.value = 0;
-      });
+    /* [Default] 프리셋: 6-DOF 오차 모두 0 리셋 */
+    function applyDefaultPreset() {
+      document.getElementById('sl-dx').value = 0;
+      document.getElementById('sl-dy').value = 0;
+      document.getElementById('sl-dz').value = 0;
+      document.getElementById('sl-rx').value = 0;
+      document.getElementById('sl-ry').value = 0;
+      document.getElementById('sl-rz').value = 0;
       onSliderChange();
+      clearPacketLogs("모든 6-DOF 오차 변위가 0으로 초기화되었습니다 (Default).");
     }
 
-    function applyPreset(type) {
-      if (type === 'default') {
-        document.getElementById('sl-dx').value = 25;
-        document.getElementById('sl-dy').value = -20;
-        document.getElementById('sl-dz').value = 15;
-        document.getElementById('sl-rx').value = 6;
-        document.getElementById('sl-ry').value = -3;
-        document.getElementById('sl-rz').value = 15;
-        onSliderChange();
-      }
+    /* [Random] 프리셋: 전체 한계 범위 내 6축 무작위 변위 주입 */
+    function applyRandomPreset() {
+      const rnd = (min, max, step) => min + (Math.floor(Math.random() * ((max - min) / step + 1)) * step);
+      document.getElementById('sl-dx').value = rnd(-65, 65, 1);
+      document.getElementById('sl-dy').value = rnd(-65, 65, 1);
+      document.getElementById('sl-dz').value = rnd(-65, 65, 1);
+      document.getElementById('sl-rx').value = rnd(-20, 20, 0.5);
+      document.getElementById('sl-ry').value = rnd(-20, 20, 0.5);
+      document.getElementById('sl-rz').value = rnd(-30, 30, 0.5);
+      onSliderChange();
+      clearPacketLogs("6-DOF 오차 변위가 무작위(Random) 생성되었습니다.");
     }
 
     /* =========================================================================
@@ -818,7 +982,6 @@
       const maxDistSq = maxDist * maxDist;
       const rayPoints = [];
 
-      // 매 5개 점마다 샘플링하여 시각적 혼잡 방지
       for (let i = 0; i < pointCount; i += 6) {
         const s = currentSceneCoords[i];
         let minDistSq = Infinity;
@@ -833,8 +996,10 @@
         }
 
         if (minDistSq <= maxDistSq) {
-          rayPoints.push(s.x, s.y, s.z);
-          rayPoints.push(bestTarget.x, bestTarget.y, bestTarget.z);
+          const sw = modelToWorld(s);
+          const tw = modelToWorld(bestTarget);
+          rayPoints.push(sw.x, sw.y, sw.z);
+          rayPoints.push(tw.x, tw.y, tw.z);
         }
       }
 
@@ -918,7 +1083,6 @@
         Hzx += p.z * q.x; Hzy += p.z * q.y; Hzz += p.z * q.z;
       }
 
-      // 회전 오차 도출
       const dRotX = (Hyz - Hzy) / (Hyy + Hzz + 1e-6);
       const dRotY = (Hzx - Hxz) / (Hxx + Hzz + 1e-6);
       const dRotZ = (Hxy - Hyx) / (Hxx + Hyy + 1e-6);
@@ -933,9 +1097,10 @@
         const newPt = pt.clone().sub(cSrc).applyMatrix4(dRotMat).add(cSrc).add(trans);
         pt.lerp(newPt, 0.7);
 
-        posArray[i * 3] = pt.x;
-        posArray[i * 3 + 1] = pt.y;
-        posArray[i * 3 + 2] = pt.z;
+        const wp = modelToWorld(pt);
+        posArray[i * 3] = wp.x;
+        posArray[i * 3 + 1] = wp.y;
+        posArray[i * 3 + 2] = wp.z;
       }
       sceneCloud.geometry.attributes.position.needsUpdate = true;
 
@@ -967,14 +1132,13 @@
           appendPacketLog('SYS', `[SUCCESS] ICP 허용공차 도달 수렴 완료 (RMSE: ${rmse.toFixed(3)} mm)`);
           break;
         }
-        await new Promise(res => setTimeout(res, 40));
+        await new Promise(res => setTimeout(res, 35));
       }
 
       isAligning = false;
       document.getElementById('btnFullIcp').disabled = false;
       document.getElementById('btnStepIcp').disabled = false;
       
-      // 정합 완료 후 5단계 결과로 자동 전이
       if (currentStep === 3) goToStep(4);
     }
 
@@ -986,26 +1150,40 @@
       document.getElementById('valRmseDisplay').innerText = `${rmse.toFixed(2)} mm`;
       document.getElementById('headerRmseVal').innerText = `${rmse.toFixed(2)} mm`;
 
-      // 0 ~ 100% 일치율 계산
       const overlapPct = Math.max(0, Math.min(100, Math.round(100 - (rmse * 3.2))));
       document.getElementById('valOverlapDisplay').innerText = `${overlapPct} %`;
       const pBar = document.getElementById('overlapProgressBar');
       if (pBar) pBar.style.width = `${overlapPct}%`;
 
-      const mDot = document.getElementById('monitorStatusDot');
-      const hStatus = document.getElementById('headerIcpStatus');
-      if (rmse <= 0.05) {
-        if (mDot) mDot.className = "w-2.5 h-2.5 rounded-full bg-emerald-500";
-        if (hStatus) { hStatus.innerText = "수렴 완료 ✓"; hStatus.className = "font-extrabold text-emerald-600"; }
-      } else if (rmse < 5.0) {
-        if (mDot) mDot.className = "w-2.5 h-2.5 rounded-full bg-blue-500 animate-pulse";
-        if (hStatus) { hStatus.innerText = "미세 정합 중"; hStatus.className = "font-extrabold text-blue-600"; }
-      } else {
-        if (mDot) mDot.className = "w-2.5 h-2.5 rounded-full bg-amber-500";
-        if (hStatus) { hStatus.innerText = "변위 인입 대기"; hStatus.className = "font-extrabold text-amber-600"; }
+      const tbody = document.getElementById('rtMatrixTableBody');
+      const sT = document.getElementById('rtSummaryT'), sR = document.getElementById('rtSummaryR');
+      const badge = document.getElementById('rtStatusBadge');
+
+      // [요청사항] NG 상황 발생 시 행렬 전 성분 '?' 처리
+      if (isToleranceNG && currentStep === 4) {
+        if (badge) {
+          badge.innerText = "ALARM NG [?]";
+          badge.className = "px-1.5 py-0.5 bg-rose-50 text-rose-700 border border-rose-300 rounded text-[9px] font-mono font-bold animate-pulse";
+        }
+        if (tbody) {
+          tbody.innerHTML = `
+            <tr><td class="rt-cell-ng">?</td><td class="rt-cell-ng">?</td><td class="rt-cell-ng">?</td><td class="rt-cell-ng">?</td></tr>
+            <tr><td class="rt-cell-ng">?</td><td class="rt-cell-ng">?</td><td class="rt-cell-ng">?</td><td class="rt-cell-ng">?</td></tr>
+            <tr><td class="rt-cell-ng">?</td><td class="rt-cell-ng">?</td><td class="rt-cell-ng">?</td><td class="rt-cell-ng">?</td></tr>
+            <tr><td class="rt-cell-h">0</td><td class="rt-cell-h">0</td><td class="rt-cell-h">0</td><td class="rt-cell-h">1</td></tr>
+          `;
+        }
+        if (sT) sT.innerText = "T:[ ?, ?, ? ]";
+        if (sR) sR.innerText = "R:[ ?, ?, ? ]";
+        return;
       }
 
-      // [R|T] 4x4 행렬식 계산
+      if (badge) {
+        badge.innerText = "4×4 [R|T]";
+        badge.className = "px-1.5 py-0.5 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded text-[9px] font-mono font-bold";
+      }
+
+      // 정상 [R|T] 4x4 행렬식 계산
       let cx = 0, cy = 0, cz = 0;
       for (let i = 0; i < pointCount; i++) {
         cx += currentSceneCoords[i].x - basePoints[i].x;
@@ -1028,7 +1206,6 @@
       const fmtR = (v) => (Math.abs(v) < 1e-4 ? "0.0000" : (v >= 0 ? "+" : "") + v.toFixed(4));
       const fmtT = (v) => (Math.abs(v) < 1e-4 ? "0.000" : (v >= 0 ? "+" : "") + v.toFixed(3));
 
-      const tbody = document.getElementById('rtMatrixTableBody');
       if (tbody) {
         tbody.innerHTML = `
           <tr><td class="rt-cell-r">${fmtR(te[0])}</td><td class="rt-cell-r">${fmtR(te[4])}</td><td class="rt-cell-r">${fmtR(te[8])}</td><td class="rt-cell-t">${fmtT(te[12])}</td></tr>
@@ -1038,59 +1215,166 @@
         `;
       }
 
-      const sT = document.getElementById('rtSummaryT'), sR = document.getElementById('rtSummaryR');
       if (sT) sT.innerText = `T:[${fmtT(cx)}, ${fmtT(cy)}, ${fmtT(cz)}]mm`;
       if (sR) sR.innerText = `R:[${(rx * 180 / Math.PI).toFixed(1)}°, ${(ry * 180 / Math.PI).toFixed(1)}°, ${(rz * 180 / Math.PI).toFixed(1)}°]`;
     }
 
     /* =========================================================================
-       8. 5단계 공정 시나리오 전이 및 UI 제어
+       8. 대형 6-DOF 공차 LED 점등 및 판정 로직 (STEP 3 트리거)
+       ========================================================================= */
+    function evaluateToleranceLEDs(turnOn = true) {
+      if (!turnOn) {
+        ['dx','dy','dz','rx','ry','rz'].forEach(k => {
+          const led = document.getElementById(`led_${k}`);
+          if (led) led.className = "w-3 h-3 rounded-full bg-slate-300 border border-slate-400";
+        });
+        document.getElementById('tolLedSummary').innerText = "STANDBY";
+        document.getElementById('tolLedSummary').className = "text-slate-500 font-black";
+        document.getElementById('tolDiagMsg').innerText = "STEP 3 스캔 계측 대기 중...";
+        document.getElementById('headerTolBadge').innerText = "대기 중";
+        document.getElementById('headerTolBadge').className = "font-extrabold text-slate-500";
+        isToleranceNG = false;
+        ngCausesList = [];
+        return;
+      }
+
+      const dx = Math.abs(currentShift.dx);
+      const dy = Math.abs(currentShift.dy);
+      const dz = Math.abs(currentShift.dz);
+      const rx = Math.abs(currentShift.rx);
+      const ry = Math.abs(currentShift.ry);
+      const rz = Math.abs(currentShift.rz);
+
+      const isDxNg = dx > TOL_LIMITS.dx;
+      const isDyNg = dy > TOL_LIMITS.dy;
+      const isDzNg = dz > TOL_LIMITS.dz;
+      const isRxNg = rx > TOL_LIMITS.rx;
+      const isRyNg = ry > TOL_LIMITS.ry;
+      const isRzNg = rz > TOL_LIMITS.rz;
+
+      isToleranceNG = (isDxNg || isDyNg || isDzNg || isRxNg || isRyNg || isRzNg);
+      ngCausesList = [];
+      if (isDxNg) ngCausesList.push(`dX(${currentShift.dx > 0 ? '+' : ''}${currentShift.dx}mm)`);
+      if (isDyNg) ngCausesList.push(`dY(${currentShift.dy > 0 ? '+' : ''}${currentShift.dy}mm)`);
+      if (isDzNg) ngCausesList.push(`dZ(${currentShift.dz > 0 ? '+' : ''}${currentShift.dz}mm)`);
+      if (isRxNg) ngCausesList.push(`dRx(${currentShift.rx > 0 ? '+' : ''}${currentShift.rx}°)`);
+      if (isRyNg) ngCausesList.push(`dRy(${currentShift.ry > 0 ? '+' : ''}${currentShift.ry}°)`);
+      if (isRzNg) ngCausesList.push(`dRz(${currentShift.rz > 0 ? '+' : ''}${currentShift.rz}°)`);
+
+      const setLed = (id, isNg) => {
+        const el = document.getElementById(id);
+        if (el) el.className = isNg ? "w-3 h-3 rounded-full bg-rose-600 animate-ping border border-rose-800" : "w-3 h-3 rounded-full bg-emerald-500 border border-emerald-700 shadow-xs";
+      };
+
+      setLed('led_dx', isDxNg);
+      setLed('led_dy', isDyNg);
+      setLed('led_dz', isDzNg);
+      setLed('led_rx', isRxNg);
+      setLed('led_ry', isRyNg);
+      setLed('led_rz', isRzNg);
+
+      const sumEl = document.getElementById('tolLedSummary');
+      const diagEl = document.getElementById('tolDiagMsg');
+      const hBadge = document.getElementById('headerTolBadge');
+
+      if (isToleranceNG) {
+        if (sumEl) { sumEl.innerText = "ALARM NG"; sumEl.className = "text-rose-600 font-extrabold animate-pulse"; }
+        if (diagEl) { diagEl.innerText = `[TOL_NG] 초과 축: ${ngCausesList.join(', ')}`; diagEl.className = "text-[9.5px] font-mono text-center text-rose-700 font-bold truncate bg-rose-50 py-0.5 px-1 rounded border border-rose-200 animate-pulse"; }
+        if (hBadge) { hBadge.innerText = "공차 초과 (NG)"; hBadge.className = "font-extrabold text-rose-600"; }
+        appendPacketLog('WARN', `ALARM_TOLERANCE_OVER :: 초과 원인 축 [${ngCausesList.join(', ')}]`);
+      } else {
+        if (sumEl) { sumEl.innerText = "ALL OK"; sumEl.className = "text-emerald-600 font-extrabold"; }
+        if (diagEl) { diagEl.innerText = "[SYSTEM] 모든 6-DOF 변위가 정상 허용공차 이내입니다."; diagEl.className = "text-[9.5px] font-mono text-center text-slate-600 truncate bg-white py-0.5 px-1 rounded border border-slate-200"; }
+        if (hBadge) { hBadge.innerText = "정상 허용 (OK)"; hBadge.className = "font-extrabold text-emerald-600"; }
+        appendPacketLog('SYS', `TOLERANCE_CHECK_PASSED :: 6축 모두 안전 수렴 범위(OK) 이내`);
+      }
+    }
+
+    /* =========================================================================
+       9. 5단계 공정 시나리오 전이 및 UI 제어
        ========================================================================= */
     function goToStep(idx, options = {}) {
       if (!options.fromAutoPlay && isAutoPlaying) stopAutoPlay();
       currentStep = idx;
 
-      // 단계별 비주얼 상태 변경
+      const banner = document.getElementById('cycleResultBanner');
+      const box = document.getElementById('cycleResultBox');
+      const icon = document.getElementById('cycleResultIcon');
+      const sub = document.getElementById('cycleResultSub');
+      const title = document.getElementById('cycleResultTitle');
+
       if (currentStep === 0) {
-        // Step 1: 기준 모델만 표시
         refCloud.visible = true;
         sceneCloud.visible = false;
         if (rayLinesMesh) rayLinesMesh.visible = false;
         scannerBeamMesh.material.opacity = 0;
         scanSweeperMesh.material.opacity = 0;
-        resetSliders();
+        evaluateToleranceLEDs(false);
+        if (banner) banner.classList.remove('show-banner');
         appendPacketLog('SYS', `STEP 1 :: 기준 REF.ply 모델 안착 완료.`);
       } else if (currentStep === 1) {
-        // Step 2: 왜곡된 부품 인입
         refCloud.visible = true;
         sceneCloud.visible = true;
         updateCorrespondenceRays();
         scannerBeamMesh.material.opacity = 0;
         scanSweeperMesh.material.opacity = 0;
+        evaluateToleranceLEDs(false);
+        if (banner) banner.classList.remove('show-banner');
         appendPacketLog('SYS', `STEP 2 :: Scene.ply 부품 6-DOF 오차 인입.`);
       } else if (currentStep === 2) {
-        // Step 3: 레이저 스캔 애니메이션 트리거
         refCloud.visible = true;
         sceneCloud.visible = true;
+        if (banner) banner.classList.remove('show-banner');
         triggerLaserScanCeremony();
-        appendPacketLog('TX', `STEP 3 :: AITZ 3DU 구조광 십자 스캔 시작.`);
+        appendPacketLog('TX', `STEP 3 :: AITZ 3DU 구조광 십자 스캔 & 듀얼 렌즈 캡처 시작.`);
       } else if (currentStep === 3) {
-        // Step 4: ICP 정합 실행 대기/시작
+        // [요청사항] NG 상황 발생 시 STEP 4 스킵하고 STEP 5로 강제 직행!
+        if (isToleranceNG) {
+          appendPacketLog('WARN', `INTERLOCK TRIPPED :: 공차 초과로 STEP 4(정합)를 스킵하고 즉시 STEP 5로 직행합니다!`);
+          goToStep(4, options);
+          return;
+        }
         refCloud.visible = true;
         sceneCloud.visible = true;
         updateCorrespondenceRays();
-        appendPacketLog('TX', `STEP 4 :: Lotus.Mv.ICP 반복 정합 루프 준비.`);
+        if (banner) banner.classList.remove('show-banner');
+        appendPacketLog('TX', `STEP 4 :: Lotus.Mv.ICP 최근접 반복 정합 루프 실행.`);
       } else if (currentStep === 4) {
-        // Step 5: 최종 행렬 확정
         refCloud.visible = true;
         sceneCloud.visible = true;
         updateCorrespondenceRays();
-        appendPacketLog('SYS', `STEP 5 :: 최종 [R|T] 변환 행렬 도출 및 로봇 위치보정 확정.`);
+        updateMetricsDisplay(computeCurrentRMSE());
+
+        // [요청사항] 성공/실패 배너를 작업대 화면 [우측 하단 안쪽]에 표출
+        if (banner && box) {
+          if (isToleranceNG) {
+            box.className = "w-full bg-rose-50/95 backdrop-blur-md px-3.5 py-2.5 rounded-2xl border-2 border-rose-500 shadow-2xl flex items-center gap-2.5";
+            icon.className = "w-7 h-7 rounded-full bg-rose-600 text-white flex items-center justify-center text-sm font-black shadow-xs shrink-0";
+            icon.innerText = "✕";
+            sub.className = "text-[9.5px] font-extrabold text-rose-600 tracking-wider uppercase";
+            sub.innerText = "Interlock Tripped : Tolerance Over";
+            title.className = "text-sm font-black text-rose-950 tracking-tight leading-tight truncate";
+            title.innerText = "The work Fails!";
+            banner.classList.add('show-banner');
+            appendPacketLog('WARN', `CYCLE_TERMINATED :: The work Fails! (공차 초과로 보정 취소)`);
+          } else {
+            box.className = "w-full bg-white/95 backdrop-blur-md px-3.5 py-2.5 rounded-2xl border-2 border-emerald-500 shadow-2xl flex items-center gap-2.5";
+            icon.className = "w-7 h-7 rounded-full bg-emerald-500 text-white flex items-center justify-center text-sm font-black shadow-xs shrink-0";
+            icon.innerText = "✓";
+            sub.className = "text-[9.5px] font-extrabold text-emerald-600 tracking-wider uppercase";
+            sub.innerText = "1-Cycle Process Done";
+            title.className = "text-sm font-black text-slate-900 tracking-tight leading-tight truncate";
+            title.innerText = "Cycle Completed !!";
+            banner.classList.add('show-banner');
+            appendPacketLog('SYS', `CYCLE_COMPLETED :: ICP 정합 완료 및 [R|T] 행렬 확정!`);
+          }
+        }
       }
 
       updateStepUI();
     }
 
+    /* AITZ 3DU 구조광 십자 직교 레이저 스캔 & 듀얼 렌즈 플래시 이중 샷 연출 */
     function triggerLaserScanCeremony() {
       let startTime = performance.now();
       const duration = 2400;
@@ -1100,14 +1384,20 @@
         scannerBeamMesh.material.opacity = 0.35 + 0.15 * Math.sin(progress * Math.PI * 4);
         scanSweeperMesh.material.opacity = 0.95;
 
+        // 1샷: X축 평행 스윕 + 좌측 렌즈 플래시
         if (progress <= 0.5) {
           const t1 = progress / 0.5;
           scanSweeperMesh.rotation.z = 0;
-          scanSweeperMesh.position.set(0, -105 + (Math.sin(t1 * Math.PI) * 2), (t1 * 60) - 30);
-        } else {
+          scanSweeperMesh.position.set(0, -115 + (Math.sin(t1 * Math.PI) * 2), (t1 * 60) - 30);
+          if (flashRingLeft) flashRingLeft.material.opacity = Math.sin(t1 * Math.PI * 6) > 0.2 ? 1.0 : 0.0;
+        } 
+        // 2샷: 90° 직교 회전 Y축 평행 스윕 + 우측 렌즈 플래시
+        else {
           const t2 = (progress - 0.5) / 0.5;
           scanSweeperMesh.rotation.z = Math.PI / 2;
-          scanSweeperMesh.position.set((t2 * 60) - 30, -105 + (Math.sin(t2 * Math.PI) * 2), 0);
+          scanSweeperMesh.position.set((t2 * 60) - 30, -115 + (Math.sin(t2 * Math.PI) * 2), 0);
+          if (flashRingLeft) flashRingLeft.material.opacity = 0;
+          if (flashRingRight) flashRingRight.material.opacity = Math.sin(t2 * Math.PI * 6) > 0.2 ? 1.0 : 0.0;
         }
 
         if (progress < 1.0 && currentStep === 2) {
@@ -1115,7 +1405,14 @@
         } else {
           scannerBeamMesh.material.opacity = 0;
           scanSweeperMesh.material.opacity = 0;
-          if (currentStep === 2) markStepCompleted();
+          if (flashRingLeft) flashRingLeft.material.opacity = 0;
+          if (flashRingRight) flashRingRight.material.opacity = 0;
+          
+          // [요청사항] STEP 3 스캔 완료 시점에 6축 공차 LED 즉각 점등!
+          if (currentStep === 2) {
+            evaluateToleranceLEDs(true);
+            markStepCompleted();
+          }
         }
       }
       requestAnimationFrame(scanAnim);
@@ -1149,33 +1446,35 @@
     function prevStep() { if (currentStep > 0) goToStep(currentStep - 1); }
 
     /* =========================================================================
-       9. 원클릭 시네마틱 데모 (정상 수렴 OK vs 로컬 미니마 NG)
+       10. 예제(OK) vs 예제(NG) 원클릭 실행 모드
        ========================================================================= */
-    function startCinematicDemo(type) {
+    function startExampleMode(type) {
       if (isAutoPlaying) stopAutoPlay();
       demoModeType = type;
       updateButtonActiveStates();
 
+      const rnd = (min, max, step) => min + (Math.floor(Math.random() * ((max - min) / step + 1)) * step);
+
       if (type === 'OK') {
-        // 정상 수렴: 오차가 적당한 범위 안에서 완벽 정합
-        document.getElementById('sl-dx').value = 25;
-        document.getElementById('sl-dy').value = -20;
-        document.getElementById('sl-dz').value = 15;
-        document.getElementById('sl-rx').value = 6;
-        document.getElementById('sl-ry').value = -3;
-        document.getElementById('sl-rz').value = 15;
+        // [OK 조건]: dX,dY,dZ ≤ 50mm / dRx,dRy ≤ 15° / dRz ≤ 20°
+        document.getElementById('sl-dx').value = rnd(-35, 35, 1);
+        document.getElementById('sl-dy').value = rnd(-30, 30, 1);
+        document.getElementById('sl-dz').value = rnd(-25, 25, 1);
+        document.getElementById('sl-rx').value = rnd(-10, 10, 0.5);
+        document.getElementById('sl-ry').value = rnd(-10, 10, 0.5);
+        document.getElementById('sl-rz').value = rnd(-15, 15, 0.5);
         onSliderChange();
-        clearPacketLogs(`[DEMO: OK] 정상 정합 시연 모드 시작 (안전 수렴 영역 인입)`);
+        clearPacketLogs(`[예제: OK] 공차 내 정상 정합 시연 모드 시작 (안전 수렴 영역 인입)`);
       } else {
-        // 로컬 미니마 실패: 180° 반전 또는 대칭 축 착시를 유도하여 엉뚱한 정합 시연
-        document.getElementById('sl-dx').value = 10;
-        document.getElementById('sl-dy').value = 0;
-        document.getElementById('sl-dz').value = 0;
-        document.getElementById('sl-rx').value = 0;
-        document.getElementById('sl-ry').value = 0;
-        document.getElementById('sl-rz').value = 175; // 180도 회전 Trap
+        // [NG 조건]: 축 중 하나 이상이 허용 한계를 명백히 초과!
+        document.getElementById('sl-dx').value = rnd(55, 65, 1); // dX 공차 50mm 초과!
+        document.getElementById('sl-dy').value = rnd(-20, 20, 1);
+        document.getElementById('sl-dz').value = rnd(-20, 20, 1);
+        document.getElementById('sl-rx').value = rnd(-10, 10, 0.5);
+        document.getElementById('sl-ry').value = rnd(-10, 10, 0.5);
+        document.getElementById('sl-rz').value = 26.0; // dRz 공차 20° 초과!
         onSliderChange();
-        clearPacketLogs(`[DEMO: NG] Local Minima 함정 시연 모드 (180° 반전 오정합 유도)`);
+        clearPacketLogs(`[예제: NG] 공차 초과 불량 시연 모드 시작 (인터록 차단 유도)`);
       }
 
       goToStep(0);
@@ -1202,7 +1501,7 @@
     }
 
     /* =========================================================================
-       10. 자동 재생 (Auto-Play) & 타이머 게이지
+       11. 자동 재생 (Auto-Play) & 타이머 게이지
        ========================================================================= */
     function toggleAutoPlay() {
       if (isAutoPlaying) stopAutoPlay();
@@ -1237,11 +1536,11 @@
       if (!isAutoPlaying) return;
       if (autoPlayTimeoutId) clearTimeout(autoPlayTimeoutId);
 
-      let waitTime = 3000;
+      let waitTime = 2800;
       if (currentStep === 2) waitTime = 2600;
       else if (currentStep === 3) {
-        waitTime = 3500;
-        runFullICP(); // Step 4 진입 시 자동 정합 수행
+        waitTime = 3400;
+        runFullICP();
       }
 
       const pWrap = document.getElementById('autoPlayProgressWrapper');
@@ -1277,14 +1576,14 @@
 
     function resetSimulation() {
       stopAutoPlay();
-      resetSliders();
+      applyDefaultPreset();
       currentIteration = 0;
       goToStep(0);
       clearPacketLogs("시뮬레이터가 초기화되었습니다.");
     }
 
     /* =========================================================================
-       11. UI 패널 토글 & 카메라 프리셋 (1920x1080 앵글 정렬)
+       12. UI 패널 토글 & 카메라 프리셋 (Z-Up 표준 정렬)
        ========================================================================= */
     function toggleParamPanel() {
       const content = document.getElementById('paramPanelContent');
@@ -1308,16 +1607,19 @@
       if (activeBtn) activeBtn.classList.add('active-cam');
 
       if (view === 'iso') {
-        camera.position.set(110, 130, 160);
-        controls.target.set(0, 10, 0);
+        camera.position.set(110, 140, 170);
+        controls.target.set(0, 15, 0);
       } else if (view === 'top') {
-        camera.position.set(0, 250, 0);
+        // 평면도 (Top): 화면 가로 X, 세로 Y
+        camera.position.set(0, 260, 0);
         controls.target.set(0, 0, 0);
       } else if (view === 'front') {
-        camera.position.set(0, 20, 240);
+        // 정면도 (Front): 화면 가로 X, 수직 상하 Z
+        camera.position.set(0, 15, 260);
         controls.target.set(0, 15, 0);
       } else if (view === 'side') {
-        camera.position.set(240, 20, 0);
+        // 측면도 (Side)
+        camera.position.set(260, 15, 0);
         controls.target.set(0, 15, 0);
       }
       controls.update();
@@ -1331,7 +1633,7 @@
     }
 
     /* =========================================================================
-       12. 로그 패킷 터미널 & 이스터에그
+       13. 로그 패킷 터미널 & 이스터에그
        ========================================================================= */
     function getFormattedTimestamp() {
       const n = new Date();
@@ -1353,6 +1655,9 @@
       } else if (type === 'RX') {
         tagHtml = `<span class="text-amber-700 font-bold shrink-0">[RX #${seqStr}]</span>`;
         msgColorClass = 'text-amber-900 font-medium';
+      } else if (type === 'WARN') {
+        tagHtml = `<span class="text-rose-600 font-bold shrink-0">[WARN #${seqStr}]</span>`;
+        msgColorClass = 'text-rose-900 font-semibold';
       }
 
       row.innerHTML = `<span class="text-slate-500 font-mono shrink-0">[${timeStr}]</span>${tagHtml}<span class="${msgColorClass}">${message}</span>`;
@@ -1385,7 +1690,7 @@
     }
 
     /* =========================================================================
-       13. 렌더 루프 및 리사이즈
+       14. 렌더 루프 및 리사이즈
        ========================================================================= */
     function animate() {
       requestAnimationFrame(animate);
