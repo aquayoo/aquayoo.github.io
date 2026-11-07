@@ -2,8 +2,38 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8">
+  <!-- 
+    ========================================================================
+    [ATM / Robot 위치보정 3D Simulator V8.5 (PC Version) - Change Log & Release Notes]
+    Release Date: November 7, 2026
+    Author: 교육관 유재광 (jaekwang.yoo@atmc.co.kr)
+    
+    [V8.5 주요 변화점 (v8.4 대비 고도화 내역)]
+    1. 버전 및 메타데이터 통일: 
+       - 내부 타이틀 및 메타 버전을 V9.0 임시 표기에서 공식 'V8.5 (Nov.7)'로 정렬.
+    2. 메인 런처 연동 홈(🏠) 버튼 신설:
+       - 상단 헤더 우측 끝에 직관적인 홈 아이콘 버튼을 배치하여 클릭 시 즉시 './index.html' (메인 런처)로 복귀.
+    3. 종료 배너 & 6-DOF 오차 분석창 가로폭 슬림화 및 일치:
+       - 우측 상단 종료 배너 및 하단 오차 분석 카드의 가로폭을 w-[276px]로 축소 통일.
+       - 6-DOF 분석 창 내부 'Path Tracking Accuracy' 텍스트와 비율 값 간격을 좁혀 불필요한 여백 제거.
+    4. 공식 기업 CI 적용 (atm_red.png):
+       - 좌측 하단 푸터의 임의 SVG ATM 로고를 사내 공인 이미지 './atm_red.png'로 교체 (마우스 오버 3DU 무지개 스캔 세레머니 유지).
+    5. 이스터에그 (교육관 유재광 수료 축하 골드 토스트) 개선:
+       - 문구 어법을 정돈하여 "🎓 ATM 3D Vision을 활용한 로봇 위치보정 연수 과정을 완료하신 것을 축하드립니다. 수고하셨습니다. 🎉"로 확정.
+       - 위치를 상단에서 하단 TCP/IP 패킷 로그 창 바로 위쪽(가로 정중앙)으로 이동하고 1행 중앙 정렬 배치.
+    6. 모바일 V2.0 UX 철학 PC 버전 이식 (지인분 피드백 반영):
+       - 실행 중인 버튼(데모 OK, NG, 자동 재생)에 표준 CSS 네온 글로우 링(`.btn-running-*`, `outline`, `box-shadow`) 적용.
+       - 단계별 애니메이션 종료 시 좌측/하단 배지가 'STEP X DONE ✓' 초록색 완료 상태로 즉시 변신.
+       - 자동 재생 대기 구간 동안 다음 단계 전환 카운트다운을 보여주는 프로그레스 게이지 바 탑재.
+    7. 성능 및 버그 패치:
+       - 6축 수동 조그(Jog) 조작 시 상단 헤더 TCP 좌표가 실시간으로 갱신되도록 순기구학 연동 보강.
+       - Step 8~9 진입 후 정지 상태에서도 ICP 미니뷰 점군이 부드럽게 좌우 회전하도록 렌더링 루프 분리.
+       - Step 7 변위 화살표 생성 시 매 프레임 객체 파기/생성(GC 부하)을 방지하는 메모리 최적화 수행.
+    ========================================================================
+  -->
+  <meta name="application-version" content="8.5">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>ATM / Robot 위치보정 3D Simulator V8.3 (Nov.5)</title>
+  <title>ATM / Robot 위치보정 3D Simulator</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
@@ -47,22 +77,27 @@
     .rt-cell-t { background-color: #fffbeb; color: #b45309; border: 1px solid #fde68a; font-weight: 800 !important; }
     .rt-cell-h { background-color: #f1f5f9; color: #64748b; border: 1px solid #e2e8f0; text-align: center !important; font-weight: 700; }
 
-    /* 골드 토스트 팝업 (교육관 유재광 이스터에그) */
+    /* [V8.5] 실행 중인 버튼 하이라이트 글로우 링 (모바일 V2.0 UX 철학 동기화) */
+    .btn-running-ok { outline: 2px solid #34d399 !important; box-shadow: 0 0 10px rgba(16, 185, 129, 0.6) !important; }
+    .btn-running-ng { outline: 2px solid #fb7185 !important; box-shadow: 0 0 10px rgba(244, 63, 94, 0.6) !important; }
+    .btn-running-auto { outline: 2px solid #60a5fa !important; box-shadow: 0 0 10px rgba(59, 130, 246, 0.6) !important; }
+
+    /* [V8.5] 골드 토스트 팝업 (하단 TCP/IP 창 바로 위, 화면 가로 중앙, 1행 중앙 정렬) */
     #goldToastPopup {
       position: absolute;
-      top: 62px;
+      bottom: 158px;
       left: 50%;
-      transform: translateX(-50%) translateY(-12px) scale(0.96);
+      transform: translateX(-50%) translateY(12px) scale(0.96);
       opacity: 0;
       pointer-events: none;
       z-index: 50;
       transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+      white-space: nowrap;
     }
     #goldToastPopup.show-toast {
       opacity: 1;
       transform: translateX(-50%) translateY(0) scale(1);
     }
-
   </style>
 </head>
 <body class="bg-slate-100 text-slate-800 h-screen w-screen flex flex-col justify-between p-2 overflow-hidden">
@@ -71,33 +106,45 @@
   <header class="w-full bg-white rounded-xl shadow-xs border border-slate-200 px-4 py-1.5 flex items-center justify-between shrink-0 mb-1.5">
     <div class="flex items-center gap-2.5">
       <div class="bg-blue-600 text-white px-2.5 py-1 rounded-md shadow-xs flex items-center justify-center leading-none">
-        <span class="text-xs font-black tracking-tight">V8.3 (Nov.5)</span>
+        <span class="text-xs font-black tracking-tight" title="V8.5: 모바일 UX 동기화, UI 여백 최적화, 공인 로고 및 이스터에그 정돈">V8.5 (Nov.7)</span>
       </div>
       <h1 class="text-sm md:text-base font-extrabold text-slate-900 tracking-tight whitespace-nowrap">
         ATM / Robot 위치보정 3D Simulator
       </h1>
     </div>
-    <div class="flex items-center gap-3 text-xs font-mono bg-slate-50 px-3.5 py-1 rounded-lg border border-slate-200">
-      <div><span class="text-slate-500 font-bold">TCP:</span> <span id="toolCoord" class="font-extrabold text-slate-900">대기 중</span></div>
-      <div class="border-l border-slate-300 pl-2.5"><span class="text-slate-500 font-bold">STATE:</span> <span id="targetCoord" class="font-extrabold text-blue-600">대기 위치</span></div>
-      <div class="border-l border-slate-300 pl-2.5"><span class="text-slate-500 font-bold">PT A:</span> <span id="pointA_UF" class="font-extrabold text-amber-600">미지정</span></div>
-      <div class="border-l border-slate-300 pl-2.5"><span class="text-slate-500 font-bold">PT B:</span> <span id="pointB_UF" class="font-extrabold text-teal-600">미지정</span></div>
+    
+    <div class="flex items-center gap-3">
+      <!-- 상태 모니터 뱃지 -->
+      <div class="hidden lg:flex items-center gap-3 text-xs font-mono bg-slate-50 px-3.5 py-1 rounded-lg border border-slate-200">
+        <div><span class="text-slate-500 font-bold">TCP:</span> <span id="toolCoord" class="font-extrabold text-slate-900">대기 중</span></div>
+        <div class="border-l border-slate-300 pl-2.5"><span class="text-slate-500 font-bold">STATE:</span> <span id="targetCoord" class="font-extrabold text-blue-600">대기 위치</span></div>
+        <div class="border-l border-slate-300 pl-2.5"><span class="text-slate-500 font-bold">PT A:</span> <span id="pointA_UF" class="font-extrabold text-amber-600">미지정</span></div>
+        <div class="border-l border-slate-300 pl-2.5"><span class="text-slate-500 font-bold">PT B:</span> <span id="pointB_UF" class="font-extrabold text-teal-600">미지정</span></div>
+      </div>
+
+      <!-- [V8.5] 메인 런처 복귀용 홈(🏠) 버튼 (우측 끝 배치) -->
+      <a href="index.html" class="w-8 h-8 rounded-xl bg-slate-100 hover:bg-blue-600 hover:text-white text-slate-700 border border-slate-300 hover:border-blue-700 flex items-center justify-center transition-all shadow-2xs cursor-pointer group" title="메인 런처(index.html)로 복귀">
+        <svg class="w-4 h-4 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <path stroke-linecap="round" stroke-linejoin="round" d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+          <polyline points="9 22 9 12 15 12 15 22"></polyline>
+        </svg>
+      </a>
     </div>
   </header>
 
-  <!-- V8.2 BETA5: Main 3D Card / revised analysis layout and initial camera composition -->
+  <!-- Main 3D Card -->
   <main class="w-full flex-1 bg-white rounded-xl shadow-sm border border-slate-300 relative overflow-hidden flex flex-col min-h-0">
     <div id="canvas-container" class="w-full h-full cursor-grab active:cursor-grabbing relative">
       
-            <!-- 이스터에그 1: 교육관 명찰 골드 토스트 팝업 (11단계 완료 후 활성) -->
+      <!-- [V8.5] 교육관 유재광 이스터에그 (TCP/IP 창 바로 위, 화면 중앙, 1행 중앙 정렬) -->
       <div id="goldToastPopup" class="bg-gradient-to-r from-amber-500 via-yellow-400 to-amber-600 text-slate-900 px-5 py-2.5 rounded-2xl shadow-2xl border-2 border-yellow-200 flex items-center gap-3">
         <span class="text-2xl animate-bounce">🎓</span>
-        <div class="flex flex-col">
-          <span class="text-[10px] font-black tracking-widest uppercase text-amber-950">ATM ROBOTICS MASTER CLASS</span>
-          <span class="text-sm font-black text-slate-900 tracking-tight">교육관 유재광 님의 로봇 위치보정 기술 세미나 성공 완료! 🎉</span>
+        <div class="flex items-center">
+          <span class="text-xs md:text-sm font-black text-slate-900 tracking-tight">🎓 ATM 3D Vision을 활용한 로봇 위치보정 연수 과정을 완료하신 것을 축하드립니다. 수고하셨습니다 🎉</span>
         </div>
       </div>
-            <!-- 상단 카메라 뷰 프리셋 & FOV 실시간 슬라이더 -->
+
+      <!-- 상단 카메라 뷰 프리셋 & FOV 실시간 슬라이더 -->
       <div class="absolute top-2.5 left-[222px] flex items-center gap-1.5 bg-white/95 backdrop-blur-md p-1.5 rounded-xl border border-slate-300 text-xs z-10 shadow-sm">
         <button id="camBtn_iso" onclick="setCameraView('iso')" class="cam-preset-btn active-cam px-2.5 py-1 bg-slate-100 hover:bg-blue-600 hover:text-white text-slate-700 rounded-lg transition font-bold border border-slate-200">입체(ISO)</button>
         <button id="camBtn_top" onclick="setCameraView('top')" class="cam-preset-btn px-2.5 py-1 bg-slate-100 hover:bg-blue-600 hover:text-white text-slate-700 rounded-lg transition font-bold border border-slate-200">평면도(Top)</button>
@@ -118,13 +165,13 @@
         </div>
       </div>
 
-      <!-- 작업 완료/실패 배지 (우측 설정창 왼쪽 정렬 & 가로폭 332px 통일) -->
-      <div id="cycleCompleteBanner" class="pointer-events-none absolute top-2.5 right-[326px] w-[332px] z-30 opacity-0 -translate-y-2 scale-95 flex flex-col items-stretch">
-        <div id="cycleBannerBox" class="w-full bg-white/95 backdrop-blur-md px-4 py-2.5 rounded-2xl border-2 border-blue-500 shadow-xl flex items-center gap-3">
-          <span id="cycleBannerIcon" class="w-7 h-7 rounded-full bg-emerald-500 text-white flex items-center justify-center text-sm font-black shadow-xs shrink-0">✓</span>
+      <!-- [V8.5] 작업 완료/실패 배지 (가로폭 w-[276px]로 슬림화 통일) -->
+      <div id="cycleCompleteBanner" class="pointer-events-none absolute top-2.5 right-[326px] w-[276px] z-30 opacity-0 -translate-y-2 scale-95 flex flex-col items-stretch">
+        <div id="cycleBannerBox" class="w-full bg-white/95 backdrop-blur-md px-3.5 py-2.5 rounded-2xl border-2 border-blue-500 shadow-xl flex items-center gap-2.5">
+          <span id="cycleBannerIcon" class="w-6 h-6 rounded-full bg-emerald-500 text-white flex items-center justify-center text-xs font-black shadow-xs shrink-0">✓</span>
           <div class="flex flex-col min-w-0">
-            <span id="cycleBannerSub" class="text-[9.5px] font-extrabold text-blue-600 tracking-widest uppercase truncate">1-Cycle Process Done</span>
-            <span id="cycleBannerTitle" class="text-base md:text-lg font-black text-slate-900 tracking-tight leading-tight truncate">Cycle Completed !!</span>
+            <span id="cycleBannerSub" class="text-[9px] font-extrabold text-blue-600 tracking-wider uppercase truncate">1-Cycle Process Done</span>
+            <span id="cycleBannerTitle" class="text-sm font-black text-slate-900 tracking-tight leading-tight truncate">Cycle Completed !!</span>
           </div>
         </div>
       </div>
@@ -148,7 +195,7 @@
           </div>
 
           <div class="flex items-center gap-1.5">
-            <button id="autoPlayBtn" onclick="toggleAutoPlay()" class="flex-1 flex items-center justify-center gap-1 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-bold transition shadow-xs">
+            <button id="autoPlayBtn" onclick="toggleAutoPlay()" class="flex-1 flex items-center justify-center gap-1 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xs text-xs font-bold transition shadow-xs">
               <span id="playIcon">▶</span><span id="playText">자동 재생</span>
             </button>
             <button onclick="resetSimulation()" class="px-2.5 py-1.5 bg-slate-200 hover:bg-slate-300 text-slate-900 rounded-lg text-xs font-bold transition border border-slate-300 shrink-0">초기화</button>
@@ -198,7 +245,7 @@
         </div>
       </div>
 
-      <!-- 우측 영역: 파라미터 패널 (프리셋 4개 제거로 슬림화) + TP JOB + 진단 LED ICP 미니뷰 -->
+      <!-- 우측 영역: 파라미터 패널 + TP JOB + 진단 LED ICP 미니뷰 -->
       <div class="absolute top-2.5 right-2.5 w-[316px] z-20 flex flex-col gap-2 max-h-[96%] overflow-y-auto pl-0.5">
         
         <!-- 1. UF5 ORG 설정 패널 -->
@@ -371,7 +418,7 @@
           </div>
         </div>
 
-        <!-- 4. UF5 → UF6 [R:T] 4×4 동차변환행렬 카드 (Step 8~11 노출) -->
+        <!-- 4. UF5 → UF6 [R:T] 4×4 동차변환행렬 카드 -->
         <div id="rtMatrixCard" class="hidden icp-card-enter bg-white/95 backdrop-blur-md p-2.5 rounded-xl shadow-lg border border-slate-300 text-xs flex-col gap-1.5 shrink-0">
           <div class="flex items-center justify-between border-b border-slate-200 pb-1">
             <div class="flex items-center gap-1.5 font-black text-slate-900 text-[11px] whitespace-nowrap">
@@ -405,7 +452,7 @@
         </div>
       </div>
 
-      <!-- 하단 플로팅 바: TCP/IP 로그 터미널 + 6-DOF 대시보드 -->
+      <!-- 하단 플로팅 바: TCP/IP 로그 터미널 + 6-DOF 대시보드 (가로폭 w-[276px] 통일) -->
       <div class="absolute bottom-[14px] left-[222px] right-[326px] z-20 flex items-stretch gap-2 pointer-events-none">
         <div id="packetTerminal" class="pointer-events-auto flex-1 min-w-0 h-[136px] bg-white/95 backdrop-blur-md rounded-xl border border-slate-300 shadow-xl flex flex-col overflow-hidden text-xs">
           <div class="bg-slate-100 px-3 py-1.5 border-b border-slate-200 flex items-center justify-between shrink-0">
@@ -423,28 +470,29 @@
           </div>
         </div>
 
-        <div id="diffDashboardCard" class="pointer-events-auto hidden icp-card-enter w-[332px] h-[136px] bg-white/95 backdrop-blur-md p-2.5 rounded-xl shadow-xl border border-slate-300 text-xs flex flex-col justify-between shrink-0">
+        <!-- [V8.5] 6-DOF 보정 전/후 오차 분석 창 (가로폭 w-[276px]로 슬림화 및 여백 압축) -->
+        <div id="diffDashboardCard" class="pointer-events-auto hidden icp-card-enter w-[276px] h-[136px] bg-white/95 backdrop-blur-md p-2.5 rounded-xl shadow-xl border border-slate-300 text-xs flex flex-col justify-between shrink-0">
           <div class="flex items-center justify-between border-b border-slate-200 pb-1 shrink-0">
             <div class="flex items-center gap-1.5 font-bold text-slate-800 text-[11px] whitespace-nowrap">
-              <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span><span>6-DOF 보정 전/후 오차 분석</span>
+              <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span><span>6-DOF 오차 분석</span>
             </div>
             <span id="dashStatusBadge" class="px-1.5 py-0.5 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded text-[9.5px] font-mono font-semibold">COMPENSATED</span>
           </div>
-          <div class="grid grid-cols-2 gap-1.5 text-[10px] font-mono my-auto">
+          <div class="grid grid-cols-2 gap-1 text-[10px] font-mono my-auto">
             <div class="bg-rose-50/70 px-2 py-1 rounded border border-rose-200 flex flex-col justify-between">
-              <span class="text-rose-700 font-bold text-[9px]">[보정 미적용 오차]</span>
+              <span class="text-rose-700 font-bold text-[9px]">[보정 미적용]</span>
               <div class="flex items-baseline justify-between gap-1 mt-0.5"><span class="text-slate-500 text-[9px]">ΔD:</span><span id="dashDistErr" class="text-rose-600 font-bold text-[10.5px] leading-none">0.0 mm</span></div>
               <div class="flex items-baseline justify-between gap-1 mt-0.5"><span class="text-slate-500 text-[9px]">ΔΘ:</span><span id="dashRotErr" class="text-rose-600 font-bold text-[10.5px] leading-none">0.00°</span></div>
             </div>
             <div class="bg-emerald-50/70 px-2 py-1 rounded border border-emerald-200 flex flex-col justify-between">
-              <span class="text-emerald-800 font-bold text-[9px]">[UF6 보정 주행]</span>
+              <span class="text-emerald-800 font-bold text-[9px]">[UF6 보정]</span>
               <div class="flex items-baseline justify-between gap-1 mt-0.5"><span class="text-slate-500 text-[9px]">잔류:</span><span id="dashCompDist" class="text-emerald-700 font-bold text-[10.5px] leading-none">0.00 mm</span></div>
-              <div class="flex items-baseline justify-between gap-1 mt-0.5"><span class="text-slate-500 text-[9px]">법선:</span><span id="dashCompAlign" class="text-emerald-700 font-bold text-[10.5px] leading-none">100.0%</span></div>
+              <div class="flex items-baseline justify-between gap-1 mt-0.5"><span class="text-slate-500 text-[9px]">법선:</span><span id="dashCompAlign" class="text-emerald-700 font-bold text-[10.5px] leading-none">100%</span></div>
             </div>
           </div>
-          <div class="bg-slate-100 px-2 py-1 rounded border border-slate-200 flex flex-col gap-0.5 shrink-0">
+          <div class="bg-slate-100 px-2 py-0.5 rounded border border-slate-200 flex flex-col gap-0.5 shrink-0">
             <div class="flex justify-between text-[9px] font-mono text-slate-600 leading-none">
-              <span class="font-medium">Path Tracking Accuracy</span><span id="dashAccuracyVal" class="text-emerald-700 font-bold">100.0% (Exact)</span>
+              <span class="font-medium">Accuracy</span><span id="dashAccuracyVal" class="text-emerald-700 font-bold">100.0% (Exact)</span>
             </div>
             <div class="w-full h-1.5 bg-slate-200 rounded-full overflow-hidden">
               <div id="dashAccuracyBar" class="h-full bg-emerald-500 transition-all duration-300" style="width: 100%;"></div>
@@ -457,24 +505,28 @@
 
     <!-- 하단 푸터 바 -->
     <div class="bg-slate-50 border-t border-slate-200 px-4 py-1.5 flex items-center justify-between gap-3 shrink-0 z-30">
+      <!-- [V8.5] 사내 공인 로고 atm_red.png 적용 -->
       <a id="atmLogoBtn" href="http://www.atmc.co.kr" target="_blank" rel="noopener noreferrer" class="flex items-center bg-white hover:bg-slate-100 px-3 py-1 rounded-lg border border-slate-300 hover:border-blue-400 shadow-2xs shrink-0 transition-all cursor-pointer group" title="ATM 로고 (11단계 완료 후 마우스 오버 시 3DU 스캔 세레머니)">
-        <svg class="h-4 w-auto group-hover:scale-105 transition-transform" viewBox="0 0 160 50" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M12 42 L26 8 C27.5 4.5 31.5 4.5 33 8 L47 42 C48 44.5 46 47 43 47 C40.5 47 38.5 45 37.5 42.5 L34 33 L24 33 L24 26 L31.5 26 L29.5 20 L21 40 C20 43.5 17 46 13.5 46 C9.5 46 8 43 12 42 Z" fill="#FF0000"/>
-          <path d="M54 7 H90 C92.5 7 94 8.5 94 11 C94 13.5 92.5 15 90 15 H77 V42 C77 44.8 74.8 47 72 47 C69.2 47 67 44.8 67 42 V15 H54 C51.5 15 50 13.5 50 11 C50 8.5 51.5 7 54 7 Z" fill="#FF0000"/>
-          <path d="M102 11 C102 8.5 104 6.5 106.5 6.5 C108.5 6.5 110.5 7.8 111.5 9.8 L124 31 L136.5 9.8 C137.5 7.8 139.5 6.5 141.5 6.5 C144 6.5 146 8.5 146 11 V42 C146 44.8 143.8 47 141 47 C138.2 47 136 44.8 136 42 V20.5 L127 35.5 C125.8 37.5 122.2 37.5 121 35.5 L112 20.5 V42 C112 44.8 109.8 47 107 47 C104.2 47 102 44.8 102 42 V11 Z" fill="#FF0000"/>
-        </svg>
+        <img src="atm_red.png" alt="ATM ROBOT AUTOMATION" class="h-4 w-auto object-contain group-hover:scale-105 transition-transform">
         <span class="ml-2 text-xs font-extrabold text-slate-500 group-hover:text-blue-600 tracking-wider border-l border-slate-300 pl-2 hidden sm:inline">ROBOT AUTOMATION</span>
       </a>
-      <div id="descCard" class="flex-1 max-w-4xl bg-white px-4 py-1 rounded-lg border border-slate-300 shadow-2xs flex items-center gap-3 overflow-hidden">
+
+      <!-- 하단 설명 카드 -->
+      <div id="descCard" class="flex-1 max-w-4xl bg-white px-4 py-1 rounded-lg border border-slate-300 shadow-2xs flex items-center gap-3 overflow-hidden relative">
         <div id="descIcon" class="p-1 bg-blue-50 text-blue-600 rounded text-base shrink-0 font-bold">🏭</div>
-        <div class="overflow-hidden">
+        <div class="overflow-hidden flex-1">
           <div class="flex items-center gap-2">
-            <span id="stepBadge" class="bg-blue-600 text-white text-[10px] font-black px-2 py-0.5 rounded">STEP 1</span>
+            <span id="stepBadge" class="bg-blue-600 text-white text-[10px] font-black px-2 py-0.5 rounded transition-all">STEP 1</span>
             <h4 id="descHeading" class="text-xs font-black text-slate-900 truncate">1. Base 좌표계 및 로봇/스캐너 시스템 준비</h4>
           </div>
           <p id="descBody" class="text-xs text-slate-600 truncate mt-0.5">고정 정반(Work Table)의 Base 원점에 6축 다관절 로봇(홈 대기)과 상공의 AITZ 3DU[3DM] 스캐너가 준비됩니다.</p>
         </div>
+        <!-- [V8.5] 자동재생 프로그레스 게이지 바 (하단 설명카드 상단 테두리 장착) -->
+        <div id="autoPlayProgressWrapper" class="absolute inset-x-0 bottom-0 h-1 bg-slate-100 rounded-full overflow-hidden hidden">
+          <div id="autoPlayProgressBar" class="h-full bg-emerald-500 transition-all duration-75" style="width: 0%;"></div>
+        </div>
       </div>
+
       <div class="flex items-center gap-2 shrink-0">
         <!-- 방문자 수 카운터 -->
         <div class="hidden sm:flex items-center gap-1.5 bg-white px-2.5 py-1 rounded-lg border border-slate-300 shadow-2xs text-[11px] font-mono font-bold text-slate-600">
@@ -482,32 +534,34 @@
           <span class="text-slate-400 font-normal">VISITORS:</span>
           <span id="visitorCountVal" class="font-extrabold text-blue-700">1,970</span>
         </div>
-        <a id="authorBadgeBtn" href="mailto:jaekwang.yoo@atmc.co.kr?subject=%5BAT%20Simulator%20V8.3%20Feedback%5D" class="bg-white hover:bg-amber-50 px-3.5 py-1 rounded-lg border border-slate-300 hover:border-amber-400 text-xs font-bold text-slate-700 hover:text-amber-800 shadow-2xs flex items-center gap-2 transition-all cursor-pointer" title="교육관 유재광 (11단계 완료 후 마우스 오버 시 골드 세레머니)">
-        <span class="text-blue-600 text-sm">✍️</span><span>교육관 <span class="text-slate-900 font-black">유재광</span></span>
-        </a>
+        <!-- 교육관 유재광 배지 (마우스 오버 시 골드 세레머니) -->
+        <div id="authorBadgeBtn" class="bg-white hover:bg-amber-50 px-3.5 py-1 rounded-lg border border-slate-300 hover:border-amber-400 text-xs font-bold text-slate-700 hover:text-amber-800 shadow-2xs flex items-center gap-2 transition-all cursor-pointer" title="교육관 유재광 (11단계 완료 후 마우스 오버 시 연수 수료 골드 세레머니)">
+          <span class="text-blue-600 text-sm">✍️</span><span>교육관 <span class="text-slate-900 font-black">유재광</span></span>
+        </div>
       </div>
     </div>
   </main>
 
   <script>
     const stepData = [
-      { badge: "STEP 1", icon: "🏭", heading: "1. Base 좌표계 (원점 & 6축 로봇/스캐너 시스템 준비)", body: "정반의 설치 원점(Base Org)에 <strong>은은하게 투과(20% 반투명)되는 Base X/Y/Z축</strong>과 <strong>6축 로봇(홈 대기)</strong>, 상공의 <strong>AITZ 3DU[3DM] 스캐너</strong>가 배치됩니다." },
-      { badge: "STEP 2", icon: "📐", heading: "2. 부품 마스터 기준점(UF5 Ref) 정의 및 지그 형성", body: "작업 테이블 위에 마스터 지그가 세워지고, 기준 원점 <strong>Org(UF5 Ref)</strong>와 직교 3축(<strong>UF5_X, UF5_Y, UF5_Z</strong>)이 형성됩니다." },
-      { badge: "STEP 3", icon: "🗂️", heading: "3. UF6 시트 중첩 및 로봇 작업 준비 위치(Ready) 진입", body: "UF6 프레임을 중첩함과 동시에, 로봇이 홈 위치와 작업물 사이의 <strong>스캐너 시야 간섭 없는 중간 대기 위치(Ready Position)로 진입</strong>합니다." },
-      { badge: "STEP 4", icon: "🎯", heading: "4. 시작점(Point A) 및 끝점(Point B) 3D 좌표 지정", body: "우측 패널의 <strong>조정 컨트롤</strong>로 <strong>시작점 A(Ax, Ay, Az)</strong>와 <strong>끝점 B(거리 L, 각도 θ, 높이 Bz)</strong>를 정밀 설정합니다." },
-      { badge: "STEP 5", icon: "📍", heading: "5. Point A & Point B 개별 포인트 정밀 티칭 (Move P 점프 / Move L 하강)", body: "대기 위치 ➔ <strong>Point A 상공(Z+1m) 점프(Move P: 주황 점선 궤적) 후 수직 하강(Move L: 에메랄드 직선)</strong> ➔ <strong>B 상공 점프 및 수직 티칭</strong>을 수행합니다." },
-      { badge: "STEP 6", icon: "🤖", heading: "6. 티칭된 Point A → Point B 선형 보간(Move L) 검증 및 대기 복귀", body: "Point A로 진입 후 ➔ <strong>Point B까지 에메랄드 직선(Move L)으로 보간 주행</strong> 검증을 수행한 뒤 ➔ <strong>부드러운 곡선(Move P)으로 대기 위치(Ready)로 복귀</strong>합니다." },
-      { badge: "STEP 7", icon: "📦", heading: "7. 투명 시트 틀어짐 인입 (실시간 변위 점선 화살표 연장)", body: "로봇이 대기 위치에서 시야를 비워준 상태로 부품이 3D 변위로 인입되며, <strong>마스터 A/B에서 변위된 A'/B'까지의 3D 점선 화살표가 실시간으로 연장</strong>됩니다." },
-      { badge: "STEP 8", icon: "📸", heading: "8. AITZ 3DU[3DM] 구조광 십자 직교 교차 스캔 & 다중 플래시 캡처", body: "적색 슬릿 레이저가 <strong>X축 평행 1회 ➔ 90° 직교 회전하여 Y축 평행 1회</strong> 교차 주사되며, 허용공차 초과 시 <strong>비상 복귀(Step 11)로 즉시 탈출</strong>합니다." },
-      { badge: "STEP 9", icon: "✨", heading: "9. 3DU 알고리즘 ICP 정합 수렴 & 선분 A'B' 확정", body: "측정 점군이 <strong>ICP 정합 수렴</strong>하며 슬림화된 <strong>UF6 축과 선분 A'B'가 확정</strong>되고, 3D 입체 변위 화살표가 선명하게 유지됩니다." },
-      { badge: "STEP 10", icon: "🔄", heading: "10. 계측된 UF6 기반 6자유도 보정 주행 (보정 전 오차 점선 대비 & 보라색 실링 도포)", body: "비전 보정 전 <strong>빗나갔을 마스터 오차 선(빨간 점선)</strong>과 대조하며, 로봇이 <strong>UF6 정합 선 위에 도톰한 보라색 실링 비드를 도포</strong>하고 B'에서 정지 검사합니다." },
-      { badge: "STEP 11", icon: "🏁", heading: "11. 작업 완료 및 안전 홈 위치 복귀 (보라색 도포 비드 보존)", body: "카메라가 <strong>ISO 뷰로 복원</strong>되고 변위 화살표는 소멸하지만, <strong>도포된 보라색 실링 비드는 완제품 상태로 보존</strong>되며 로봇이 안전 홈 위치로 복귀합니다." }
+      { badge: "STEP 1", icon: "🏭", heading: "1. Base 좌표계 (원점 & 6축 로봇/스캐너 시스템 준비)", body: "정반의 설치 원점(Base Org)에 은은하게 투과되는 Base 축과 6축 로봇, AITZ 3DU[3DM] 스캐너가 배치됩니다." },
+      { badge: "STEP 2", icon: "📐", heading: "2. 부품 마스터 기준점(UF5 Ref) 정의 및 지그 형성", body: "작업 테이블 위에 마스터 지그가 세워지고, 기준 원점 Org(UF5 Ref)와 직교 3축이 형성됩니다." },
+      { badge: "STEP 3", icon: "🗂️", heading: "3. UF6 시트 중첩 및 로봇 작업 준비 위치(Ready) 진입", body: "UF6 프레임을 중첩함과 동시에, 로봇이 시야 간섭 없는 중간 대기 위치(Ready Position)로 진입합니다." },
+      { badge: "STEP 4", icon: "🎯", heading: "4. 시작점(Point A) 및 끝점(Point B) 3D 좌표 지정", body: "우측 패널 컨트롤로 시작점 A(Ax, Ay, Az)와 끝점 B(거리 L, 각도 θ, 높이 Bz)를 정밀 설정합니다." },
+      { badge: "STEP 5", icon: "📍", heading: "5. Point A & Point B 개별 포인트 정밀 티칭 (Move P / Move L)", body: "대기 위치 ➔ Point A 상공 점프(Move P) 후 수직 하강(Move L) ➔ B 상공 점프 및 수직 티칭" },
+      { badge: "STEP 6", icon: "🤖", heading: "6. 티칭된 Point A → Point B 선형 보간(Move L) 검증 및 복귀", body: "Point A로 진입 후 ➔ Point B까지 에메랄드 직선(Move L) 검증 주행 후 대기 위치로 복귀" },
+      { badge: "STEP 7", icon: "📦", heading: "7. 투명 시트 틀어짐 인입 (실시간 변위 점선 화살표 연장)", body: "부품이 3D 변위로 인입되며, 마스터 A/B에서 변위된 A'/B'까지의 3D 점선 화살표가 실시간 연장됩니다." },
+      { badge: "STEP 8", icon: "📸", heading: "8. AITZ 3DU[3DM] 구조광 십자 직교 교차 스캔 & 다중 플래시 캡처", body: "적색 슬릿 레이저가 X축 평행 1회 ➔ 90° 직교 회전하여 Y축 평행 1회 교차 주사됩니다." },
+      { badge: "STEP 9", icon: "✨", heading: "9. 3DU 알고리즘 ICP 정합 수렴 & 선분 A'B' 확정", body: "측정 점군이 ICP 정합 수렴하며 슬림화된 UF6 축과 선분 A'B'가 확정됩니다." },
+      { badge: "STEP 10", icon: "🔄", heading: "10. 계측된 UF6 기반 6자유도 보정 주행 (보라색 실링 도포)", body: "로봇이 UF6 정합 선 위에 도톰한 보라색 실링 비드를 도포하고 B'에서 정지 검사합니다." },
+      { badge: "STEP 11", icon: "🏁", heading: "11. 작업 완료 및 안전 홈 위치 복귀 (보라색 도포 비드 보존)", body: "카메라가 ISO 뷰로 복원되고 변위 화살표는 소멸하지만 도포된 보라색 실링 비드는 완제품으로 보존됩니다." }
     ];
 
-    let currentStep = 0, autoPlayTimer = null, animProgress = 0, isAnimating = false;
+    let currentStep = 0, isAutoPlaying = false, autoPlayTimeoutId = null, animProgress = 0, isAnimating = false;
     let isParamPanelCollapsed = false, isStepPanelCollapsed = false, isJobViewerCollapsed = true;
     let currentJobTab = 'WORK', currentCameraMode = 'iso';
-    let demoModeType = null; // 'OK' | 'NG' | null
+    let demoModeType = null;
+    let autoStepProgressTimer = null; // [V8.5] 자동재생 프로그레스 게이지 타이머
 
     let scene, camera, renderer, controls;
     let baseAxes, masterGroup, sheetGroup, robotGroup, robotArmGroup;
@@ -720,10 +774,10 @@
       icpMeasuredPoints.geometry.attributes.position.array.set(icpBasePositions); icpMeasuredPoints.geometry.attributes.position.needsUpdate = true;
     }
 
-    // 가상 점군 ICP: 최근접 대응점 + Horn 쿼터니언 강체변환 추정
     let icpResult = { position: new THREE.Vector3(), quaternion: new THREE.Quaternion(), rmse: 0, iterations: 0, converged: false };
     function solveRigidHorn(source, target) {
       const n = Math.min(source.length, target.length);
+      if (n < 3) return { position: new THREE.Vector3(), quaternion: new THREE.Quaternion() };
       const cs = new THREE.Vector3(), ct = new THREE.Vector3();
       for (let i=0;i<n;i++) { cs.add(source[i]); ct.add(target[i]); }
       cs.multiplyScalar(1/n); ct.multiplyScalar(1/n);
@@ -751,12 +805,16 @@
       const pos=ct.clone().sub(cs.applyQuaternion(q));
       return {position:pos, quaternion:q};
     }
+
     function runPointCloudICP() {
-      // Synthetic/test point-cloud ICP. If an XYZ CSV is imported, it becomes the reference cloud.
       const target=[];
       for(let i=0;i<ICP_PARTICLE_COUNT;i++) {
-        const j=i*3; target.push(new THREE.Vector3(icpBasePositions[j],icpBasePositions[j+1],icpBasePositions[j+2]));
+        const j=i*3;
+        if (Number.isFinite(icpBasePositions[j]) && Number.isFinite(icpBasePositions[j+1]) && Number.isFinite(icpBasePositions[j+2])) {
+          target.push(new THREE.Vector3(icpBasePositions[j],icpBasePositions[j+1],icpBasePositions[j+2]));
+        }
       }
+      if (target.length < 3) return;
       const shift=new THREE.Vector3(ufParams.dx*0.45,ufParams.dz*0.45,-ufParams.dy*0.45);
       const qMeasured=new THREE.Quaternion().setFromEuler(new THREE.Euler(
         THREE.MathUtils.degToRad(ufParams.rx), THREE.MathUtils.degToRad(ufParams.rz), -THREE.MathUtils.degToRad(ufParams.ry),'ZYX'));
@@ -764,8 +822,7 @@
       let aligned=source.map(p=>p.clone());
       let estimate={position:new THREE.Vector3(),quaternion:new THREE.Quaternion()};
       let previous=Infinity, rmse=Infinity, iterations=0, converged=false, finalDistances=[];
-      const maxIterations=60, convergenceThreshold=1e-8;
-      for(let iter=0;iter<maxIterations;iter++) {
+      for(let iter=0;iter<60;iter++) {
         const pairs=[];
         for(const p of aligned) {
           let best=target[0], bestD=p.distanceToSquared(best);
@@ -779,29 +836,11 @@
         let sum=0;
         for(let i=0;i<aligned.length;i++) sum+=aligned[i].distanceToSquared(pairs[i]);
         rmse=Math.sqrt(sum/aligned.length); iterations=iter+1;
-        if(Math.abs(previous-rmse)<convergenceThreshold) { converged=true; break; }
+        if(Math.abs(previous-rmse)<1e-8) { converged=true; break; }
         previous=rmse;
       }
-      // Recompute final nearest-neighbour distances after the last transform.
-      let sumSq=0, maxError=0, sumAbs=0;
-      finalDistances=aligned.map(p=>{
-        let bestD=Infinity;
-        for(const q of target) { const d=p.distanceToSquared(q); if(d<bestD) bestD=d; }
-        const d=Math.sqrt(bestD); sumSq+=d*d; sumAbs+=d; maxError=Math.max(maxError,d); return d;
-      });
-      rmse=Math.sqrt(sumSq/Math.max(1,finalDistances.length));
-      const euler=new THREE.Euler().setFromQuaternion(estimate.quaternion,'ZYX');
-      icpResult={
-        position:estimate.position, quaternion:estimate.quaternion, rmse,
-        meanError:sumAbs/Math.max(1,finalDistances.length), maxError,
-        iterations, converged, correctionTranslation:estimate.position.length(),
-        correctionRotation:THREE.MathUtils.radToDeg(estimate.quaternion.angleTo(new THREE.Quaternion())),
-        finalDistances
-      };
-      return icpResult;
     }
 
-    // UF5 → UF6 [R:T] 4×4 동차변환행렬(Homogeneous Transformation Matrix) 계산 및 렌더링
     function computeUF5ToUF6StandardMatrix() {
       const rx = THREE.MathUtils.degToRad(ufParams.rx);
       const ry = THREE.MathUtils.degToRad(ufParams.ry);
@@ -817,16 +856,10 @@
       if (!rtCard) return;
       const showMatrix = (currentStep >= 7 && currentStep <= 10);
       if (!showMatrix) {
-        if (!rtCard.classList.contains('hidden')) {
-          rtCard.classList.add('hidden');
-          rtCard.classList.remove('flex');
-        }
+        if (!rtCard.classList.contains('hidden')) { rtCard.classList.add('hidden'); rtCard.classList.remove('flex'); }
         return;
       }
-      if (rtCard.classList.contains('hidden')) {
-        rtCard.classList.remove('hidden');
-        rtCard.classList.add('flex');
-      }
+      if (rtCard.classList.contains('hidden')) { rtCard.classList.remove('hidden'); rtCard.classList.add('flex'); }
 
       const badge = document.getElementById('rtMatrixBadge');
       if (badge) {
@@ -843,49 +876,21 @@
       }
 
       const mat = computeUF5ToUF6StandardMatrix();
-      const e = mat.elements; // Three.js column-major array
-      const fmtR = (v) => {
-        const clean = Math.abs(v) < 1e-7 ? 0 : v;
-        return (clean >= 0 ? '+' : '') + clean.toFixed(4);
-      };
-      const fmtT = (v) => {
-        const clean = Math.abs(v) < 1e-7 ? 0 : v;
-        return (clean >= 0 ? '+' : '') + clean.toFixed(3);
-      };
+      const e = mat.elements;
+      const fmtR = (v) => (Math.abs(v) < 1e-7 ? 0 : v >= 0 ? '+' + v.toFixed(4) : v.toFixed(4));
+      const fmtT = (v) => (Math.abs(v) < 1e-7 ? 0 : v >= 0 ? '+' + v.toFixed(3) : v.toFixed(3));
 
       const tbody = document.getElementById('rtMatrixTableBody');
       if (tbody) {
         tbody.innerHTML = `
-          <tr>
-            <td class="rt-cell-r">${fmtR(e[0])}</td>
-            <td class="rt-cell-r">${fmtR(e[4])}</td>
-            <td class="rt-cell-r">${fmtR(e[8])}</td>
-            <td class="rt-cell-t">${fmtT(e[12])}</td>
-          </tr>
-          <tr>
-            <td class="rt-cell-r">${fmtR(e[1])}</td>
-            <td class="rt-cell-r">${fmtR(e[5])}</td>
-            <td class="rt-cell-r">${fmtR(e[9])}</td>
-            <td class="rt-cell-t">${fmtT(e[13])}</td>
-          </tr>
-          <tr>
-            <td class="rt-cell-r">${fmtR(e[2])}</td>
-            <td class="rt-cell-r">${fmtR(e[6])}</td>
-            <td class="rt-cell-r">${fmtR(e[10])}</td>
-            <td class="rt-cell-t">${fmtT(e[14])}</td>
-          </tr>
-          <tr>
-            <td class="rt-cell-h">0</td>
-            <td class="rt-cell-h">0</td>
-            <td class="rt-cell-h">0</td>
-            <td class="rt-cell-h">1</td>
-          </tr>`;
+          <tr><td class="rt-cell-r">${fmtR(e[0])}</td><td class="rt-cell-r">${fmtR(e[4])}</td><td class="rt-cell-r">${fmtR(e[8])}</td><td class="rt-cell-t">${fmtT(e[12])}</td></tr>
+          <tr><td class="rt-cell-r">${fmtR(e[1])}</td><td class="rt-cell-r">${fmtR(e[5])}</td><td class="rt-cell-r">${fmtR(e[9])}</td><td class="rt-cell-t">${fmtT(e[13])}</td></tr>
+          <tr><td class="rt-cell-r">${fmtR(e[2])}</td><td class="rt-cell-r">${fmtR(e[6])}</td><td class="rt-cell-r">${fmtR(e[10])}</td><td class="rt-cell-t">${fmtT(e[14])}</td></tr>
+          <tr><td class="rt-cell-h">0</td><td class="rt-cell-h">0</td><td class="rt-cell-h">0</td><td class="rt-cell-h">1</td></tr>`;
       }
 
-      const sumT = document.getElementById('rtSummaryT');
-      const sumR = document.getElementById('rtSummaryR');
-      const f2 = (v) => (v >= 0 ? '+' : '') + v.toFixed(2);
-      const fr = (v) => (v >= 0 ? '+' : '') + v;
+      const sumT = document.getElementById('rtSummaryT'), sumR = document.getElementById('rtSummaryR');
+      const f2 = (v) => (v >= 0 ? '+' : '') + v.toFixed(2), fr = (v) => (v >= 0 ? '+' : '') + v;
       if (sumT) sumT.innerText = `T:[${f2(ufParams.dx)}, ${f2(ufParams.dy)}, ${f2(ufParams.dz)}]m`;
       if (sumR) sumR.innerText = `R:[${fr(ufParams.rx)}°, ${fr(ufParams.ry)}°, ${fr(ufParams.rz)}°]`;
     }
@@ -991,14 +996,10 @@
       if (currentStep >= 6 && currentStep <= 8) { if (currentJobTab !== 'UF6') switchJobTab('UF6'); }
       else { if (currentJobTab !== 'WORK') switchJobTab('WORK'); }
 
-      // Step 8~11 (currentStep 7~10) 진입 시 코드 컨테이너를 6행 높이(122px)로 슬림화하여 하단 ICP 및 [R:T] 행렬 공간 확보
       const codeContainer = document.getElementById('jobCodeContainer');
       if (codeContainer) {
-        if (currentStep >= 7 && currentStep <= 10) {
-          codeContainer.style.maxHeight = '104px';
-        } else {
-          codeContainer.style.maxHeight = '205px';
-        }
+        if (currentStep >= 7 && currentStep <= 10) codeContainer.style.maxHeight = '104px';
+        else codeContainer.style.maxHeight = '205px';
       }
 
       document.querySelectorAll('.job-line').forEach(el => el.classList.remove('active-line'));
@@ -1021,26 +1022,13 @@
         const lineEl = document.getElementById(activeLineId);
         if (lineEl) {
           lineEl.classList.add('active-line');
-          if (currentStep >= 9 && currentJobTab === 'WORK' && codeContainer) {
-            // Step 10~11에서는 WORK.JOB의 마지막 6행(0011~0016)이 깔끔하게 보이도록 하단 정렬 스크롤
-            codeContainer.scrollTop = codeContainer.scrollHeight;
-          } else {
-            lineEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-          }
+          if (currentStep >= 9 && currentJobTab === 'WORK' && codeContainer) codeContainer.scrollTop = codeContainer.scrollHeight;
+          else lineEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
         }
       }
     }
 
-    // Hi6 좌표(X,Y,Z)를 Three.js 월드(X,Y,Z)에 매핑: X->X, Y->-Z, Z->Y
     function robotToThreeWorld(rx, ry, rz) { return new THREE.Vector3(baseOriginPos.x + rx, baseOriginPos.y + rz, baseOriginPos.z - ry); }
-    function getUF6TransformMatrix() {
-      const origin = robotToThreeWorld(ufParams.uf5_x, ufParams.uf5_y, ufParams.uf5_z);
-      const q = getUF6WorldQuaternion(1.0);
-      const delta = new THREE.Vector3(ufParams.dx, ufParams.dz, -ufParams.dy)
-        .applyAxisAngle(new THREE.Vector3(0, 1, 0), THREE.MathUtils.degToRad(ufParams.uf5_rz));
-      const position = origin.add(delta);
-      return new THREE.Matrix4().compose(position, q, new THREE.Vector3(1, 1, 1));
-    }
     function getPointALocalVector() { return new THREE.Vector3(ufParams.pta_x, ufParams.pta_z, -ufParams.pta_y); }
     function getPointBLocalVector() { return new THREE.Vector3(ufParams.ptb_x, ufParams.ptb_z, -ufParams.ptb_y); }
 
@@ -1074,13 +1062,7 @@
       const canvas = document.createElement('canvas'); canvas.width = 420; canvas.height = 110;
       const ctx = canvas.getContext('2d');
       ctx.font = `900 ${fontSize}px 'Pretendard', sans-serif`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-      if (strokeColor !== 'transparent') {
-        ctx.strokeStyle = strokeColor;
-        ctx.lineWidth = 6;
-        ctx.lineJoin = 'round';
-        ctx.miterLimit = 2;
-        ctx.strokeText(text, 210, 55);
-      }
+      if (strokeColor !== 'transparent') { ctx.strokeStyle = strokeColor; ctx.lineWidth = 6; ctx.strokeText(text, 210, 55); }
       ctx.fillStyle = color; ctx.fillText(text, 210, 55);
       const sprite = new THREE.Sprite(new THREE.SpriteMaterial({ map: new THREE.CanvasTexture(canvas), depthTest: false, transparent: true, opacity: 1.0 }));
       sprite.scale.set(1.85, 0.55, 1); sprite.renderOrder = 1000;
@@ -1112,7 +1094,6 @@
         else if (dir.z < 0) axisGroup.rotation.x = -Math.PI / 2;
         else if (dir.z > 0) axisGroup.rotation.x = Math.PI / 2;
         const sprite = createTextSprite(labelText, colorHex, 26, '#ffffff');
-        // 화살표 끝 원뿔 직상단에 단정하게 밀착 (+0.14m)
         const labelPos = dir.clone().multiplyScalar(length + (radius * 5.0) + 0.14);
         sprite.position.copy(labelPos);
         if (topLayer) sprite.renderOrder = 1000;
@@ -1141,7 +1122,6 @@
         sprite.position.copy(labelPos); group.add(sprite);
       };
       createDashedAxis(new THREE.Vector3(1, 0, 0), '#dc2626', labels.x);
-      createAxisDashed = createDashedAxis; // alias
       createDashedAxis(new THREE.Vector3(0, 0, -1), '#16a34a', labels.y);
       createDashedAxis(new THREE.Vector3(0, 1, 0), '#2563eb', labels.z);
       return group;
@@ -1161,18 +1141,14 @@
     }
 
     function buildDisplacementDashedLines() {
-      dispGroupA = new THREE.Group();
-      dispGroupB = new THREE.Group();
-      dispGroupA.visible = false;
-      dispGroupB.visible = false;
-      scene.add(dispGroupA);
-      scene.add(dispGroupB);
+      dispGroupA = new THREE.Group(); dispGroupB = new THREE.Group();
+      dispGroupA.visible = false; dispGroupB.visible = false;
+      scene.add(dispGroupA); scene.add(dispGroupB);
     }
 
     function updateDisplacementDashedLines(pA, pAPrime, pB, pBPrime, visible, progress = 1.0) {
       if (!dispGroupA || !dispGroupB) return;
-      dispGroupA.visible = visible;
-      dispGroupB.visible = visible;
+      dispGroupA.visible = visible; dispGroupB.visible = visible;
       if (!visible) return;
 
       const renderDashedArrow = (group, startPt, targetEndPt, colorHex) => {
@@ -1184,17 +1160,13 @@
         }
         const fullDir = new THREE.Vector3().subVectors(targetEndPt, startPt);
         if (fullDir.length() < 0.04) return;
-
         const curEndPt = new THREE.Vector3().lerpVectors(startPt, targetEndPt, THREE.MathUtils.clamp(progress, 0.01, 1.0));
-        const dir = new THREE.Vector3().subVectors(curEndPt, startPt);
-        const totalLen = dir.length();
+        const dir = new THREE.Vector3().subVectors(curEndPt, startPt), totalLen = dir.length();
         if (totalLen < 0.03) return;
-
         const unitDir = dir.clone().normalize();
         const dashLen = 0.10, gapLen = 0.05, step = dashLen + gapLen, radius = 0.016;
         const mat = new THREE.MeshBasicMaterial({ color: colorHex, transparent: true, opacity: 0.95, depthTest: false });
-        const upVec = new THREE.Vector3(0, 1, 0);
-        const quat = new THREE.Quaternion().setFromUnitVectors(upVec, unitDir);
+        const upVec = new THREE.Vector3(0, 1, 0), quat = new THREE.Quaternion().setFromUnitVectors(upVec, unitDir);
 
         for (let d = 0; d < totalLen - 0.10; d += step) {
           const segLen = Math.min(dashLen, (totalLen - 0.10) - d);
@@ -1223,9 +1195,7 @@
           if (!movePTrailMesh) {
             movePTrailMesh = new THREE.Line(geo, new THREE.LineDashedMaterial({ color: 0xea580c, dashSize: 0.15, gapSize: 0.08, linewidth: 2, transparent: true, opacity: 0.85 }));
             scene.add(movePTrailMesh);
-          } else {
-            movePTrailMesh.geometry.dispose(); movePTrailMesh.geometry = geo;
-          }
+          } else { movePTrailMesh.geometry.dispose(); movePTrailMesh.geometry = geo; }
           movePTrailMesh.computeLineDistances();
         }
       } else if (mode === 'L') {
@@ -1235,9 +1205,7 @@
           if (!moveLTrailMesh) {
             moveLTrailMesh = new THREE.Line(geo, new THREE.LineBasicMaterial({ color: 0x10b981, linewidth: 3, transparent: true, opacity: 0.95 }));
             scene.add(moveLTrailMesh);
-          } else {
-            moveLTrailMesh.geometry.dispose(); moveLTrailMesh.geometry = geo;
-          }
+          } else { moveLTrailMesh.geometry.dispose(); moveLTrailMesh.geometry = geo; }
         }
       }
     }
@@ -1307,7 +1275,7 @@
       standEdge = new THREE.LineSegments(new THREE.EdgesGeometry(boxGeo), new THREE.LineDashedMaterial({ color: 0x64748b, dashSize: 0.25, gapSize: 0.15, transparent: true, opacity: 0.45 }));
       standEdge.computeLineDistances(); masterGroup.add(standEdge);
       updateMasterStandHeight();
-      uf5AxesGroup = createCustom3DAxes(1.4, 0.024, { x: "UF5_X[XX]", y: "UF5_Y[XY]", z: "UF5_Z" }, 1.1, false, false, 1.0); masterGroup.add(uf5AxesGroup);
+      uf5AxesGroup = createCustom3DAxes(1.4, 0.024, { x: "UF5_X", y: "UF5_Y", z: "UF5_Z" }, 1.1, false, false, 1.0); masterGroup.add(uf5AxesGroup);
       uf5OrgMesh = new THREE.Mesh(new THREE.SphereGeometry(0.10, 16, 16), new THREE.MeshBasicMaterial({ color: 0x2563eb, transparent: true, opacity: 1.0 })); masterGroup.add(uf5OrgMesh);
       uf5OrgLabel = createTextSprite("Org (UF5 Ref)", "#1d4ed8", 28, "#ffffff"); uf5OrgLabel.position.set(0, 0.45, 0); masterGroup.add(uf5OrgLabel);
 
@@ -1334,33 +1302,30 @@
     function createATMFrontLogoMesh() {
       const canvas = document.createElement('canvas'); canvas.width = 256; canvas.height = 96;
       const ctx = canvas.getContext('2d');
-      ctx.font = "italic 900 76px 'Pretendard', 'Arial Black', sans-serif"; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillStyle = '#ff0000'; ctx.fillText('ATM', 128, 50);
+      ctx.font = "italic 900 76px 'Pretendard', sans-serif"; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillStyle = '#ff0000'; ctx.fillText('ATM', 128, 50);
       return new THREE.Mesh(new THREE.PlaneGeometry(0.52, 0.20), new THREE.MeshBasicMaterial({ map: new THREE.CanvasTexture(canvas), transparent: true, side: THREE.DoubleSide }));
     }
 
     let rainbowBeamTex = null, metallicBeamTex = null;
-    const SCANNER_HEIGHT_Y = 3.15; // 상단 UI 및 종료 배너 간섭을 방지하는 최적 높이
+    const SCANNER_HEIGHT_Y = 3.15;
 
     function createRainbowBeamTexture() {
-      const canvas = document.createElement('canvas');
-      canvas.width = 64; canvas.height = 512;
+      const canvas = document.createElement('canvas'); canvas.width = 64; canvas.height = 512;
       const ctx = canvas.getContext('2d');
       const grad = ctx.createLinearGradient(0, 0, 0, 512);
-      grad.addColorStop(0.00, 'rgba(255, 30, 70, 0.95)');   // 빨강 (Red)
-      grad.addColorStop(0.17, 'rgba(255, 145, 0, 0.90)');   // 주황 (Orange)
-      grad.addColorStop(0.34, 'rgba(255, 235, 0, 0.90)');   // 노랑 (Yellow)
-      grad.addColorStop(0.51, 'rgba(0, 230, 118, 0.90)');   // 초록 (Green)
-      grad.addColorStop(0.68, 'rgba(0, 180, 255, 0.90)');   // 파랑 (Blue)
-      grad.addColorStop(0.85, 'rgba(105, 35, 255, 0.92)');  // 남보라 (Indigo)
-      grad.addColorStop(1.00, 'rgba(215, 0, 250, 0.95)');   // 보라 (Violet)
-      ctx.fillStyle = grad;
-      ctx.fillRect(0, 0, 64, 512);
+      grad.addColorStop(0.00, 'rgba(255, 30, 70, 0.95)');
+      grad.addColorStop(0.17, 'rgba(255, 145, 0, 0.90)');
+      grad.addColorStop(0.34, 'rgba(255, 235, 0, 0.90)');
+      grad.addColorStop(0.51, 'rgba(0, 230, 118, 0.90)');
+      grad.addColorStop(0.68, 'rgba(0, 180, 255, 0.90)');
+      grad.addColorStop(0.85, 'rgba(105, 35, 255, 0.92)');
+      grad.addColorStop(1.00, 'rgba(215, 0, 250, 0.95)');
+      ctx.fillStyle = grad; ctx.fillRect(0, 0, 64, 512);
       return new THREE.CanvasTexture(canvas);
     }
 
     function createMetallicBeamTexture() {
-      const canvas = document.createElement('canvas');
-      canvas.width = 64; canvas.height = 512;
+      const canvas = document.createElement('canvas'); canvas.width = 64; canvas.height = 512;
       const ctx = canvas.getContext('2d');
       const grad = ctx.createLinearGradient(0, 0, 64, 512);
       grad.addColorStop(0.00, 'rgba(255, 255, 255, 0.95)');
@@ -1368,8 +1333,7 @@
       grad.addColorStop(0.55, 'rgba(248, 250, 252, 0.95)');
       grad.addColorStop(0.80, 'rgba(148, 163, 184, 0.80)');
       grad.addColorStop(1.00, 'rgba(226, 232, 240, 0.90)');
-      ctx.fillStyle = grad;
-      ctx.fillRect(0, 0, 64, 512);
+      ctx.fillStyle = grad; ctx.fillRect(0, 0, 64, 512);
       return new THREE.CanvasTexture(canvas);
     }
 
@@ -1405,7 +1369,6 @@
       cameraFlashMesh = new THREE.Mesh(new THREE.RingGeometry(0.02, 0.16, 32), new THREE.MeshBasicMaterial({ color: 0xffffff, side: THREE.DoubleSide, transparent: true, opacity: 0 }));
       cameraFlashMesh.rotation.x = Math.PI / 2; cameraFlashMesh.position.set(0.48, hBot - 0.075, 0); scannerCore.add(cameraFlashMesh);
 
-      // 스캐너 본체 상단 림 바로 위에 밀착하여 상단 UI와의 충돌을 완벽히 방지
       const scannerTag = createTextSprite("📷 AITZ 3DU[3DM]", "#0f172a", 25, "#ffffff");
       scannerTag.scale.set(1.50, 0.44, 1); scannerTag.position.set(0, hTop * SCALE_75 + 0.15, 0); scannerGroup.add(scannerTag);
 
@@ -1419,7 +1382,6 @@
       cameraBeamMesh = new THREE.Mesh(new THREE.CylinderGeometry(0.085, 2.65, beamHeight, 32, 1, true), new THREE.MeshBasicMaterial({ color: 0x38bdf8, transparent: true, opacity: 0.0, side: THREE.DoubleSide, depthWrite: false }));
       cameraBeamMesh.position.set(scaledLensX, -beamHeight / 2 + scaledBotY, 0); cameraBeamMesh.rotation.y = Math.PI / 4; scannerGroup.add(cameraBeamMesh);
 
-      // 십자 교차 스위핑용 레이저 슬릿 라인
       scanSweeperMesh = new THREE.Mesh(new THREE.PlaneGeometry(3.6, 0.075), new THREE.MeshBasicMaterial({ color: 0xff2a55, side: THREE.DoubleSide, transparent: true, opacity: 0, depthTest: false }));
       scanSweeperMesh.rotation.x = Math.PI / 2; scanSweeperMesh.renderOrder = 995; scannerGroup.add(scanSweeperMesh);
 
@@ -1443,7 +1405,7 @@
       sheetBadgeSprite.position.set(1.2, 0.24, -2.1); 
       sheetGroup.add(sheetBadgeSprite);
 
-      const uf6Labels = { x: "UF6_XX'", y: "UF6_XY'", z: "UF6_Z'" };
+      const uf6Labels = { x: "UF6_X'", y: "UF6_Y'", z: "UF6_Z'" };
       uf6DashedAxesGroup = createCustom3DDashedAxes(1.35, uf6Labels, 1.45, true); sheetGroup.add(uf6DashedAxesGroup);
       uf6SolidAxesGroup = createCustom3DAxes(1.65, 0.025, uf6Labels, 1.05, true, false, 1.0); sheetGroup.add(uf6SolidAxesGroup);
       orgPrimeSprite = createTextSprite("Org' (UF6)", "#ea580c", 28, "#ffffff"); orgPrimeSprite.position.set(0, 0.45, 0); sheetGroup.add(orgPrimeSprite);
@@ -1543,10 +1505,14 @@
       scene.add(robotGroup);
     }
 
+    /* [V8.5] 수동 조그(Jog) 시 TCP 좌표 실시간 연동 보강 */
     function updateRobotFullModel(tcpPosition, targetQuatIn = null) {
       if (!robotArmGroup || jointPivots.length < 6) return;
       robotArmGroup.visible = true;
-      if (manualJointMode || !tcpPosition) { applyJointAngles(); return; }
+      if (manualJointMode || !tcpPosition) { 
+        applyJointAngles(); 
+        return; 
+      }
       const targetQuat = targetQuatIn || new THREE.Quaternion();
       const toolUpVec = new THREE.Vector3(0, ROBOT_DH.toolY, 0).applyQuaternion(targetQuat);
       const pJ6 = tcpPosition.clone().add(toolUpVec);
@@ -1585,6 +1551,18 @@
       jointPivots[0].rotation.set(0, rads[0], 0); jointPivots[1].rotation.set(0, 0, rads[1]); jointPivots[2].rotation.set(0, 0, rads[2]);
       jointPivots[3].rotation.set(rads[3], 0, 0); jointPivots[4].rotation.set(0, 0, rads[4]); jointPivots[5].rotation.set(0, rads[5], 0);
       updateJointReadoutUI();
+
+      // 수동 조그 시 노즐 끝단(TCP) 위치 실시간 계산하여 헤더 갱신
+      if (jointPivots[5]) {
+        scene.updateMatrixWorld(true);
+        const tcpWorld = new THREE.Vector3();
+        // J6 하단 TCP 볼 위치 추출
+        const j6Obj = jointPivots[5];
+        const tipPos = new THREE.Vector3(0, -ROBOT_DH.toolY, 0).applyMatrix4(j6Obj.matrixWorld);
+        const bx = tipPos.x - baseOriginPos.x, by = tipPos.z - baseOriginPos.z, bz = tipPos.y - baseOriginPos.y;
+        const coordEl = document.getElementById('toolCoord');
+        if (coordEl) coordEl.innerText = `X:${bx.toFixed(2)} Y:${by.toFixed(2)} Z:${bz.toFixed(2)}`;
+      }
     }
 
     function toggleRobotTracking() {
@@ -1653,7 +1631,7 @@
       }
 
       refreshICPPointCloudGeometry();
-      icpResult = null; // 파라미터 변경 후 이전 ICP 보정행렬이 남지 않도록 재계산 요구
+      icpResult = null;
       if (masterGroup) {
         masterGroup.position.copy(masterOrigin);
         masterGroup.rotation.y = THREE.MathUtils.degToRad(ufParams.uf5_rz);
@@ -1686,15 +1664,13 @@
       onParamChange();
     }
 
-    // [신규 고도화] 최상단 Random: 완전 무작위 난수 (OK/NG 불확정) + 1단계(Step 0) 이동
     function randomizeAll() {
-      if (autoPlayTimer) toggleAutoPlay();
+      if (isAutoPlaying) stopAutoPlay();
       manualJointMode = false;
       demoModeType = null;
+      updateButtonActiveStates();
       
       const rndSteps = (min, max, step) => min + (Math.floor(Math.random() * (Math.round((max - min) / step) + 1)) * step);
-      
-      // Point A & B 완전 무작위 난수
       document.getElementById('pta_x').value = rndSteps(0.2, 1.3, 0.1).toFixed(1);
       document.getElementById('pta_y').value = rndSteps(0.2, 0.9, 0.1).toFixed(1);
       document.getElementById('pta_z').value = rndSteps(-0.2, 0.6, 0.1).toFixed(1);
@@ -1702,7 +1678,6 @@
       document.getElementById('pt_ang').value = rndSteps(-60, 60, 5);
       document.getElementById('ptb_z').value = rndSteps(-0.4, 1.0, 0.1).toFixed(1);
 
-      // UF6 6축 변위 완전 자유 난수 (OK 또는 NG가 무작위로 발생)
       document.getElementById('uf6_dx').value = rndSteps(-1.25, 1.50, 0.25).toFixed(2);
       document.getElementById('uf6_dy').value = rndSteps(-1.25, 1.50, 0.25).toFixed(2);
       document.getElementById('uf6_dz').value = rndSteps(-1.25, 1.25, 0.25).toFixed(2);
@@ -1713,19 +1688,17 @@
       onVectorChange();
       const tol = checkToleranceStatus();
       clearPacketLogs(`[RANDOM] All Parameters True-Randomized :: [${tol.isOver ? 'TOL: NG' : 'TOL: OK'}] Initialized to Step 1.`);
-      resetTrajectoryTrail();
-      resetMoveMotionTrails();
-      lastLoggedStep = -1;
-      goToStep(0);
-      setCameraView('iso');
+      resetTrajectoryTrail(); resetMoveMotionTrails();
+      lastLoggedStep = -1; goToStep(0); setCameraView('iso');
     }
 
     function resetParams() {
       setCameraFov(45);
       if (typeof activeStepAnimationId !== 'undefined' && activeStepAnimationId !== null) { cancelAnimationFrame(activeStepAnimationId); activeStepAnimationId = null; }
       isAnimating = false;
-      if (autoPlayTimer) toggleAutoPlay();
+      if (isAutoPlaying) stopAutoPlay();
       demoModeType = null;
+      updateButtonActiveStates();
       document.getElementById('uf5_x').value = 4.0; document.getElementById('uf5_y').value = 2.5; document.getElementById('uf5_z').value = 1.5;
       document.getElementById('pta_x').value = 0.8; document.getElementById('pta_y').value = 0.4; document.getElementById('pta_z').value = 0.0;
       document.getElementById('pt_len').value = 1.6; document.getElementById('pt_ang').value = 30; document.getElementById('ptb_z').value = 0.0;
@@ -1736,14 +1709,33 @@
       lastLoggedStep = -1; resetTrajectoryTrail(); resetMoveMotionTrails(); goToStep(0); setCameraView('iso');
     }
 
-    // [신규 고도화] 원클릭 데모 모드 (OK/NG 동적 무작위화, Point A/B Z단차 0.5m 고정)
+    /* [V8.5] 지인분 UX 피드백 반영: 실행 중인 버튼 하이라이트 링 활성화 */
+    function updateButtonActiveStates() {
+      const bOK = document.getElementById('btnDemoOK');
+      const bNG = document.getElementById('btnDemoNG');
+      const bAuto = document.getElementById('autoPlayBtn');
+
+      if (bOK) {
+        if (demoModeType === 'OK') bOK.classList.add('btn-running-ok', 'animate-pulse');
+        else bOK.classList.remove('btn-running-ok', 'animate-pulse');
+      }
+      if (bNG) {
+        if (demoModeType === 'NG') bNG.classList.add('btn-running-ng', 'animate-pulse');
+        else bNG.classList.remove('btn-running-ng', 'animate-pulse');
+      }
+      if (bAuto) {
+        if (isAutoPlaying && !demoModeType) bAuto.classList.add('btn-running-auto', 'animate-pulse');
+        else bAuto.classList.remove('btn-running-auto', 'animate-pulse');
+      }
+    }
+
     function startCinematicDemo(type) {
-      if (autoPlayTimer) toggleAutoPlay();
+      if (isAutoPlaying) stopAutoPlay();
       demoModeType = type;
       manualJointMode = false;
       setUF5Rotation(0);
+      updateButtonActiveStates();
 
-      // Point A와 B: Z축 단차 0.5m 고정 (Az=0.0m, Bz=0.5m)
       document.getElementById('pta_x').value = "0.8";
       document.getElementById('pta_y').value = "0.4";
       document.getElementById('pta_z').value = "0.0";
@@ -1754,7 +1746,6 @@
       const rndSteps = (min, max, step) => min + (Math.floor(Math.random() * (Math.round((max - min) / step) + 1)) * step);
 
       if (type === 'OK') {
-        // 공차 안전 윈도우 (25% ~ 75% 범위) 내부에서 매번 다른 정상 난수 생성
         const sign = () => (Math.random() > 0.5 ? 1 : -1);
         document.getElementById('uf6_dx').value = (rndSteps(0.25, 0.75, 0.25) * sign()).toFixed(2);
         document.getElementById('uf6_dy').value = (rndSteps(0.25, 0.75, 0.25) * sign()).toFixed(2);
@@ -1763,7 +1754,6 @@
         document.getElementById('uf6_ry').value = rndSteps(3, 9, 1) * sign();
         document.getElementById('uf6_rz').value = rndSteps(6, 14, 1) * sign();
       } else {
-        // 임의의 1~2개 축을 의도적으로 공차 한도(115%~145%) 초과하게 설정
         document.getElementById('uf6_dx').value = "0.25";
         document.getElementById('uf6_dy').value = "-0.25";
         document.getElementById('uf6_dz').value = "0.25";
@@ -1772,17 +1762,10 @@
         document.getElementById('uf6_rz').value = "8";
 
         const ngAxis = Math.floor(Math.random() * 4);
-        if (ngAxis === 0) {
-          // Z축 침하/들뜸 한도 초과
-          document.getElementById('uf6_dz').value = (Math.random() > 0.5 ? 1.25 : -1.25).toFixed(2);
-        } else if (ngAxis === 1) {
-          // Rz 비틀림 각도 초과
-          document.getElementById('uf6_rz').value = (Math.random() > 0.5 ? 32 : -30);
-        } else if (ngAxis === 2) {
-          // dX 또는 dY 평면 위치 이탈
-          document.getElementById('uf6_dx').value = (Math.random() > 0.5 ? 1.50 : -1.25).toFixed(2);
-        } else {
-          // 복합 3D 틸트 각도 초과
+        if (ngAxis === 0) document.getElementById('uf6_dz').value = (Math.random() > 0.5 ? 1.25 : -1.25).toFixed(2);
+        else if (ngAxis === 1) document.getElementById('uf6_rz').value = (Math.random() > 0.5 ? 32 : -30);
+        else if (ngAxis === 2) document.getElementById('uf6_dx').value = (Math.random() > 0.5 ? 1.50 : -1.25).toFixed(2);
+        else {
           document.getElementById('uf6_rx').value = (Math.random() > 0.5 ? 22 : -21);
           document.getElementById('uf6_ry').value = (Math.random() > 0.5 ? 21 : -22);
         }
@@ -1791,16 +1774,10 @@
       onVectorChange();
       clearPacketLogs(`[DEMO] Cinematic Mode Started : [${type === 'OK' ? '정상 합격 데모 (공차 내 안전 난수)' : '인터락 불량 데모 (공차 초과 주입)'}]`);
       
-      resetTrajectoryTrail();
-      resetMoveMotionTrails();
-      lastLoggedStep = -1;
-      goToStep(0);
-      setCameraView('iso');
+      resetTrajectoryTrail(); resetMoveMotionTrails();
+      lastLoggedStep = -1; goToStep(0); setCameraView('iso');
 
-      const pText = document.getElementById('playText');
-      if (pText) pText.innerText = type === 'OK' ? "데모(OK) 중" : "데모(NG) 중";
-      autoPlayTimer = true;
-      scheduleNextAutoStep();
+      startAutoPlay();
     }
 
     function initTrajectoryTrail() { resetTrajectoryTrail(); resetMoveMotionTrails(); }
@@ -1822,11 +1799,7 @@
 
         if (!trajectoryMesh) {
           trajectoryMesh = new THREE.Mesh(tubeGeom, new THREE.MeshStandardMaterial({
-            color: mainColor,
-            emissive: emiColor,
-            emissiveIntensity: emiIntensity,
-            metalness: 0.30,
-            roughness: 0.18
+            color: mainColor, emissive: emiColor, emissiveIntensity: emiIntensity, metalness: 0.30, roughness: 0.18
           }));
           trajectoryMesh.renderOrder = 10;
           scene.add(trajectoryMesh);
@@ -1931,9 +1904,7 @@
         if (masterSealingLine) masterSealingLine.material.opacity = 0.95;
       }
 
-      if (sheetBadgeSprite) {
-        sheetBadgeSprite.visible = (currentStep === 2);
-      }
+      if (sheetBadgeSprite) sheetBadgeSprite.visible = (currentStep === 2);
 
       if (sheetMeshRef) {
         sheetMeshRef.material.opacity = currentStep >= 8 ? THREE.MathUtils.lerp(0.10, 0.20, t) : 0.10;
@@ -1966,17 +1937,11 @@
         setGroupOpacity(uf6SolidAxesGroup, 1.0);
       }
 
-      // [신규 고도화 반영] 8단계 구조광 십자 직교 교차 스캔 (X축 1회 ➔ Y축 1회)
       if (scannerBeamMesh && cameraBeamMesh && cameraFlashMesh && scanSweeperMesh && !isEasterEggScanRunning) {
         if (currentStep === 7) {
-          scannerBeamMesh.material.map = null;
-          scannerBeamMesh.material.color.setHex(0xef4444);
-          scannerBeamMesh.material.needsUpdate = true;
-          cameraBeamMesh.material.map = null;
-          cameraBeamMesh.material.color.setHex(0x38bdf8);
-          cameraBeamMesh.material.needsUpdate = true;
-          scanSweeperMesh.material.color.setHex(0xff2a55);
-          cameraFlashMesh.material.color.setHex(0xffffff);
+          scannerBeamMesh.material.map = null; scannerBeamMesh.material.color.setHex(0xef4444); scannerBeamMesh.material.needsUpdate = true;
+          cameraBeamMesh.material.map = null; cameraBeamMesh.material.color.setHex(0x38bdf8); cameraBeamMesh.material.needsUpdate = true;
+          scanSweeperMesh.material.color.setHex(0xff2a55); cameraFlashMesh.material.color.setHex(0xffffff);
 
           scannerBeamMesh.material.opacity = THREE.MathUtils.lerp(0.20, 0.45, (Math.sin(performance.now() * 0.006) + 1) * 0.5);
           scanSweeperMesh.material.opacity = 0.92;
@@ -1986,7 +1951,6 @@
             scanSweeperMesh.rotation.z = 0;
             const sweepZ = (p1 * 2.8) - 1.4;
             scanSweeperMesh.position.set(0, -SCANNER_HEIGHT_Y + 0.05, sweepZ);
-
             const isFlashOn = Math.sin(p1 * Math.PI * 6) > 0.25 ? 1.0 : 0.0;
             cameraBeamMesh.material.opacity = isFlashOn * 0.45;
             cameraFlashMesh.material.opacity = isFlashOn * 1.0;
@@ -1995,16 +1959,12 @@
             scanSweeperMesh.rotation.z = Math.PI / 2;
             const sweepX = (p2 * 2.8) - 1.4;
             scanSweeperMesh.position.set(sweepX, -SCANNER_HEIGHT_Y + 0.05, 0);
-
             const isFlashOn = Math.sin(p2 * Math.PI * 6) > 0.25 ? 1.0 : 0.0;
             cameraBeamMesh.material.opacity = isFlashOn * 0.45;
             cameraFlashMesh.material.opacity = isFlashOn * 1.0;
           }
         } else { 
-          scannerBeamMesh.material.opacity = 0.0; 
-          cameraBeamMesh.material.opacity = 0.0; 
-          cameraFlashMesh.material.opacity = 0.0; 
-          scanSweeperMesh.material.opacity = 0.0;
+          scannerBeamMesh.material.opacity = 0.0; cameraBeamMesh.material.opacity = 0.0; cameraFlashMesh.material.opacity = 0.0; scanSweeperMesh.material.opacity = 0.0;
         }
       }
 
@@ -2038,16 +1998,16 @@
       if (cycleBanner && bannerBox) {
         if (currentStep === 10) {
           if (isToleranceError) {
-            bannerBox.className = "w-full bg-rose-50/95 backdrop-blur-md px-4 py-2.5 rounded-2xl border-2 border-rose-500 shadow-xl flex items-center gap-3";
-            bannerIcon.className = "w-7 h-7 rounded-full bg-rose-600 text-white flex items-center justify-center text-sm font-black shadow-xs"; bannerIcon.innerText = "✕";
-            bannerSub.className = "text-[9.5px] font-extrabold text-rose-600 tracking-widest uppercase"; bannerSub.innerText = "Interlock Tripped : Tolerance Over";
-            bannerTitle.className = "text-base md:text-lg font-black text-rose-950 tracking-tight leading-tight"; bannerTitle.innerText = "The work Fails!";
+            bannerBox.className = "w-full bg-rose-50/95 backdrop-blur-md px-3.5 py-2.5 rounded-2xl border-2 border-rose-500 shadow-xl flex items-center gap-2.5";
+            bannerIcon.className = "w-6 h-6 rounded-full bg-rose-600 text-white flex items-center justify-center text-xs font-black shadow-xs"; bannerIcon.innerText = "✕";
+            bannerSub.className = "text-[9px] font-extrabold text-rose-600 tracking-wider uppercase"; bannerSub.innerText = "Interlock Tripped : Tolerance Over";
+            bannerTitle.className = "text-sm font-black text-rose-950 tracking-tight leading-tight truncate"; bannerTitle.innerText = "The work Fails!";
             cycleBanner.classList.add('show-banner');
           } else if (t >= 0.80) {
-            bannerBox.className = "w-full bg-white/95 backdrop-blur-md px-4 py-2.5 rounded-2xl border-2 border-blue-500 shadow-xl flex items-center gap-3";
-            bannerIcon.className = "w-7 h-7 rounded-full bg-emerald-500 text-white flex items-center justify-center text-sm font-black shadow-xs"; bannerIcon.innerText = "✓";
-            bannerSub.className = "text-[9.5px] font-extrabold text-blue-600 tracking-widest uppercase"; bannerSub.innerText = "1-Cycle Process Done";
-            bannerTitle.className = "text-base md:text-lg font-black text-slate-900 tracking-tight leading-tight"; bannerTitle.innerText = "Cycle Completed !!";
+            bannerBox.className = "w-full bg-white/95 backdrop-blur-md px-3.5 py-2.5 rounded-2xl border-2 border-blue-500 shadow-xl flex items-center gap-2.5";
+            bannerIcon.className = "w-6 h-6 rounded-full bg-emerald-500 text-white flex items-center justify-center text-xs font-black shadow-xs"; bannerIcon.innerText = "✓";
+            bannerSub.className = "text-[9px] font-extrabold text-blue-600 tracking-wider uppercase"; bannerSub.innerText = "1-Cycle Process Done";
+            bannerTitle.className = "text-sm font-black text-slate-900 tracking-tight leading-tight truncate"; bannerTitle.innerText = "Cycle Completed !!";
             cycleBanner.classList.add('show-banner');
           } else {
             cycleBanner.classList.remove('show-banner');
@@ -2081,74 +2041,48 @@
         targetQuat.copy(qMasterRadY);
         if (t <= 0.14) { 
           interpolateMove(readyPos, aboveA_1m, t / 0.14, { mode: 'P_HOP', hopHeight: 0.35 }, targetPos); 
-          lockOnBeam.material.opacity = 0; 
-          document.getElementById('targetCoord').innerText = "Point A 상공(Z+1m) 점프 (MOVE P)"; 
-          recordMoveMotionTrails(targetPos, 'P');
+          lockOnBeam.material.opacity = 0; document.getElementById('targetCoord').innerText = "Point A 상공(Z+1m) 점프 (MOVE P)"; recordMoveMotionTrails(targetPos, 'P');
         } else if (t <= 0.27) { 
           const st = (t - 0.14) / 0.13; 
           interpolateMove(aboveA_1m, masterPointAWorld, st, { mode: 'L' }, targetPos); 
-          lockOnBeam.material.opacity = 0.6 * st; 
-          document.getElementById('targetCoord').innerText = "Point A 수직 하강 티칭 (MOVE L)"; 
-          recordMoveMotionTrails(targetPos, 'L');
+          lockOnBeam.material.opacity = 0.6 * st; document.getElementById('targetCoord').innerText = "Point A 수직 하강 티칭 (MOVE L)"; recordMoveMotionTrails(targetPos, 'L');
         } else if (t <= 0.42) { 
-          targetPos.copy(masterPointAWorld); 
-          lockOnBeam.material.opacity = 1.0; 
-          document.getElementById('targetCoord').innerText = "📍 Point A 정밀 티칭 (1초 기록)"; 
+          targetPos.copy(masterPointAWorld); lockOnBeam.material.opacity = 1.0; document.getElementById('targetCoord').innerText = "📍 Point A 정밀 티칭 (1초 기록)"; 
         } else if (t <= 0.52) { 
           interpolateMove(masterPointAWorld, aboveA_1m, (t - 0.42) / 0.10, { mode: 'L' }, targetPos); 
-          lockOnBeam.material.opacity = 0; 
-          document.getElementById('targetCoord').innerText = "Point A 상공 수직 상승 (MOVE L)"; 
-          recordMoveMotionTrails(targetPos, 'L');
+          lockOnBeam.material.opacity = 0; document.getElementById('targetCoord').innerText = "Point A 상공 수직 상승 (MOVE L)"; recordMoveMotionTrails(targetPos, 'L');
         } else if (t <= 0.64) { 
           interpolateMove(aboveA_1m, aboveB_1m, (t - 0.52) / 0.12, { mode: 'P_HOP', hopHeight: 0.4 }, targetPos); 
-          lockOnBeam.material.opacity = 0; 
-          document.getElementById('targetCoord').innerText = "Point B 상공 점프 이동 (MOVE P)"; 
-          recordMoveMotionTrails(targetPos, 'P');
+          lockOnBeam.material.opacity = 0; document.getElementById('targetCoord').innerText = "Point B 상공 점프 이동 (MOVE P)"; recordMoveMotionTrails(targetPos, 'P');
         } else if (t <= 0.75) { 
           const st = (t - 0.64) / 0.11; 
           interpolateMove(aboveB_1m, masterPointBWorld, st, { mode: 'L' }, targetPos); 
-          lockOnBeam.material.opacity = 0.6 * st; 
-          document.getElementById('targetCoord').innerText = "Point B 수직 하강 티칭 (MOVE L)"; 
-          recordMoveMotionTrails(targetPos, 'L');
+          lockOnBeam.material.opacity = 0.6 * st; document.getElementById('targetCoord').innerText = "Point B 수직 하강 티칭 (MOVE L)"; recordMoveMotionTrails(targetPos, 'L');
         } else if (t <= 0.90) { 
-          targetPos.copy(masterPointBWorld); 
-          lockOnBeam.material.opacity = 1.0; 
-          document.getElementById('targetCoord').innerText = "📍 Point B 정밀 티칭 (1초 기록)"; 
+          targetPos.copy(masterPointBWorld); lockOnBeam.material.opacity = 1.0; document.getElementById('targetCoord').innerText = "📍 Point B 정밀 티칭 (1초 기록)"; 
         } else { 
           interpolateMove(masterPointBWorld, aboveB_1m, Math.min(1, (t - 0.90) / 0.07), { mode: 'L' }, targetPos); 
-          lockOnBeam.material.opacity = 0; 
-          document.getElementById('targetCoord').innerText = "개별 점 티칭 완료 (B 상공 대기)"; 
-          recordMoveMotionTrails(targetPos, 'L');
+          lockOnBeam.material.opacity = 0; document.getElementById('targetCoord').innerText = "개별 점 티칭 완료 (B 상공 대기)"; recordMoveMotionTrails(targetPos, 'L');
         }
       } else if (currentStep === 5) {
         targetQuat.copy(qMasterRadY);
         if (t <= 0.12) { 
           interpolateMove(aboveB_1m, aboveA_1m, t / 0.12, { mode: 'P_HOP', hopHeight: 0.35 }, targetPos); 
-          lockOnBeam.material.opacity = 0; 
-          document.getElementById('targetCoord').innerText = "시작점 상공 점프 (MOVE P)"; 
-          recordMoveMotionTrails(targetPos, 'P');
+          lockOnBeam.material.opacity = 0; document.getElementById('targetCoord').innerText = "시작점 상공 점프 (MOVE P)"; recordMoveMotionTrails(targetPos, 'P');
         } else if (t <= 0.346) { 
           const st = (t - 0.12) / 0.226; 
           interpolateMove(aboveA_1m, masterPointAWorld, st, { mode: 'L' }, targetPos); 
-          lockOnBeam.material.opacity = 0.8 * st; 
-          document.getElementById('targetCoord').innerText = "Point A 수직 진입 (MOVE L)"; 
-          recordMoveMotionTrails(targetPos, 'L');
+          lockOnBeam.material.opacity = 0.8 * st; document.getElementById('targetCoord').innerText = "Point A 수직 진입 (MOVE L)"; recordMoveMotionTrails(targetPos, 'L');
         } else if (t <= 0.731) { 
           const st = (t - 0.346) / 0.385; 
           interpolateMove(masterPointAWorld, masterPointBWorld, st, { mode: 'L' }, targetPos); 
-          lockOnBeam.material.opacity = 0.95; 
-          document.getElementById('targetCoord').innerText = "✅ A → B 선형 보간(MOVE L) 검증 주행 중"; 
-          recordMoveMotionTrails(targetPos, 'L');
+          lockOnBeam.material.opacity = 0.95; document.getElementById('targetCoord').innerText = "✅ A → B 선형 보간(MOVE L) 검증 주행 중"; recordMoveMotionTrails(targetPos, 'L');
         } else if (t <= 0.846) { 
           interpolateMove(masterPointBWorld, aboveB_1m, (t - 0.731) / 0.115, { mode: 'L' }, targetPos); 
-          lockOnBeam.material.opacity = 0; 
-          document.getElementById('targetCoord').innerText = "검증 완료 후 상공 상승 (MOVE L)"; 
-          recordMoveMotionTrails(targetPos, 'L');
+          lockOnBeam.material.opacity = 0; document.getElementById('targetCoord').innerText = "검증 완료 후 상공 상승 (MOVE L)"; recordMoveMotionTrails(targetPos, 'L');
         } else { 
           interpolateMove(aboveB_1m, readyPos, (t - 0.846) / 0.154, { mode: 'P_HOP', hopHeight: 0.5 }, targetPos); 
-          lockOnBeam.material.opacity = 0; 
-          document.getElementById('targetCoord').innerText = "대기 위치(Ready) 복귀 (MOVE P)"; 
-          recordMoveMotionTrails(targetPos, 'P');
+          lockOnBeam.material.opacity = 0; document.getElementById('targetCoord').innerText = "대기 위치(Ready) 복귀 (MOVE P)"; recordMoveMotionTrails(targetPos, 'P');
         }
       } else if (currentStep >= 6 && currentStep <= 8) {
         targetPos.copy(readyPos); targetQuat.copy(qMasterRadY); lockOnBeam.material.opacity = 0;
@@ -2196,9 +2130,7 @@
         interpolateMove(startPos, homePos, t, { mode: 'P_SWING', swingHeight: 1.0, swingOut: 0.8 }, targetPos);
         targetQuat.copy(isToleranceError ? qMasterRadY : qSheetFull.slerp(qMasterRadY, t));
         lockOnBeam.material.opacity = 0;
-        document.getElementById('targetCoord').innerText = isToleranceError 
-          ? "🛑 The work Fails! (안전 홈 복귀 완료)" 
-          : "🏁 Cycle Completed !! (보라색 실링 완제품 유지)";
+        document.getElementById('targetCoord').innerText = isToleranceError ? "🛑 The work Fails! (안전 홈 복귀 완료)" : "🏁 Cycle Completed !! (보라색 실링 완제품 유지)";
         document.getElementById('pointA_UF').innerText = isToleranceError ? "NG 종료" : "정상 완료";
         document.getElementById('pointB_UF').innerText = isToleranceError ? "NG 종료" : "정상 완료";
       }
@@ -2214,7 +2146,11 @@
 
     function updateStepUI() {
       const data = stepData[currentStep];
-      document.getElementById('stepBadge').innerText = data.badge;
+      const badgeEl = document.getElementById('stepBadge');
+      if (badgeEl) {
+        badgeEl.innerText = data.badge;
+        badgeEl.className = "bg-blue-600 text-white text-[10px] font-black px-2 py-0.5 rounded transition-all";
+      }
       document.getElementById('descIcon').innerText = data.icon;
       document.getElementById('descHeading').innerHTML = data.heading;
       document.getElementById('descBody').innerHTML = data.body;
@@ -2222,7 +2158,17 @@
       document.getElementById('prevBtn').disabled = (currentStep === 0);
       document.getElementById('nextBtn').disabled = (currentStep === stepData.length - 1);
       if (lastLoggedStep !== currentStep) { lastLoggedStep = currentStep; logStepScenarioPackets(currentStep); }
+      updateButtonActiveStates();
       trigger3DAnimation();
+    }
+
+    /* [V8.5] 모바일 V2.0 동기화: 단계 완료 시 초록색 DONE ✓ 배지 전환 */
+    function markStepCompleted() {
+      const badgeEl = document.getElementById('stepBadge');
+      if (badgeEl) {
+        badgeEl.innerText = `${stepData[currentStep].badge} DONE ✓`;
+        badgeEl.className = "bg-emerald-600 text-white text-[10px] font-black px-2 py-0.5 rounded transition-all transform scale-105 shadow-xs";
+      }
     }
 
     let activeStepAnimationId = null;
@@ -2233,7 +2179,7 @@
       if (currentStep === 4) duration = 6500; 
       else if (currentStep === 5) duration = 5200; 
       else if (currentStep === 9) duration = 4800; 
-      else if (currentStep === 7) duration = 5400; // X/Y 십자 직교 교차 스캔 감상 시간 확보
+      else if (currentStep === 7) duration = 5400; 
       else if (currentStep === 8) duration = 1800; 
       else if (currentStep === 2 || currentStep === 10) duration = 2400;
       
@@ -2241,13 +2187,17 @@
         const linearT = Math.min(1, (now - startTime) / duration);
         animProgress = (currentStep === 2 || currentStep === 10) ? (1 - Math.pow(1 - linearT, 3)) : linearT;
         applyStepTransforms(animProgress);
-        if (linearT < 1) activeStepAnimationId = requestAnimationFrame(stepAnim); else { activeStepAnimationId = null; isAnimating = false; applyStepTransforms(1); }
+        if (linearT < 1) activeStepAnimationId = requestAnimationFrame(stepAnim);
+        else { 
+          activeStepAnimationId = null; 
+          isAnimating = false; 
+          applyStepTransforms(1);
+          markStepCompleted();
+        }
       }
       activeStepAnimationId = requestAnimationFrame(stepAnim);
     }
 
-    // BETA4: 최초 ISO 구도. UF5 ORG가 화면 가로 약 60%에 오도록 카메라만 평행 이동한다.
-    // 3D 모델/UF5/스캐너의 월드 좌표는 변경하지 않는다.
     function applyInitialComposition(viewWidth, viewHeight) {
       if (!camera || !controls || !masterOrigin) return;
       const baseCam = new THREE.Vector3(1.8, 6.2, 9.8);
@@ -2257,7 +2207,6 @@
       const depth = Math.max(0.1, masterOrigin.clone().sub(baseCam).dot(forward));
       const halfViewWidth = depth * Math.tan(THREE.MathUtils.degToRad(camera.fov * 0.5)) * (viewWidth / Math.max(1, viewHeight));
       const currentScreenX = masterOrigin.clone().sub(baseCam).dot(right);
-      // 스캐너가 화면 가로 중앙(상단 카메라 바와 우측 종료 배너 사이)에 완벽히 오도록 조정
       const desiredScreenX = halfViewWidth * -0.06;
       const shift = right.clone().multiplyScalar(currentScreenX - desiredScreenX);
       camera.position.copy(baseCam).add(shift);
@@ -2266,7 +2215,7 @@
       controls.update();
     }
 
-        function setCameraFov(val) {
+    function setCameraFov(val) {
       if (!camera) return;
       const num = Number(val);
       camera.fov = num;
@@ -2320,7 +2269,8 @@
       camTransition.startTarget.copy(controls.target); camTransition.endTarget.copy(targetLookAt);
     }
 
-    function goToStep(idx) {
+    function goToStep(idx, options = {}) {
+      if (!options.fromAutoPlay && isAutoPlaying) stopAutoPlay();
       if (typeof activeStepAnimationId !== 'undefined' && activeStepAnimationId !== null) { cancelAnimationFrame(activeStepAnimationId); activeStepAnimationId = null; }
       isAnimating = false; animProgress = 1;
       manualJointMode = false;
@@ -2344,9 +2294,7 @@
       if (dot) dot.className = 'w-2 h-2 rounded-full bg-emerald-500 animate-pulse';
       
       currentStep = idx;
-      // 매번 ICP 정합 단계에 진입할 때 최신 UF5/UF6 설정으로 보정행렬을 새로 계산한다.
       if (currentStep === 8) runPointCloudICP();
-      // 요청 1, 2, 3: 1단계(idx===0)에서는 UF5 파라미터창만 OPEN, 티칭패드 CLOSE. 2단계(idx>=1)부터는 파라미터창 CLOSE, 티칭패드 OPEN.
       if (currentStep === 0) {
         setParamPanelCollapsedState(false);
         setJobViewerCollapsedState(true);
@@ -2363,37 +2311,86 @@
     function nextStep() { if (currentStep < stepData.length - 1) goToStep(currentStep + 1); }
     function prevStep() { if (currentStep > 0) goToStep(currentStep - 1); }
 
+    function updateAutoPlayButton() {
+      const icon = document.getElementById('playIcon');
+      const label = document.getElementById('playText');
+      if (icon) icon.innerText = isAutoPlaying ? '⏸' : '▶';
+      if (label) label.innerText = isAutoPlaying ? '일시 정지' : '자동 재생';
+      updateButtonActiveStates();
+    }
+
+    function stopAutoPlay() {
+      isAutoPlaying = false;
+      if (autoPlayTimeoutId !== null) { clearTimeout(autoPlayTimeoutId); autoPlayTimeoutId = null; }
+      if (autoStepProgressTimer) { clearInterval(autoStepProgressTimer); autoStepProgressTimer = null; }
+      const pWrap = document.getElementById('autoPlayProgressWrapper');
+      if (pWrap) pWrap.classList.add('hidden');
+      updateAutoPlayButton();
+    }
+
+    function startAutoPlay() {
+      if (isAutoPlaying) return;
+      isAutoPlaying = true;
+      updateAutoPlayButton();
+      scheduleNextAutoStep();
+    }
+
     function scheduleNextAutoStep() {
-      if (!autoPlayTimer) return;
+      if (!isAutoPlaying) return;
+      if (autoPlayTimeoutId !== null) clearTimeout(autoPlayTimeoutId);
       let waitTime = 4200;
-      if (currentStep === 4) waitTime = 7200; 
-      else if (currentStep === 5) waitTime = 5900; 
+      if (currentStep === 4) waitTime = 7200;
+      else if (currentStep === 5) waitTime = 5900;
       else if (currentStep === 7) waitTime = 6000;
-      else if (currentStep === 9) waitTime = 5400; 
+      else if (currentStep === 9) waitTime = 5400;
       else if (currentStep === 10) waitTime = 3000;
 
-      autoPlayTimer = setTimeout(() => {
-        if (!autoPlayTimer) return;
+      const pWrap = document.getElementById('autoPlayProgressWrapper');
+      const pBar = document.getElementById('autoPlayProgressBar');
+      if (pWrap && pBar) {
+        pWrap.classList.remove('hidden');
+        pBar.style.width = '0%';
+        const pStart = performance.now();
+        if (autoStepProgressTimer) clearInterval(autoStepProgressTimer);
+        autoStepProgressTimer = setInterval(() => {
+          if (!isAutoPlaying) { clearInterval(autoStepProgressTimer); return; }
+          const elapsed = performance.now() - pStart;
+          const pct = Math.min(100, (elapsed / waitTime) * 100);
+          pBar.style.width = `${pct}%`;
+          if (pct >= 100) clearInterval(autoStepProgressTimer);
+        }, 50);
+      }
+
+      autoPlayTimeoutId = setTimeout(() => {
+        autoPlayTimeoutId = null;
+        if (!isAutoPlaying) return;
+        if (autoStepProgressTimer) clearInterval(autoStepProgressTimer);
+        if (pWrap) pWrap.classList.add('hidden');
+
         if (currentStep < stepData.length - 1) {
-          goToStep(currentStep + 1);
+          goToStep(currentStep + 1, { fromAutoPlay: true });
           scheduleNextAutoStep();
         } else {
-          clearTimeout(autoPlayTimer); autoPlayTimer = null;
+          stopAutoPlay();
           demoModeType = null;
-          document.getElementById('playIcon').innerText = "▶"; document.getElementById('playText').innerText = "자동 재생";
+          updateButtonActiveStates();
         }
       }, waitTime);
     }
 
     function toggleAutoPlay() {
-      if (autoPlayTimer) {
-        clearTimeout(autoPlayTimer); autoPlayTimer = null;
+      if (isAutoPlaying) {
+        stopAutoPlay();
         demoModeType = null;
-        document.getElementById('playIcon').innerText = "▶"; document.getElementById('playText').innerText = "자동 재생";
+        updateButtonActiveStates();
       } else {
-        if (currentStep === stepData.length - 1) { clearPacketLogs("New Auto-Cycle Started."); lastLoggedStep = -1; resetTrajectoryTrail(); resetMoveMotionTrails(); goToStep(0); setCameraView('iso'); }
-        document.getElementById('playIcon').innerText = "⏸"; document.getElementById('playText').innerText = "일시 정지";
-        autoPlayTimer = true; scheduleNextAutoStep();
+        if (currentStep === stepData.length - 1) {
+          clearPacketLogs('New Auto-Cycle Started.');
+          lastLoggedStep = -1;
+          resetTrajectoryTrail(); resetMoveMotionTrails();
+          goToStep(0); setCameraView('iso');
+        }
+        startAutoPlay();
       }
     }
 
@@ -2401,7 +2398,9 @@
       setCameraFov(45);
       if (typeof activeStepAnimationId !== 'undefined' && activeStepAnimationId !== null) { cancelAnimationFrame(activeStepAnimationId); activeStepAnimationId = null; }
       isAnimating = false;
-      if (autoPlayTimer) toggleAutoPlay();
+      if (isAutoPlaying) stopAutoPlay();
+      demoModeType = null;
+      updateButtonActiveStates();
       clearPacketLogs("Cycle Reset :: Ready for a new operation sequence.");
       lastLoggedStep = -1; resetTrajectoryTrail(); resetMoveMotionTrails(); goToStep(0); setCameraView('iso');
     }
@@ -2430,16 +2429,13 @@
         if (rawT >= 1.0) camTransition.active = false;
       }
       if (controls) controls.update();
-      if (!isAnimating) applyStepTransforms(1);
-      else if (currentStep >= 7 && currentStep <= 10) updateICPMiniView(animProgress);
+      if (isAnimating && currentStep >= 7 && currentStep <= 10) updateICPMiniView(animProgress);
       renderer.render(scene, camera);
     }
-
-    // 개발자 및 발표 검증용: 콘솔에서도 UF5->UF6 4x4 행렬을 확인할 수 있음
-    window.getUF6TransformMatrix = getUF6TransformMatrix;
     window.computeUF5ToUF6StandardMatrix = computeUF5ToUF6StandardMatrix;
+    window.getUF6TransformMatrix = computeUF5ToUF6StandardMatrix; // 기존 명칭 alias 처리
     
-    // ==================== VISITOR COUNTER & EASTER EGGS (11단계 완료 후 활성화) ====================
+    
     let isEasterEggScanRunning = false;
     let toastTimeout = null;
 
@@ -2460,7 +2456,7 @@
       toastTimeout = setTimeout(() => {
         toast.classList.remove('show-toast');
         toastTimeout = null;
-      }, 3600);
+      }, 3800);
     }
 
     function trigger3DUScannerPerformance() {
@@ -2468,22 +2464,12 @@
       isEasterEggScanRunning = true;
       appendPacketLog('SYS', `🌈 EASTER_EGG :: 3DU Rainbow Projection & Metallic Capture Ceremony!`);
 
-      // 1) 프로젝터 빔: 위->아래 7색 무지개 그라데이션 적용
-      scannerBeamMesh.material.map = rainbowBeamTex;
-      scannerBeamMesh.material.color.setHex(0xffffff);
-      scannerBeamMesh.material.needsUpdate = true;
-
-      // 2) 카메라 촬영 영역: 밝은 실버 메탈릭 질감 적용
-      cameraBeamMesh.material.map = metallicBeamTex;
-      cameraBeamMesh.material.color.setHex(0xe2e8f0);
-      cameraBeamMesh.material.needsUpdate = true;
-
-      // 3) 레이저 슬릿 라인: 무지개와 대비되는 강렬한 네온 시안(#00ffff) & 골드 플래시
-      scanSweeperMesh.material.color.setHex(0x00ffff);
-      cameraFlashMesh.material.color.setHex(0xfde047);
+      scannerBeamMesh.material.map = rainbowBeamTex; scannerBeamMesh.material.color.setHex(0xffffff); scannerBeamMesh.material.needsUpdate = true;
+      cameraBeamMesh.material.map = metallicBeamTex; cameraBeamMesh.material.color.setHex(0xe2e8f0); cameraBeamMesh.material.needsUpdate = true;
+      scanSweeperMesh.material.color.setHex(0x00ffff); cameraFlashMesh.material.color.setHex(0xfde047);
 
       const startTime = performance.now();
-      const dur = 3200; // 3.2초간 화려한 무지개/메탈릭 스캔 퍼포먼스
+      const dur = 3200;
 
       function eggScan(now) {
         const p = Math.min(1.0, (now - startTime) / dur);
@@ -2496,35 +2482,22 @@
           scanSweeperMesh.rotation.z = 0;
           scanSweeperMesh.position.set(0, -SCANNER_HEIGHT_Y + 0.06, (t1 * 2.8) - 1.4);
           scanSweeperMesh.material.color.setHex(Math.sin(t1 * Math.PI * 8) >= 0 ? 0x00ffff : 0x00ff9d);
-          const flash = Math.sin(t1 * Math.PI * 6) > 0.15 ? 1.0 : 0.0;
-          cameraFlashMesh.material.opacity = flash;
+          cameraFlashMesh.material.opacity = (Math.sin(t1 * Math.PI * 6) > 0.15 ? 1.0 : 0.0);
         } else {
           const t2 = (p - 0.5) / 0.5;
           scanSweeperMesh.rotation.z = Math.PI / 2;
           scanSweeperMesh.position.set((t2 * 2.8) - 1.4, -SCANNER_HEIGHT_Y + 0.06, 0);
           scanSweeperMesh.material.color.setHex(Math.sin(t2 * Math.PI * 8) >= 0 ? 0x00ffff : 0xffeb3b);
-          const flash = Math.sin(t2 * Math.PI * 6) > 0.15 ? 1.0 : 0.0;
-          cameraFlashMesh.material.opacity = flash;
+          cameraFlashMesh.material.opacity = (Math.sin(t2 * Math.PI * 6) > 0.15 ? 1.0 : 0.0);
         }
 
         if (p < 1.0) {
           requestAnimationFrame(eggScan);
         } else {
-          scannerBeamMesh.material.opacity = 0;
-          cameraBeamMesh.material.opacity = 0;
-          cameraFlashMesh.material.opacity = 0;
-          scanSweeperMesh.material.opacity = 0;
-
-          scannerBeamMesh.material.map = null;
-          scannerBeamMesh.material.color.setHex(0xef4444);
-          scannerBeamMesh.material.needsUpdate = true;
-
-          cameraBeamMesh.material.map = null;
-          cameraBeamMesh.material.color.setHex(0x38bdf8);
-          cameraBeamMesh.material.needsUpdate = true;
-
-          scanSweeperMesh.material.color.setHex(0xff2a55);
-          cameraFlashMesh.material.color.setHex(0xffffff);
+          scannerBeamMesh.material.opacity = 0; cameraBeamMesh.material.opacity = 0; cameraFlashMesh.material.opacity = 0; scanSweeperMesh.material.opacity = 0;
+          scannerBeamMesh.material.map = null; scannerBeamMesh.material.color.setHex(0xef4444); scannerBeamMesh.material.needsUpdate = true;
+          cameraBeamMesh.material.map = null; cameraBeamMesh.material.color.setHex(0x38bdf8); cameraBeamMesh.material.needsUpdate = true;
+          scanSweeperMesh.material.color.setHex(0xff2a55); cameraFlashMesh.material.color.setHex(0xffffff);
           isEasterEggScanRunning = false;
         }
       }
@@ -2534,7 +2507,6 @@
     function setupEasterEggListeners() {
       initVisitorCounter();
 
-      // 에그 1: 교육관 유재광 버튼 마우스 오버 -> 11단계 작업 완료 박스 나온 후 골드 토스트 팝업
       const authorBtn = document.getElementById('authorBadgeBtn');
       if (authorBtn) {
         authorBtn.addEventListener('mouseenter', () => {
@@ -2544,7 +2516,6 @@
         });
       }
 
-      // 에그 2: ATM 로고 버튼 마우스 오버 -> 11단계 작업 완료 박스 나온 후 3DU 스캐너 스캔 퍼포먼스
       const atmBtn = document.getElementById('atmLogoBtn');
       if (atmBtn) {
         atmBtn.addEventListener('mouseenter', () => {
