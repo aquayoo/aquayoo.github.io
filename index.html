@@ -11,6 +11,7 @@
       --card-border: #334155;
       --accent-blue: #38bdf8;
       --accent-green: #4ade80;
+      --accent-amber: #f59e0b;
       --text-main: #f8fafc;
       --text-sub: #94a3b8;
     }
@@ -37,69 +38,111 @@
       border: 1px solid var(--card-border);
       border-radius: 1.5rem;
       padding: 2.5rem;
-      max-width: 860px;
+      max-width: 960px;
       width: 100%;
       box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
     }
 
-    /* 헤더 영역: ATM 로고 및 접속 일자 */
+    /* 헤더 영역: ATM 정식 브랜딩 및 접속 일자 */
     .header {
       display: flex;
       justify-content: space-between;
       align-items: center;
       border-bottom: 1px solid var(--card-border);
       padding-bottom: 1.25rem;
-      margin-bottom: 2.5rem;
+      margin-bottom: 2rem;
+    }
+
+    .brand-wrap {
+      display: flex;
+      flex-direction: column;
+      gap: 0.2rem;
     }
 
     .brand {
-      font-size: 2.2rem;
+      font-size: 2rem;
       font-weight: 800;
       letter-spacing: 0.05em;
       color: var(--accent-blue);
       display: flex;
       align-items: center;
       gap: 0.5rem;
+      line-height: 1;
+    }
+
+    .brand-sub {
+      font-size: 0.85rem;
+      color: var(--text-sub);
+      font-weight: 500;
+      letter-spacing: 0.02em;
     }
 
     .date-badge {
       background: #0f172a;
       border: 1px solid #475569;
-      padding: 0.5rem 1.1rem;
+      padding: 0.5rem 1rem;
       border-radius: 0.6rem;
-      font-size: 0.95rem;
+      font-size: 0.9rem;
       font-weight: 600;
       color: var(--accent-green);
       letter-spacing: 0.02em;
       box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.3);
+      white-space: nowrap;
     }
 
     /* 인사말 및 메인 타이틀 */
     .greeting-section {
       text-align: center;
-      margin-bottom: 3.5rem;
+      margin-bottom: 2.5rem;
     }
 
     .welcome-text {
-      font-size: 1.25rem;
+      font-size: 1.15rem;
       color: var(--text-sub);
-      margin-bottom: 0.75rem;
+      margin-bottom: 0.5rem;
       font-weight: 400;
     }
 
     .main-title {
-      font-size: 2.25rem;
+      font-size: 2.1rem;
       font-weight: 800;
       color: #ffffff;
       letter-spacing: -0.02em;
       line-height: 1.3;
+      margin-bottom: 1.25rem;
     }
 
-    /* 4대 모듈 원형 링크 그리드 */
+    /* 베타 및 개발 안내 공지 배너 */
+    .notice-banner {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.6rem;
+      background: rgba(245, 158, 11, 0.1);
+      border: 1px solid rgba(245, 158, 11, 0.3);
+      color: #fde68a;
+      padding: 0.6rem 1.2rem;
+      border-radius: 9999px;
+      font-size: 0.82rem;
+      line-height: 1.4;
+      text-align: left;
+    }
+
+    .notice-tag {
+      background: var(--accent-amber);
+      color: #0f172a;
+      font-size: 0.72rem;
+      font-weight: 800;
+      padding: 0.15rem 0.45rem;
+      border-radius: 0.3rem;
+      letter-spacing: 0.03em;
+      flex-shrink: 0;
+    }
+
+    /* 5대 모듈 유연 그리드 (간결하고 번잡하지 않은 5열 / 모바일 2~3열 레이아웃) */
     .modules-grid {
       display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 1.5rem;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 1.25rem;
       justify-items: center;
       align-items: start;
     }
@@ -111,6 +154,7 @@
       text-decoration: none;
       color: inherit;
       width: 100%;
+      position: relative;
       transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
     }
 
@@ -120,8 +164,8 @@
 
     /* 원형 버튼 디자인 */
     .circle-btn {
-      width: 115px;
-      height: 115px;
+      width: 105px;
+      height: 105px;
       border-radius: 50%;
       background: #0f172a;
       border: 2px solid var(--accent-blue);
@@ -138,22 +182,22 @@
     .module-item:hover .circle-btn {
       background: var(--accent-blue);
       border-color: var(--accent-blue);
-      box-shadow: 0 0 25px rgba(56, 189, 248, 0.55);
+      box-shadow: 0 0 22px rgba(56, 189, 248, 0.5);
     }
 
     .btn-icon {
-      font-size: 1.8rem;
-      margin-bottom: 0.25rem;
+      font-size: 1.65rem;
+      margin-bottom: 0.2rem;
       color: var(--accent-blue);
       transition: color 0.25s ease;
     }
 
     .btn-code {
-      font-size: 0.85rem;
+      font-size: 0.8rem;
       font-weight: 700;
       color: var(--text-main);
       transition: color 0.25s ease;
-      letter-spacing: 0.03em;
+      letter-spacing: 0.02em;
     }
 
     .module-item:hover .btn-icon,
@@ -161,21 +205,36 @@
       color: #0f172a;
     }
 
+    /* 베타 뱃지 (버튼 우측 상단) */
+    .beta-badge {
+      position: absolute;
+      top: 0px;
+      right: 12px;
+      background: var(--accent-amber);
+      color: #0f172a;
+      font-size: 0.65rem;
+      font-weight: 800;
+      padding: 0.15rem 0.4rem;
+      border-radius: 0.35rem;
+      letter-spacing: 0.04em;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.4);
+    }
+
     /* 버튼 하단 텍스트 */
     .module-title {
-      margin-top: 1rem;
-      font-size: 1.05rem;
+      margin-top: 0.85rem;
+      font-size: 0.98rem;
       font-weight: 700;
       text-align: center;
       color: #ffffff;
     }
 
     .module-desc {
-      font-size: 0.8rem;
+      font-size: 0.76rem;
       color: var(--text-sub);
       text-align: center;
-      margin-top: 0.35rem;
-      line-height: 1.4;
+      margin-top: 0.3rem;
+      line-height: 1.35;
     }
 
     /* 준비 중 (Disabled) 스타일 */
@@ -199,58 +258,37 @@
       color: #64748b;
     }
 
-    /* 모바일 반응형 (가로 폭 640px 이하일 때 2x2 그리드 배치) */
-    @media (max-width: 640px) {
+    /* 반응형 디자인 */
+    @media (max-width: 860px) {
+      .modules-grid {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1.5rem 1rem;
+      }
+    }
+
+    @media (max-width: 580px) {
       .container {
-        padding: 1.5rem;
-        border-radius: 1.2rem;
+        padding: 1.5rem 1.2rem;
       }
 
       .header {
-        margin-bottom: 1.75rem;
-      }
-
-      .brand {
-        font-size: 1.75rem;
-      }
-
-      .date-badge {
-        font-size: 0.85rem;
-        padding: 0.4rem 0.8rem;
-      }
-
-      .greeting-section {
-        margin-bottom: 2.25rem;
-      }
-
-      .welcome-text {
-        font-size: 1.1rem;
-      }
-
-      .main-title {
-        font-size: 1.65rem;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.8rem;
       }
 
       .modules-grid {
         grid-template-columns: repeat(2, 1fr);
-        gap: 1.25rem;
+        gap: 1.25rem 0.8rem;
       }
 
       .circle-btn {
-        width: 100px;
-        height: 100px;
+        width: 95px;
+        height: 95px;
       }
 
-      .btn-icon {
+      .main-title {
         font-size: 1.6rem;
-      }
-
-      .btn-code {
-        font-size: 0.8rem;
-      }
-
-      .module-title {
-        font-size: 0.95rem;
       }
     }
   </style>
@@ -258,19 +296,28 @@
 <body>
 
   <main class="container">
-    <!-- 1. 헤더: ATM 로고 및 접속 일자 -->
+    <!-- 1. 헤더: ATM 브랜딩 및 접속 일자 -->
     <header class="header">
-      <div class="brand">ATM</div>
-      <div class="date-badge" id="currentDate">접속일자 로딩 중...</div>
+      <div class="brand-wrap">
+        <div class="brand">ATM</div>
+        <div class="brand-sub">(주)에이티엠 산업용 로보틱스 & 3D 비전 교육 포털</div>
+      </div>
+      <div class="date-badge" id="currentDate">접속일자 확인 중...</div>
     </header>
 
-    <!-- 2. 중앙 타이틀 -->
+    <!-- 2. 중앙 타이틀 및 안내 -->
     <section class="greeting-section">
-      <p class="welcome-text">어서 오세요.</p>
-      <h1 class="main-title">“ATM 신입 직원 교육 시스템”</h1>
+      <p class="welcome-text">신입 연구원 및 엔지니어 여러분, 환영합니다.</p>
+      <h1 class="main-title">ATM 직무 기술 교육 시스템</h1>
+      
+      <!-- 베타 및 개발 안내 문구 -->
+      <div class="notice-banner">
+        <span class="notice-tag">NOTICE</span>
+        <span>신규 추가 모듈(ICP 등)은 <strong>베타 연구 버전</strong>으로, 알고리즘 구상 및 테스트 단계에 따라 일부 동작이 제한될 수 있습니다.</span>
+      </div>
     </section>
 
-    <!-- 3. 원형 링크 모듈 (단일 저장소 간편 상대경로) -->
+    <!-- 3. 원형 링크 모듈 (5개 슬롯 구성) -->
     <nav class="modules-grid">
       <!-- ① UF6 PC 시뮬레이터 -->
       <a href="uf6_pc.html" class="module-item">
@@ -298,18 +345,29 @@
           <span class="btn-icon">📐</span>
           <span class="btn-code">fov</span>
         </div>
-        <div class="module-title">FOV-WD 교육</div>
-        <div class="module-desc">화각 및 작업거리 계산</div>
+        <div class="module-title">FOV-WD 계산</div>
+        <div class="module-desc">광학 화각 및 작업거리</div>
       </a>
 
-      <!-- ④ 추후 추가 예정 모듈 -->
-      <div class="module-item disabled" title="준비 중인 모듈입니다">
+      <!-- ④ ICP PC 시뮬레이터 (신규 링크 / 베타) -->
+      <a href="icp_pc.html" class="module-item">
         <div class="circle-btn">
-          <span class="btn-icon">➕</span>
-          <span class="btn-code">추후 추가</span>
+          <span class="beta-badge">BETA</span>
+          <span class="btn-icon">🎯</span>
+          <span class="btn-code">icp_pc</span>
         </div>
-        <div class="module-title">준비 중</div>
-        <div class="module-desc">신규 모듈 예정</div>
+        <div class="module-title">ICP 매칭 (PC)</div>
+        <div class="module-desc">포인트클라우드 정합[cite: 1]</div>
+      </a>
+
+      <!-- ⑤ 내일 추가 예정 슬롯 -->
+      <div class="module-item disabled" title="내일 추가 예정인 신규 프로젝트입니다">
+        <div class="circle-btn">
+          <span class="btn-icon">⏳</span>
+          <span class="btn-code">추가 예정</span>
+        </div>
+        <div class="module-title">신규 프로젝트</div>
+        <div class="module-desc">내일 오픈 예정 모듈</div>
       </div>
     </nav>
   </main>

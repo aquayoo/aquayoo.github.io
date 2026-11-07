@@ -1,0 +1,1411 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <!-- 
+    ========================================================================================
+    [ATM / 3D Vision ICP 정합 Simulator (ver 0.7 - PC Full HD 1920x1080 Edition)]
+    Release Date: November 8, 2026
+    Author: 교육관 유재광 (jaekwang.yoo@atmc.co.kr)
+    
+    [버전별 개발 및 고도화 변경 이력 (Change Log)]
+    ----------------------------------------------------------------------------------------
+    ■ ver 0.3 (Baseline)
+      - Three.js 기반 3D 비대칭 차체 브라켓(1,480 pts) 렌더링 및 공분산 ICP 루프 구현
+      - 다크 테마(#0a1117) 기반 개발자용 단일 HTML 뷰어 형태
+      - ZYX 오일러 회전 역산 및 4x4 동차변환행렬 [R|T] 터미널 출력
+    
+    ■ ver 0.4 (Conceptual Design)
+      - 신입사원 교육 목적에 맞춘 단계별(Step-by-Step) 공정 인터랙션 구조 기획
+      - 수식 표면 노출 지양, 최근접 점-대응선(Correspondence Rays) 시각화 아이디어 도출
+      - 180° 반전 및 대칭 축 착시를 이용한 Local Minima(수렴 실패) 체감 교육 시나리오 수립
+    
+    ■ ver 0.5 (PC Architecture Migration)
+      - uf6_pc.html (ATM V8.5)의 Clean White 산업용 고대비 레이아웃(Tailwind CSS + Pretendard) 완전 이식
+      - 5단계 공정 시나리오(모델 안착 -> 6축 왜곡 -> 레이저 스캔 -> ICP 정합 -> [R|T] 확정) 체계화
+      - 하단 4x4 [R|T] 매트릭스 카드 및 TCP/IP 실시간 패킷 로그 터미널 장착
+    
+    ■ ver 0.6 (Design & Contrast Fix / Prototype)
+      - 화이트 배경에서 점군 및 스캐너가 하얗게 날아가는 시인성 이슈 확인 및 배색 계획 수립
+      - RGB 축선(X:빨강, Y:초록, Z:파랑)과의 시각적 충돌 방지용 고대비 팔레트 선정
+      - 1920x1080 해상도에 최적화된 시야각(FOV 45°) 및 카메라 앵글 좌표 산출
+    
+    ■ ver 0.7 (Current Official Release - Nov. 08, 2026)
+      1. 고대비 점군 & 대응선 전면 배색 개편 (화이트 배경 최적화):
+         - 마스터 모델(REF.ply): 딥 네이비 / 코발트 블루(#1e3a8a, size: 2.8) -> 흰색 바탕에서 뚜렷한 외곽선 확보
+         - 스캔 왜곡 모델(Scene.ply): 비비드 번트 오렌지(#ea580c, size: 3.0) -> REF와 완벽한 보색 대비 형성
+         - 점-대응선(Correspondence Rays): 일렉트릭 퍼플(#7c3aed, opacity: 0.55) -> 두 점군을 잇는 매칭 거미줄 선명 시각화
+         - 작업 정반(Work Table): 솔리드 슬레이트(#cbd5e1 상판, #64748b 엣지)로 배경과 명확히 분리
+         - UI 범례(Scene Hierarchy) 및 헤더 뱃지 색상을 3D 점군 배색과 100% 일치 동기화
+      2. 사내 공인 AITZ 3DU[3DM] 산업용 3D 스캐너 완전 이식:
+         - uf6_pc.html 사양 100% 반영: 다크 아연 다이캐스팅 바디, 듀얼 4.5° 경사 틸트 렌즈 링
+         - 전면 및 상단 공인 붉은색 'ATM' 이탤릭 CI 로고 캔버스 텍스처 부착
+         - 상단 라벨 스프라이트 '📷 AITZ 3DU[3DM]' 명기 및 상공 지주 마운트 스템 구현
+         - STEP 3 적색 구조광 슬릿 레이저 및 90° 직교 교차 스윕 애니메이션 탑재
+      3. 상단 헤더 및 타이틀 규격 정돈:
+         - 버전 버튼: 2행 분할 레이아웃 확정 [1행: V0.7 / 2행: (Nov.08)]
+         - 타이틀: 간결하고 명확한 '3D Vision ICP 정합 Simulator'로 정돈 ('[과제1]' 문구 삭제)
+      4. 1920x1080 해상도 시야각 및 시네마틱 카메라 동선 최적화:
+         - 좌측 208px, 우측 316px, 하단 136px 패널 간섭을 완벽히 배제한 중앙 3D 뷰포트 배치
+         - 기본 화각 FOV 45° 표준 렌즈 왜곡 방지 및 카메라 중심점 (0, 12, 0) 고정
+      5. 원클릭 인터랙티브 교육 기능 완성:
+         - [데모(OK)]: 안전 수렴 영역 내 정상 정합 완벽 시연
+         - [데모(NG)]: 180° Yaw Flip으로 인한 Local Minima 함정 및 엉뚱한 정합 현상 직접 목격
+         - 교육관 유재광 배지 마우스 오버 시 연수 수료 축하 골드 토스트 팝업 연동
+    ========================================================================================
+  -->
+  <meta name="application-version" content="0.7">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>3D Vision ICP 정합 Simulator (ver 0.7)</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Pretendard:wght@400;500;600;700;800;900&display=swap');
+    body { font-family: 'Pretendard', sans-serif; user-select: none; touch-action: manipulation; }
+    .step-btn.active { background-color: #2563eb !important; color: white !important; font-weight: 800; border-color: #1d4ed8; box-shadow: 0 2px 4px rgba(37,99,235,0.25); }
+    .step-btn.active .step-subtag { color: #ffffff !important; opacity: 0.95; font-weight: 700; }
+    .cam-preset-btn.active-cam { background-color: #2563eb !important; color: #ffffff !important; border-color: #1d4ed8 !important; box-shadow: 0 1px 3px rgba(37,99,235,0.3); }
+    #canvas-container canvas { outline: none; display: block; width: 100%; height: 100%; }
+    input[type="range"] { -webkit-appearance: none; appearance: none; }
+    input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 13px; height: 13px; border-radius: 50%; background-color: #facc15; border: 2px solid #ca8a04; box-shadow: 0 1px 2px rgba(0,0,0,0.3); cursor: pointer; transition: transform 0.1s ease; }
+    input[type="range"]::-webkit-slider-thumb:hover { transform: scale(1.2); background-color: #eab308; }
+    input[type="range"]::-moz-range-thumb { width: 13px; height: 13px; border-radius: 50%; background-color: #facc15; border: 2px solid #ca8a04; cursor: pointer; }
+    
+    .pm-btn { width: 19px; height: 19px; display: inline-flex; align-items: center; justify-content: center; border-radius: 4px; background-color: #e2e8f0; color: #0f172a; font-weight: 900; font-size: 14px; line-height: 1; border: 1px solid #cbd5e1; transition: all 0.12s; flex-shrink: 0; padding-bottom: 1px; }
+    .pm-btn:hover { background-color: #2563eb; color: #ffffff; border-color: #1d4ed8; }
+    .pm-btn:active { transform: scale(0.90); }
+
+    ::-webkit-scrollbar { width: 4px; height: 4px; }
+    ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+    #packetLogList::-webkit-scrollbar { width: 6px; height: 6px; }
+    #packetLogList::-webkit-scrollbar-track { background: #e2e8f0; }
+    #packetLogList::-webkit-scrollbar-thumb { background: #94a3b8; border-radius: 4px; }
+    .icp-card-enter { animation: icpSlideIn 0.3s cubic-bezier(0.16,1,0.3,1) forwards; }
+    @keyframes icpSlideIn { from { opacity: 0; transform: translateY(-6px) scale(0.98); } to { opacity: 1; transform: translateY(0) scale(1); } }
+
+    .rt-matrix-table { width: 100%; border-collapse: separate; border-spacing: 2px; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; font-size: 10px; table-layout: fixed; }
+    .rt-matrix-table td { padding: 2px 3px; text-align: right; border-radius: 4px; font-weight: 700; letter-spacing: -0.02em; overflow: hidden; white-space: nowrap; }
+    .rt-cell-r { background-color: #eff6ff; color: #1e3a8a; border: 1px solid #bfdbfe; }
+    .rt-cell-t { background-color: #fffbeb; color: #b45309; border: 1px solid #fde68a; font-weight: 800 !important; }
+    .rt-cell-h { background-color: #f1f5f9; color: #64748b; border: 1px solid #e2e8f0; text-align: center !important; font-weight: 700; }
+
+    .btn-running-ok { outline: 2px solid #34d399 !important; box-shadow: 0 0 10px rgba(16, 185, 129, 0.6) !important; }
+    .btn-running-ng { outline: 2px solid #fb7185 !important; box-shadow: 0 0 10px rgba(244, 63, 94, 0.6) !important; }
+    .btn-running-auto { outline: 2px solid #60a5fa !important; box-shadow: 0 0 10px rgba(59, 130, 246, 0.6) !important; }
+
+    #goldToastPopup {
+      position: absolute;
+      bottom: 156px;
+      left: 50%;
+      transform: translateX(-50%) translateY(12px) scale(0.96);
+      opacity: 0;
+      pointer-events: none;
+      z-index: 50;
+      transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+      white-space: nowrap;
+    }
+    #goldToastPopup.show-toast {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0) scale(1);
+    }
+  </style>
+</head>
+<body class="bg-slate-100 text-slate-800 h-screen w-screen flex flex-col justify-between p-2 overflow-hidden">
+
+  <!-- Header Section -->
+  <header class="w-full bg-white rounded-xl shadow-xs border border-slate-200 px-4 py-1.5 flex items-center justify-between shrink-0 mb-1.5">
+    <div class="flex items-center gap-2.5">
+      <!-- 2행 버전 배지: V0.7 / (Nov.08) -->
+      <div class="bg-blue-600 text-white px-2.5 py-0.5 rounded-md shadow-xs flex flex-col items-center justify-center leading-tight">
+        <span class="text-[11px] font-black tracking-tight">V0.7</span>
+        <span class="text-[8.5px] font-bold opacity-90 leading-none">(Nov.08)</span>
+      </div>
+      <h1 class="text-sm md:text-base font-extrabold text-slate-900 tracking-tight whitespace-nowrap">
+        3D Vision ICP 정합 Simulator
+      </h1>
+    </div>
+    
+    <div class="flex items-center gap-3">
+      <!-- 상태 모니터 뱃지 -->
+      <div class="hidden lg:flex items-center gap-3 text-xs font-mono bg-slate-50 px-3.5 py-1 rounded-lg border border-slate-200">
+        <div><span class="text-slate-500 font-bold">CORE:</span> <span class="font-extrabold text-blue-600">Lotus.Mv.ICP</span></div>
+        <div class="border-l border-slate-300 pl-2.5"><span class="text-slate-500 font-bold">POINTS:</span> <span class="font-extrabold text-slate-900">1,480 pts</span></div>
+        <div class="border-l border-slate-300 pl-2.5"><span class="text-slate-500 font-bold">STATE:</span> <span id="headerIcpStatus" class="font-extrabold text-emerald-600">대기 중</span></div>
+        <div class="border-l border-slate-300 pl-2.5"><span class="text-slate-500 font-bold">RMSE:</span> <span id="headerRmseVal" class="font-extrabold text-amber-600">0.00 mm</span></div>
+      </div>
+
+      <!-- 메인 런처 복귀용 홈(🏠) 버튼 -->
+      <a href="index.html" class="w-8 h-8 rounded-xl bg-slate-100 hover:bg-blue-600 hover:text-white text-slate-700 border border-slate-300 hover:border-blue-700 flex items-center justify-center transition-all shadow-2xs cursor-pointer group" title="메인 런처(index.html)로 복귀">
+        <svg class="w-4 h-4 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <path stroke-linecap="round" stroke-linejoin="round" d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+          <polyline points="9 22 9 12 15 12 15 22"></polyline>
+        </svg>
+      </a>
+    </div>
+  </header>
+
+  <!-- Main 3D Card (FHD 1920x1080 Viewport) -->
+  <main class="w-full flex-1 bg-white rounded-xl shadow-sm border border-slate-300 relative overflow-hidden flex flex-col min-h-0">
+    <div id="canvas-container" class="w-full h-full cursor-grab active:cursor-grabbing relative">
+      
+      <!-- 골드 토스트 팝업 (교육관 유재광 이스터에그) -->
+      <div id="goldToastPopup" class="bg-gradient-to-r from-amber-500 via-yellow-400 to-amber-600 text-slate-900 px-5 py-2.5 rounded-2xl shadow-2xl border-2 border-yellow-200 flex items-center gap-3">
+        <span class="text-2xl animate-bounce">🎓</span>
+        <div class="flex items-center">
+          <span class="text-xs md:text-sm font-black text-slate-900 tracking-tight">🎓 ATM 3D 포인트 클라우드 ICP 정합 연수 과정을 완료하신 것을 축하드립니다. 수고하셨습니다 🎉</span>
+        </div>
+      </div>
+
+      <!-- 상단 카메라 뷰 프리셋 & 시각화 토글 옵션 -->
+      <div class="absolute top-2.5 left-[222px] flex items-center gap-1.5 bg-white/95 backdrop-blur-md p-1.5 rounded-xl border border-slate-300 text-xs z-10 shadow-sm">
+        <button id="camBtn_iso" onclick="setCameraView('iso')" class="cam-preset-btn active-cam px-2.5 py-1 bg-slate-100 hover:bg-blue-600 hover:text-white text-slate-700 rounded-lg transition font-bold border border-slate-200">입체(ISO)</button>
+        <button id="camBtn_top" onclick="setCameraView('top')" class="cam-preset-btn px-2.5 py-1 bg-slate-100 hover:bg-blue-600 hover:text-white text-slate-700 rounded-lg transition font-bold border border-slate-200">평면도(Top)</button>
+        <button id="camBtn_front" onclick="setCameraView('front')" class="cam-preset-btn px-2.5 py-1 bg-slate-100 hover:bg-blue-600 hover:text-white text-slate-700 rounded-lg transition font-bold border border-slate-200">정면(Front)</button>
+        <button id="camBtn_side" onclick="setCameraView('side')" class="cam-preset-btn px-2.5 py-1 bg-slate-100 hover:bg-blue-600 hover:text-white text-slate-700 rounded-lg transition font-bold border border-slate-200">측면(Side)</button>
+        
+        <!-- 점-대응선(Correspondence Lines) 토글 버튼 (일렉트릭 퍼플 테마) -->
+        <button id="btnToggleRays" onclick="toggleCorrespondenceRays()" class="px-2 py-1 bg-purple-100 text-purple-800 rounded-lg transition font-extrabold border border-purple-400 flex items-center gap-1 shadow-2xs" title="최근접 점-대응(Correspondence) 선 표시 토글">
+          <span class="w-2 h-2 rounded-full bg-[#7c3aed] inline-block"></span><span>대응선(Rays)</span>
+        </button>
+
+        <!-- 화각(FOV) 슬라이더 (기본 45° 표준) -->
+        <div class="flex items-center gap-1.5 border-l border-slate-300 pl-2 ml-0.5 py-0.5">
+          <span class="text-[10.5px] font-extrabold text-slate-600 font-mono tracking-tight" title="화각(Field Of View)">FOV:</span>
+          <input id="camFovSlider" type="range" min="30" max="75" step="1" value="45" oninput="setCameraFov(this.value)" class="w-16 h-1.5 bg-slate-200 rounded cursor-pointer" title="화각(FOV) 조절">
+          <span id="camFovVal" class="text-[11px] font-black text-blue-600 font-mono w-7 text-right">45°</span>
+        </div>
+      </div>
+
+      <!-- 좌측 영역: 5단계 공정 제어 패널 + 원클릭 시연 데모 -->
+      <div class="absolute top-2.5 left-2.5 w-[208px] z-20 flex flex-col gap-2 max-h-[96%] overflow-y-auto pr-0.5">
+        <div class="bg-white/95 backdrop-blur-md p-2.5 rounded-xl shadow-lg border border-slate-300 text-xs flex flex-col gap-1.5">
+          <div class="flex items-center justify-between border-b border-slate-200 pb-1">
+            <div class="flex items-center gap-1.5 font-black text-slate-900 text-xs whitespace-nowrap"><span class="text-blue-600">📋</span><span>공정 단계 제어</span></div>
+            <button id="btnToggleStepPanel" onclick="toggleStepPanel()" class="px-2 py-0.5 bg-blue-50 text-blue-700 border border-blue-200 rounded text-[11px] font-bold">CLOSE</button>
+          </div>
+          
+          <!-- 원클릭 자동 시연 모드: 정상 수렴 OK vs 로컬 미니마 NG -->
+          <div class="grid grid-cols-2 gap-1 p-1 bg-slate-100 rounded-lg border border-slate-200 text-[10.5px] font-bold">
+            <button id="btnDemoOK" onclick="startCinematicDemo('OK')" class="py-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded transition shadow-xs flex items-center justify-center gap-1" title="정상 변위 주입 후 완벽 정합 시연">
+              <span>🎬 데모(OK)</span>
+            </button>
+            <button id="btnDemoNG" onclick="startCinematicDemo('NG')" class="py-1 bg-rose-600 hover:bg-rose-700 text-white rounded transition shadow-xs flex items-center justify-center gap-1" title="180° 반전/대칭 착시로 인한 Local Minima 실패 시연">
+              <span>⚠️ 데모(NG)</span>
+            </button>
+          </div>
+
+          <div class="flex items-center gap-1.5">
+            <button id="autoPlayBtn" onclick="toggleAutoPlay()" class="flex-1 flex items-center justify-center gap-1 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xs text-xs font-bold transition shadow-xs">
+              <span id="playIcon">▶</span><span id="playText">자동 재생</span>
+            </button>
+            <button onclick="resetSimulation()" class="px-2.5 py-1.5 bg-slate-200 hover:bg-slate-300 text-slate-900 rounded-lg text-xs font-bold transition border border-slate-300 shrink-0">초기화</button>
+          </div>
+
+          <div class="grid grid-cols-2 gap-1.5">
+            <button id="prevBtn" onclick="prevStep()" class="py-1.5 bg-white hover:bg-slate-100 text-slate-900 rounded-lg text-xs font-bold transition disabled:opacity-40 border border-slate-300 shadow-xs">◀ 이전</button>
+            <button id="nextBtn" onclick="nextStep()" class="py-1.5 bg-slate-800 hover:bg-slate-900 text-white rounded-lg text-xs font-bold transition shadow-xs">다음 ▶</button>
+          </div>
+
+          <div id="stepListContent" class="flex flex-col gap-1 pt-1 border-t border-slate-200 text-[11px] font-semibold tracking-tight">
+            <button onclick="goToStep(0)" class="step-btn active text-left px-2 py-1 rounded-md border border-slate-200 bg-slate-50 hover:bg-slate-100 transition flex items-center justify-between">
+              <span>01. 기준 모델 안착</span><span class="step-subtag text-[9.5px] text-slate-500">REF 모델</span>
+            </button>
+            <button onclick="goToStep(1)" class="step-btn text-left px-2 py-1 rounded-md border border-slate-200 bg-slate-50 hover:bg-slate-100 transition flex items-center justify-between">
+              <span>02. 6-DOF 오차 인입</span><span class="step-subtag text-[9.5px] text-slate-500">부품 왜곡</span>
+            </button>
+            <button onclick="goToStep(2)" class="step-btn text-left px-2 py-1 rounded-md border border-slate-200 bg-slate-50 hover:bg-slate-100 transition flex items-center justify-between">
+              <span>03. 3DU 직교 스캔</span><span class="step-subtag text-[9.5px] text-slate-500">점군 획득</span>
+            </button>
+            <button onclick="goToStep(3)" class="step-btn text-left px-2 py-1 rounded-md border border-slate-200 bg-slate-50 hover:bg-slate-100 transition flex items-center justify-between">
+              <span>04. ICP 반복 정합</span><span class="step-subtag text-[9.5px] text-slate-500">최근접 수렴</span>
+            </button>
+            <button onclick="goToStep(4)" class="step-btn text-left px-2 py-1 rounded-md border border-slate-200 bg-slate-50 hover:bg-slate-100 transition flex items-center justify-between">
+              <span>05. [R|T] 행렬 확정</span><span class="step-subtag text-[9.5px] text-slate-500">보정값 완료</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- 모델 계층 (Hierarchy) 카드 (고대비 배색 적용) -->
+        <div class="bg-white/95 backdrop-blur-md p-2.5 rounded-xl shadow-lg border border-slate-300 text-xs flex flex-col gap-1.5">
+          <div class="font-black text-slate-900 text-xs border-b border-slate-200 pb-1 flex items-center gap-1.5">
+            <span class="text-blue-600">🗂️</span><span>포인트 클라우드 계층</span>
+          </div>
+          <div class="space-y-1 pt-0.5">
+            <div class="flex items-center justify-between bg-slate-50 px-2 py-1 rounded border border-slate-200">
+              <div class="flex items-center gap-1.5">
+                <span class="w-2.5 h-2.5 rounded-sm bg-[#1e3a8a] border border-[#172554]"></span>
+                <span class="font-bold text-[11px] text-[#1e3a8a]">REF.ply (마스터)</span>
+              </div>
+              <span class="font-mono text-[10px] text-slate-500 font-bold">Target</span>
+            </div>
+            <div class="flex items-center justify-between bg-slate-50 px-2 py-1 rounded border border-slate-200">
+              <div class="flex items-center gap-1.5">
+                <span class="w-2.5 h-2.5 rounded-sm bg-[#ea580c] border border-[#9a3412]"></span>
+                <span class="font-bold text-[11px] text-[#ea580c]">Scene.ply (스캔)</span>
+              </div>
+              <span class="font-mono text-[10px] text-amber-700 font-bold">Source</span>
+            </div>
+            <div class="flex items-center justify-between bg-slate-50 px-2 py-1 rounded border border-slate-200">
+              <div class="flex items-center gap-1.5">
+                <span class="w-2.5 h-0.5 bg-[#7c3aed]"></span>
+                <span class="font-bold text-[11px] text-purple-700">대응선 (Rays)</span>
+              </div>
+              <span class="font-mono text-[10px] text-purple-600 font-bold">Nearest</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 우측 영역: Lotus.Mv.ICP 파라미터 + 6-DOF 오차 슬라이더 -->
+      <div class="absolute top-2.5 right-2.5 w-[316px] z-20 flex flex-col gap-2 max-h-[96%] overflow-y-auto pl-0.5">
+        
+        <!-- 1. Lotus.Mv.ICPAligner 속성 패널 -->
+        <div id="paramPanel" class="bg-white/95 backdrop-blur-md p-2.5 rounded-xl shadow-lg border border-slate-300 text-xs shrink-0">
+          <div class="flex items-center justify-between border-b border-slate-200 pb-1.5 mb-1.5">
+            <div class="flex items-center gap-1.5 font-black text-slate-900 text-xs whitespace-nowrap">
+              <span class="text-blue-600">⚙️</span><span>Lotus.Mv.ICPAligner 속성</span>
+            </div>
+            <div class="flex items-center gap-1">
+              <button onclick="applyPreset('default')" class="px-2 py-0.5 bg-blue-50 text-blue-700 border border-blue-200 hover:bg-blue-100 rounded text-[11px] font-bold transition">기본 프리셋</button>
+              <button id="btnTogglePanel" onclick="toggleParamPanel()" class="px-2 py-0.5 bg-slate-200 text-slate-800 rounded text-[11px] font-bold">CLOSE</button>
+            </div>
+          </div>
+
+          <div id="paramPanelContent" class="space-y-1.5 text-xs">
+            <!-- ICP 핵심 알고리즘 파라미터 -->
+            <div class="bg-slate-50 p-2 rounded-lg border border-slate-200 space-y-1.5">
+              <div class="flex justify-between items-center">
+                <label class="text-[11px] font-bold text-slate-600">Metric</label>
+                <select id="pMetric" class="bg-white border border-slate-300 rounded px-2 py-0.5 text-[11px] font-bold text-slate-800">
+                  <option value="PointToPoint">PointToPoint (Rigid)</option>
+                  <option value="PointToPlane">PointToPlane (Normal)</option>
+                </select>
+              </div>
+              <div class="flex justify-between items-center">
+                <label class="text-[11px] font-bold text-slate-600">MaxIteration</label>
+                <div class="flex items-center gap-1">
+                  <input type="number" id="pMaxIter" value="35" min="5" max="100" class="w-16 bg-white border border-slate-300 rounded px-1.5 py-0.5 text-right font-mono text-[11px] font-bold">
+                  <span class="text-[10px] text-slate-400">회</span>
+                </div>
+              </div>
+              <div class="flex justify-between items-center">
+                <label class="text-[11px] font-bold text-slate-600">MinError (수렴 공차)</label>
+                <div class="flex items-center gap-1">
+                  <input type="number" id="pMinErr" value="0.015" step="0.005" min="0.001" class="w-16 bg-white border border-slate-300 rounded px-1.5 py-0.5 text-right font-mono text-[11px] font-bold">
+                  <span class="text-[10px] text-slate-400">mm</span>
+                </div>
+              </div>
+              <div class="flex justify-between items-center">
+                <label class="text-[11px] font-bold text-slate-600">Max Distance (거리 거절)</label>
+                <div class="flex items-center gap-1">
+                  <input type="number" id="pMaxDist" value="80" step="5" min="10" class="w-16 bg-white border border-slate-300 rounded px-1.5 py-0.5 text-right font-mono text-[11px] font-bold">
+                  <span class="text-[10px] text-slate-400">mm</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- 인위적 6-DOF 오차 주입 (Manual Error Injection) -->
+            <div class="bg-amber-50/80 p-2 rounded-lg border border-amber-200">
+              <div class="flex justify-between items-center mb-1 font-bold text-amber-900 text-xs">
+                <span>🔄 6-DOF 인위적 오차 주입</span>
+                <button onclick="resetSliders()" class="text-[10.5px] text-amber-800 underline font-bold">오차 0 초기화</button>
+              </div>
+
+              <!-- 직진 변위 -->
+              <div class="space-y-1 border-b border-amber-200 pb-1.5 mb-1.5">
+                <div class="text-[10px] text-amber-900 font-extrabold flex justify-between">
+                  <span>직진 변위 (Translation, mm)</span>
+                </div>
+                <div class="flex items-center gap-1">
+                  <span class="w-6 font-mono text-red-600 font-extrabold text-[11px]">ΔX:</span>
+                  <input type="range" id="sl-dx" min="-60" max="60" step="1" value="25" oninput="onSliderChange()" class="flex-1 h-1.5 bg-amber-200 rounded cursor-pointer">
+                  <span id="txt-dx" class="w-11 font-mono text-right text-slate-900 font-bold text-[11px]">+25mm</span>
+                </div>
+                <div class="flex items-center gap-1">
+                  <span class="w-6 font-mono text-green-600 font-extrabold text-[11px]">ΔY:</span>
+                  <input type="range" id="sl-dy" min="-60" max="60" step="1" value="-20" oninput="onSliderChange()" class="flex-1 h-1.5 bg-amber-200 rounded cursor-pointer">
+                  <span id="txt-dy" class="w-11 font-mono text-right text-slate-900 font-bold text-[11px]">-20mm</span>
+                </div>
+                <div class="flex items-center gap-1">
+                  <span class="w-6 font-mono text-blue-600 font-extrabold text-[11px]">ΔZ:</span>
+                  <input type="range" id="sl-dz" min="-40" max="40" step="1" value="15" oninput="onSliderChange()" class="flex-1 h-1.5 bg-amber-200 rounded cursor-pointer">
+                  <span id="txt-dz" class="w-11 font-mono text-right text-slate-900 font-bold text-[11px]">+15mm</span>
+                </div>
+              </div>
+
+              <!-- 회전 변위 -->
+              <div class="space-y-1">
+                <div class="text-[10px] text-amber-900 font-extrabold flex justify-between">
+                  <span>회전 변위 (ZYX Euler, deg)</span>
+                </div>
+                <div class="flex items-center gap-1">
+                  <span class="w-6 font-mono text-red-600 font-extrabold text-[11px]">ΔRx:</span>
+                  <input type="range" id="sl-rx" min="-30" max="30" step="0.5" value="6" oninput="onSliderChange()" class="flex-1 h-1.5 bg-amber-200 rounded cursor-pointer">
+                  <span id="txt-rx" class="w-11 font-mono text-right text-slate-900 font-bold text-[11px]">+6.0°</span>
+                </div>
+                <div class="flex items-center gap-1">
+                  <span class="w-6 font-mono text-green-600 font-extrabold text-[11px]">ΔRy:</span>
+                  <input type="range" id="sl-ry" min="-30" max="30" step="0.5" value="-3" oninput="onSliderChange()" class="flex-1 h-1.5 bg-amber-200 rounded cursor-pointer">
+                  <span id="txt-ry" class="w-11 font-mono text-right text-slate-900 font-bold text-[11px]">-3.0°</span>
+                </div>
+                <div class="flex items-center gap-1">
+                  <span class="w-6 font-mono text-blue-600 font-extrabold text-[11px]">ΔRz:</span>
+                  <input type="range" id="sl-rz" min="-180" max="180" step="1" value="15" oninput="onSliderChange()" class="flex-1 h-1.5 bg-amber-200 rounded cursor-pointer">
+                  <span id="txt-rz" class="w-11 font-mono text-right text-slate-900 font-bold text-[11px]">+15.0°</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- 정합 실행 및 1-Step 버튼 -->
+            <div class="grid grid-cols-2 gap-1.5 pt-0.5">
+              <button onclick="stepICPOnce()" id="btnStepIcp" class="py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-800 rounded-lg font-bold border border-slate-300 transition shadow-2xs">
+                🐾 1-Step 실행
+              </button>
+              <button onclick="runFullICP()" id="btnFullIcp" class="py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-bold transition shadow-xs flex items-center justify-center gap-1">
+                <span>▶ ICP 자동 정합</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- 2. 정합 모니터 & Overlap 게이지 카드 -->
+        <div id="icpMonitorCard" class="bg-white/95 backdrop-blur-md p-2.5 rounded-xl shadow-lg border border-slate-300 text-xs flex flex-col gap-1.5 shrink-0">
+          <div class="flex items-center justify-between border-b border-slate-200 pb-1">
+            <div class="flex items-center gap-1.5 font-black text-slate-900 text-[11px] whitespace-nowrap">
+              <span class="w-2.5 h-2.5 rounded-full bg-emerald-500" id="monitorStatusDot"></span>
+              <span>ICP 정합 실시간 모니터</span>
+            </div>
+            <span id="iterationBadge" class="px-1.5 py-0.5 bg-blue-50 text-blue-700 border border-blue-200 rounded text-[10px] font-mono font-bold">ITER: 0</span>
+          </div>
+
+          <!-- RMSE 및 일치율 게이지 바 -->
+          <div class="space-y-1.5 pt-0.5">
+            <div class="flex justify-between items-center text-[10.5px] font-mono">
+              <span class="text-slate-600 font-bold">RMSE 오차:</span>
+              <span id="valRmseDisplay" class="font-black text-amber-600 text-xs">28.45 mm</span>
+            </div>
+            <div class="flex justify-between items-center text-[10.5px] font-mono">
+              <span class="text-slate-600 font-bold">정합 일치율 (Overlap):</span>
+              <span id="valOverlapDisplay" class="font-black text-blue-700 text-xs">0 %</span>
+            </div>
+            <div class="w-full h-2 bg-slate-200 rounded-full overflow-hidden">
+              <div id="overlapProgressBar" class="h-full bg-emerald-500 transition-all duration-150" style="width: 0%;"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 하단 플로팅 바: [R|T] 4x4 동차변환행렬 + TCP/IP 패킷 로그 터미널 -->
+      <div class="absolute bottom-[14px] left-[222px] right-[326px] z-20 flex items-stretch gap-2 pointer-events-none">
+        
+        <!-- 하단 좌측: 4x4 동차변환행렬 [R|T] 카드 (uf6_pc.html 스타일) -->
+        <div class="pointer-events-auto w-[290px] h-[136px] bg-white/95 backdrop-blur-md p-2 rounded-xl border border-slate-300 shadow-xl flex flex-col justify-between text-xs shrink-0">
+          <div class="flex items-center justify-between border-b border-slate-200 pb-1">
+            <div class="flex items-center gap-1 font-black text-slate-900 text-[11px] whitespace-nowrap">
+              <span class="text-blue-600">📐</span><span>계산된 [R | T] 동차변환행렬</span>
+            </div>
+            <span id="rtStatusBadge" class="px-1.5 py-0.5 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded text-[9px] font-mono font-bold">4×4 [R|T]</span>
+          </div>
+
+          <div class="bg-slate-50 p-1 rounded-lg border border-slate-200">
+            <div class="grid grid-cols-4 gap-0.5 text-[8.5px] font-mono font-extrabold text-center mb-0.5 px-0.5">
+              <span class="text-blue-700 bg-blue-100/70 rounded py-0.2">R (X축)</span>
+              <span class="text-blue-700 bg-blue-100/70 rounded py-0.2">R (Y축)</span>
+              <span class="text-blue-700 bg-blue-100/70 rounded py-0.2">R (Z축)</span>
+              <span class="text-amber-800 bg-amber-100/80 rounded py-0.2">T (변위)</span>
+            </div>
+            <table class="rt-matrix-table">
+              <tbody id="rtMatrixTableBody">
+                <tr><td class="rt-cell-r">1.0000</td><td class="rt-cell-r">0.0000</td><td class="rt-cell-r">0.0000</td><td class="rt-cell-t">+0.000</td></tr>
+                <tr><td class="rt-cell-r">0.0000</td><td class="rt-cell-r">1.0000</td><td class="rt-cell-r">0.0000</td><td class="rt-cell-t">+0.000</td></tr>
+                <tr><td class="rt-cell-r">0.0000</td><td class="rt-cell-r">0.0000</td><td class="rt-cell-r">1.0000</td><td class="rt-cell-t">+0.000</td></tr>
+                <tr><td class="rt-cell-h">0</td><td class="rt-cell-h">0</td><td class="rt-cell-h">0</td><td class="rt-cell-h">1</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="flex items-center justify-between text-[9px] font-mono bg-slate-50 px-1.5 py-0.5 rounded border border-slate-200 text-slate-600">
+            <span id="rtSummaryT" class="font-bold text-amber-800 truncate">T:[+25.0, -20.0, +15.0]mm</span>
+            <span class="text-slate-300">|</span>
+            <span id="rtSummaryR" class="font-bold text-blue-800 truncate">R:[+6.0°, -3.0°, +15.0°]</span>
+          </div>
+        </div>
+
+        <!-- 하단 우측: AbeoSCAN / Hi6 통신 패킷 로그 터미널 -->
+        <div id="packetTerminal" class="pointer-events-auto flex-1 min-w-0 h-[136px] bg-white/95 backdrop-blur-md rounded-xl border border-slate-300 shadow-xl flex flex-col overflow-hidden text-xs">
+          <div class="bg-slate-100 px-3 py-1.5 border-b border-slate-200 flex items-center justify-between shrink-0">
+            <div class="flex items-center gap-2">
+              <span class="w-2.5 h-2.5 rounded-full bg-emerald-600" id="termStatusDot"></span>
+              <span class="font-mono font-extrabold text-[11px] text-slate-800 tracking-tight">ICP DIAGNOSTIC & PACKET LOG <span class="text-slate-500 font-normal">(Lotus.Mv ⇄ Robot)</span></span>
+            </div>
+            <div class="flex items-center gap-2">
+              <span id="tolStatusBadge" class="px-2 py-0.5 bg-emerald-100 text-emerald-800 border border-emerald-300 rounded text-[10px] font-mono font-bold">STATUS: READY</span>
+              <button onclick="clearPacketLogs()" class="px-2 py-0.5 bg-white hover:bg-slate-50 text-slate-700 rounded text-[10px] font-mono font-bold border border-slate-300 shadow-2xs transition">CLEAR</button>
+            </div>
+          </div>
+          <div id="packetLogList" class="flex-1 overflow-y-auto overflow-x-auto px-3 py-1.5 font-mono text-[9.5px] space-y-0.5 select-text bg-slate-50/90">
+            <div class="text-slate-600 whitespace-nowrap">[SYS] AbeoSCAN Lotus.Mv.ICP Simulator (ver 0.7) Ready. Port: 5000</div>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+
+    <!-- 하단 푸터 바 -->
+    <div class="bg-slate-50 border-t border-slate-200 px-4 py-1.5 flex items-center justify-between gap-3 shrink-0 z-30">
+      <!-- 사내 공인 로고 atm_red.png 적용 -->
+      <a id="atmLogoBtn" href="http://www.atmc.co.kr" target="_blank" rel="noopener noreferrer" class="flex items-center bg-white hover:bg-slate-100 px-3 py-1 rounded-lg border border-slate-300 hover:border-blue-400 shadow-2xs shrink-0 transition-all cursor-pointer group" title="ATM 로고">
+        <img src="atm_red.png" alt="ATM ROBOT AUTOMATION" class="h-4 w-auto object-contain group-hover:scale-105 transition-transform" onerror="this.style.display='none'; document.getElementById('atmFallbackLogo').style.display='inline';">
+        <span id="atmFallbackLogo" style="display:none;" class="text-red-600 font-black italic tracking-tighter">ATM</span>
+        <span class="ml-2 text-xs font-extrabold text-slate-500 group-hover:text-blue-600 tracking-wider border-l border-slate-300 pl-2 hidden sm:inline">ROBOT AUTOMATION</span>
+      </a>
+
+      <!-- 하단 공정 설명 카드 -->
+      <div id="descCard" class="flex-1 max-w-4xl bg-white px-4 py-1 rounded-lg border border-slate-300 shadow-2xs flex items-center gap-3 overflow-hidden relative">
+        <div id="descIcon" class="p-1 bg-blue-50 text-blue-600 rounded text-base shrink-0 font-bold">🏭</div>
+        <div class="overflow-hidden flex-1">
+          <div class="flex items-center gap-2">
+            <span id="stepBadge" class="bg-blue-600 text-white text-[10px] font-black px-2 py-0.5 rounded transition-all">STEP 1</span>
+            <h4 id="descHeading" class="text-xs font-black text-slate-900 truncate">1. 작업대 고정 및 기준 모델(REF.ply) 안착</h4>
+          </div>
+          <p id="descBody" class="text-xs text-slate-600 truncate mt-0.5">정반(Table) 위에 마스터 비대칭 차체 브라켓 기준 포인트 클라우드(1,480 pts, 딥 네이비)가 안착됩니다.</p>
+        </div>
+        <!-- 자동재생 게이지 바 -->
+        <div id="autoPlayProgressWrapper" class="absolute inset-x-0 bottom-0 h-1 bg-slate-100 rounded-full overflow-hidden hidden">
+          <div id="autoPlayProgressBar" class="h-full bg-emerald-500 transition-all duration-75" style="width: 0%;"></div>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-2 shrink-0">
+        <!-- 방문자 카운터 -->
+        <div class="hidden sm:flex items-center gap-1.5 bg-white px-2.5 py-1 rounded-lg border border-slate-300 shadow-2xs text-[11px] font-mono font-bold text-slate-600">
+          <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+          <span class="text-slate-400 font-normal">VISITORS:</span>
+          <span id="visitorCountVal" class="font-extrabold text-blue-700">1,970</span>
+        </div>
+        <!-- 교육관 유재광 배지 (마우스 오버 골드 토스트) -->
+        <div id="authorBadgeBtn" class="bg-white hover:bg-amber-50 px-3.5 py-1 rounded-lg border border-slate-300 hover:border-amber-400 text-xs font-bold text-slate-700 hover:text-amber-800 shadow-2xs flex items-center gap-2 transition-all cursor-pointer" title="교육관 유재광 (연수 완료 골드 세레머니)">
+          <span class="text-blue-600 text-sm">✍️</span><span>교육관 <span class="text-slate-900 font-black">유재광</span></span>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    /* =========================================================================
+       1. 5단계 공정 시나리오 데이터 정의 (ver 0.7 배색 반영)
+       ========================================================================= */
+    const stepData = [
+      { badge: "STEP 1", icon: "🏭", heading: "1. 작업대 고정 및 기준 모델(REF.ply) 안착", body: "정반 위에 비대칭 차체 브라켓 기준 포인트 클라우드(1,480 pts, 딥 네이비)와 상공의 AITZ 3DU[3DM] 스캐너가 대기합니다." },
+      { badge: "STEP 2", icon: "🔄", heading: "2. 조립 부품 6-DOF 인위적 위치 변위 인입 (Scene.ply)", body: "작업물이 6축(ΔX, ΔY, ΔZ, ΔRx, ΔRy, ΔRz)으로 비틀려 공급되며 선명한 주황색(Amber) 왜곡 포인트 클라우드가 형성됩니다." },
+      { badge: "STEP 3", icon: "📸", heading: "3. AITZ 3DU[3DM] 구조광 십자 직교 레이저 스캔", body: "상공 스캐너에서 적색 슬릿 레이저가 X축 및 Y축 방향으로 교차 주사되며 3D 점군을 취득합니다." },
+      { badge: "STEP 4", icon: "✨", heading: "4. Lotus.Mv.ICP 최근접 반복 정합 수렴 (Local Minima 검증)", body: "보라색 최근접 대응선(Correspondence Rays)을 추적하고 6-DOF 동차변환을 반복 계산하여 최적 일치점으로 수렴합니다." },
+      { badge: "STEP 5", icon: "🏁", heading: "5. 최종 [R|T] 4×4 변환 행렬 도출 및 로봇 위치보정 확정", body: "도출된 4×4 동차변환행렬과 오일러 회전각(ΔRx, ΔRy, ΔRz)을 로봇 제어기로 전송하여 위치보정을 확정합니다." }
+    ];
+
+    let currentStep = 0, isAutoPlaying = false, autoPlayTimeoutId = null, autoStepProgressTimer = null;
+    let isParamPanelCollapsed = false, isStepPanelCollapsed = false;
+    let demoModeType = null, packetSeqNo = 1;
+    let showCorrespondenceRays = true;
+
+    /* Three.js Context */
+    let scene, camera, renderer, controls;
+    let basePoints = [], pointCount = 0;
+    let refCloud, sceneCloud, rayLinesMesh = null;
+    let scannerGroup, scannerBeamMesh, scanSweeperMesh;
+    let currentSceneCoords = [];
+
+    // 6-DOF 오차 상태
+    const currentShift = { dx: 25, dy: -20, dz: 15, rx: 6, ry: -3, rz: 15 };
+    let initialShift = { ...currentShift };
+
+    /* =========================================================================
+       2. 비대칭 3D 브라켓 형상 포인트 클라우드 생성 (1,480 pts)
+       ========================================================================= */
+    function generateAsymmetricWorkpiece() {
+      const pts = [];
+      // 바닥 플레이트 (Plate) + 원형 홀 형상 (Hole)
+      for (let x = -35; x <= 35; x += 3) {
+        for (let z = -20; z <= 20; z += 3) {
+          if (Math.hypot(x - 12, z) > 7) {
+            pts.push(new THREE.Vector3(x, 0, z));
+          }
+        }
+      }
+      // 수직 플랜지 1 (X = -35 벽체)
+      for (let y = 0; y <= 35; y += 3) {
+        for (let z = -20; z <= 20; z += 3) {
+          pts.push(new THREE.Vector3(-35, y, z));
+        }
+      }
+      // 보강 리브 2 (비대칭성 부여용 Z = 20 보강 턱)
+      for (let y = 0; y <= 20; y += 3) {
+        for (let x = 0; x <= 35; x += 3) {
+          pts.push(new THREE.Vector3(x, y, 20));
+        }
+      }
+      return pts;
+    }
+
+    /* =========================================================================
+       3. Three.js 초기화 및 씬 구축 (FHD 1920x1080 최적화 & 고대비 배색)
+       ========================================================================= */
+    function init3D() {
+      const container = document.getElementById('canvas-container');
+      const width = container.clientWidth, height = container.clientHeight;
+
+      scene = new THREE.Scene();
+      scene.background = new THREE.Color(0xf8fafc);
+      scene.fog = new THREE.FogExp2(0xf8fafc, 0.0035);
+
+      // FHD 1920x1080 시야각 FOV 45° 표준
+      camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 1500);
+      camera.position.set(110, 130, 160);
+
+      renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' });
+      renderer.setSize(width, height);
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+      container.appendChild(renderer.domElement);
+
+      controls = new THREE.OrbitControls(camera, renderer.domElement);
+      controls.enableDamping = true;
+      controls.dampingFactor = 0.08;
+      controls.target.set(0, 10, 0);
+
+      // 조명 설정 (흰색 배경에서 형상이 묻히지 않도록 입체 명암 부여)
+      scene.add(new THREE.AmbientLight(0xffffff, 0.85));
+      const dirLight = new THREE.DirectionalLight(0xffffff, 0.65);
+      dirLight.position.set(80, 180, 120);
+      scene.add(dirLight);
+
+      // 고정 정반(Work Table) 및 그리드 (솔리드 슬레이트 그레이)
+      buildFloorAndTable();
+
+      // 상공 AITZ 3DU[3DM] 구조광 스캐너 모델링 (uf6_pc.html 완전 이식)
+      buildIndustrialScanner();
+
+      // 포인트 클라우드 생성
+      basePoints = generateAsymmetricWorkpiece();
+      pointCount = basePoints.length;
+      currentSceneCoords = basePoints.map(p => p.clone());
+
+      // 1) REF Point Cloud: [딥 네이비 / 코발트 블루 #1e3a8a] - 흰색 바탕에서 뚜렷함
+      const refGeo = new THREE.BufferGeometry().setFromPoints(basePoints);
+      const refMat = new THREE.PointsMaterial({ color: 0x1e3a8a, size: 2.8, transparent: true, opacity: 0.95 });
+      refCloud = new THREE.Points(refGeo, refMat);
+      scene.add(refCloud);
+
+      // 2) Scene Point Cloud: [비비드 번트 오렌지 #ea580c] - REF와 강렬한 보색 대비
+      const sceneGeo = new THREE.BufferGeometry().setFromPoints(currentSceneCoords);
+      const sceneMat = new THREE.PointsMaterial({ color: 0xea580c, size: 3.0, transparent: true, opacity: 0.95 });
+      sceneCloud = new THREE.Points(sceneGeo, sceneMat);
+      scene.add(sceneCloud);
+
+      // 3) 점-대응선: [일렉트릭 퍼플 #7c3aed] - RGB 축과 혼동되지 않는 매칭 선
+      const rayGeo = new THREE.BufferGeometry();
+      const rayMat = new THREE.LineBasicMaterial({ color: 0x7c3aed, transparent: true, opacity: 0.55, linewidth: 1.5 });
+      rayLinesMesh = new THREE.LineSegments(rayGeo, rayMat);
+      scene.add(rayLinesMesh);
+
+      window.addEventListener('resize', onWindowResize);
+      updateFromSliders();
+      updateStepUI();
+      animate();
+    }
+
+    function buildFloorAndTable() {
+      const grid = new THREE.GridHelper(260, 26, 0x94a3b8, 0xe2e8f0);
+      grid.position.y = -18;
+      scene.add(grid);
+
+      // 고정 정반 지그 (슬레이트 그레이 상판)
+      const tableGeo = new THREE.BoxGeometry(150, 10, 110);
+      const tableMat = new THREE.MeshStandardMaterial({ color: 0xcfd8e3, roughness: 0.45, metalness: 0.25 });
+      const table = new THREE.Mesh(tableGeo, tableMat);
+      table.position.set(0, -23, 0);
+      scene.add(table);
+
+      const tableEdge = new THREE.LineSegments(new THREE.EdgesGeometry(tableGeo), new THREE.LineBasicMaterial({ color: 0x64748b }));
+      tableEdge.position.copy(table.position);
+      scene.add(tableEdge);
+    }
+
+    /* 캔버스 기반 붉은색 ATM 전면/상단 로고 텍스처 (uf6_pc.html 동일) */
+    function createATMFrontLogoMesh() {
+      const canvas = document.createElement('canvas'); canvas.width = 256; canvas.height = 96;
+      const ctx = canvas.getContext('2d');
+      ctx.font = "italic 900 76px 'Pretendard', sans-serif"; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      ctx.fillStyle = '#ff0000'; ctx.fillText('ATM', 128, 50);
+      return new THREE.Mesh(new THREE.PlaneGeometry(16, 6), new THREE.MeshBasicMaterial({ map: new THREE.CanvasTexture(canvas), transparent: true, side: THREE.DoubleSide }));
+    }
+
+    /* 사내 공인 AITZ 3DU[3DM] 구조광 3D 스캐너 완전 이식 */
+    function buildIndustrialScanner() {
+      scannerGroup = new THREE.Group();
+      const mountH = 115;
+      const SCALE = 24.0;
+
+      // 1) 천장/상단 고정 마운트 스템
+      const mountStem = new THREE.Mesh(new THREE.CylinderGeometry(2.5, 2.5, 35, 16), new THREE.MeshLambertMaterial({ color: 0x334155 }));
+      mountStem.position.set(0, 22, 0);
+      scannerGroup.add(mountStem);
+
+      // 2) 스캐너 코어 하우징 (사다리꼴 베벨 바디)
+      const scannerCore = new THREE.Group();
+      scannerCore.scale.set(SCALE, SCALE, SCALE);
+      scannerGroup.add(scannerCore);
+
+      const wTop = 1.64, wBot = 1.46, hTop = 0.36, hBot = -0.34, bodyDepth = 0.48;
+      const frontShape = new THREE.Shape();
+      frontShape.moveTo(-wTop / 2, hTop);
+      frontShape.quadraticCurveTo(0, hTop + 0.065, wTop / 2, hTop);
+      frontShape.lineTo(wBot / 2, hBot);
+      frontShape.lineTo(0.26, hBot - 0.045);
+      frontShape.quadraticCurveTo(0, hBot - 0.01, -0.26, hBot - 0.045);
+      frontShape.lineTo(-wBot / 2, hBot);
+      frontShape.closePath();
+
+      const bodyGeo = new THREE.ExtrudeGeometry(frontShape, { steps: 1, depth: bodyDepth, bevelEnabled: true, bevelThickness: 0.018, bevelSize: 0.018, bevelSegments: 3 });
+      bodyGeo.translate(0, 0, -bodyDepth / 2);
+      const bodyMesh = new THREE.Mesh(bodyGeo, new THREE.MeshStandardMaterial({ color: 0x18181b, metalness: 0.55, roughness: 0.38 }));
+      scannerCore.add(bodyMesh);
+      scannerCore.add(new THREE.LineSegments(new THREE.EdgesGeometry(bodyGeo, 18), new THREE.LineBasicMaterial({ color: 0x71717a })));
+
+      // 3) ATM 붉은색 로고 부착 (전면 & 상단)
+      const atmLogoFront = createATMFrontLogoMesh();
+      atmLogoFront.scale.set(0.05, 0.05, 1);
+      atmLogoFront.position.set(0.40, 0.14, bodyDepth / 2 + 0.022);
+      scannerCore.add(atmLogoFront);
+
+      const atmLogoTop = createATMFrontLogoMesh();
+      atmLogoTop.scale.set(0.05, 0.05, 1);
+      atmLogoTop.rotation.x = -Math.PI / 2;
+      atmLogoTop.position.set(0.40, hTop + 0.06, 0);
+      scannerCore.add(atmLogoTop);
+
+      // 4) 듀얼 카메라 및 4.5° 경사 필터 유닛 (좌우)
+      const buildAngledFilterUnit = (posX, tiltAngleRad, isCamera) => {
+        const u = new THREE.Group();
+        u.position.set(posX, hBot - 0.018, 0);
+        u.rotation.z = tiltAngleRad;
+        u.add(new THREE.Mesh(new THREE.BoxGeometry(0.38, 0.036, 0.34), new THREE.MeshStandardMaterial({ color: 0x27272a, metalness: 0.6, roughness: 0.35 })));
+        const g = new THREE.Mesh(new THREE.CylinderGeometry(0.14, 0.145, 0.026, 32), new THREE.MeshStandardMaterial({ color: 0x09090b }));
+        g.position.y = -0.024; u.add(g);
+        const a = new THREE.Mesh(new THREE.CylinderGeometry(0.126, 0.126, 0.016, 32), new THREE.MeshBasicMaterial({ color: isCamera ? 0xdc2626 : 0x059669 }));
+        a.position.y = -0.032; u.add(a);
+        const f = new THREE.Mesh(new THREE.CylinderGeometry(0.112, 0.112, 0.022, 32), new THREE.MeshStandardMaterial({ color: isCamera ? 0x2563eb : 0x10b981, emissive: isCamera ? 0x1d4ed8 : 0x059669, emissiveIntensity: 0.55 }));
+        f.position.y = -0.042; u.add(f);
+        scannerCore.add(u);
+      };
+      buildAngledFilterUnit(-0.48, THREE.MathUtils.degToRad(4.5), false);
+      buildAngledFilterUnit(0.48, THREE.MathUtils.degToRad(-4.5), true);
+
+      // 5) 상단 제품명 스프라이트 라벨: '📷 AITZ 3DU[3DM]'
+      const canvasTag = document.createElement('canvas'); canvasTag.width = 360; canvasTag.height = 80;
+      const ctxTag = canvasTag.getContext('2d');
+      ctxTag.fillStyle = 'rgba(15, 23, 42, 0.82)';
+      ctxTag.beginPath(); ctxTag.roundRect(10, 10, 340, 60, 12); ctxTag.fill();
+      ctxTag.font = "bold 26px 'Pretendard', sans-serif"; ctxTag.textAlign = 'center'; ctxTag.textBaseline = 'middle';
+      ctxTag.fillStyle = '#ffffff'; ctxTag.fillText('📷 AITZ 3DU[3DM]', 180, 40);
+      const tagSprite = new THREE.Sprite(new THREE.SpriteMaterial({ map: new THREE.CanvasTexture(canvasTag), transparent: true }));
+      tagSprite.scale.set(45, 10, 1);
+      tagSprite.position.set(0, 14, 0);
+      scannerGroup.add(tagSprite);
+
+      // 6) 적색 구조광 슬릿 레이저 프로젝션 콘 & 직교 스위퍼 플레인
+      const beamHeight = 105;
+      scannerBeamMesh = new THREE.Mesh(
+        new THREE.CylinderGeometry(3.5, 65, beamHeight, 32, 1, true),
+        new THREE.MeshBasicMaterial({ color: 0xef4444, transparent: true, opacity: 0.0, side: THREE.DoubleSide, depthWrite: false })
+      );
+      scannerBeamMesh.position.set(0, -beamHeight / 2 - 2, 0);
+      scannerGroup.add(scannerBeamMesh);
+
+      scanSweeperMesh = new THREE.Mesh(
+        new THREE.PlaneGeometry(85, 2.2),
+        new THREE.MeshBasicMaterial({ color: 0xff1e56, side: THREE.DoubleSide, transparent: true, opacity: 0.0, depthTest: false })
+      );
+      scanSweeperMesh.rotation.x = Math.PI / 2;
+      scanSweeperMesh.position.set(0, -105, 0);
+      scannerGroup.add(scanSweeperMesh);
+
+      scannerGroup.position.set(0, mountH, 0);
+      scene.add(scannerGroup);
+    }
+
+    /* =========================================================================
+       4. 슬라이더 조작 및 6-DOF 오차 반영
+       ========================================================================= */
+    function onSliderChange() {
+      currentShift.dx = parseFloat(document.getElementById('sl-dx').value);
+      currentShift.dy = parseFloat(document.getElementById('sl-dy').value);
+      currentShift.dz = parseFloat(document.getElementById('sl-dz').value);
+      currentShift.rx = parseFloat(document.getElementById('sl-rx').value);
+      currentShift.ry = parseFloat(document.getElementById('sl-ry').value);
+      currentShift.rz = parseFloat(document.getElementById('sl-rz').value);
+
+      document.getElementById('txt-dx').innerText = (currentShift.dx > 0 ? '+' : '') + currentShift.dx + 'mm';
+      document.getElementById('txt-dy').innerText = (currentShift.dy > 0 ? '+' : '') + currentShift.dy + 'mm';
+      document.getElementById('txt-dz').innerText = (currentShift.dz > 0 ? '+' : '') + currentShift.dz + 'mm';
+      document.getElementById('txt-rx').innerText = (currentShift.rx > 0 ? '+' : '') + currentShift.rx.toFixed(1) + '°';
+      document.getElementById('txt-ry').innerText = (currentShift.ry > 0 ? '+' : '') + currentShift.ry.toFixed(1) + '°';
+      document.getElementById('txt-rz').innerText = (currentShift.rz > 0 ? '+' : '') + currentShift.rz.toFixed(1) + '°';
+
+      initialShift = { ...currentShift };
+      updateFromSliders();
+      appendPacketLog('SYS', `오차 변위 주입: [ΔX:${currentShift.dx}, ΔY:${currentShift.dy}, ΔZ:${currentShift.dz} | ΔRx:${currentShift.rx}°, ΔRy:${currentShift.ry}°, ΔRz:${currentShift.rz}°]`);
+    }
+
+    function updateFromSliders() {
+      const rxRad = THREE.MathUtils.degToRad(currentShift.rx);
+      const ryRad = THREE.MathUtils.degToRad(currentShift.ry);
+      const rzRad = THREE.MathUtils.degToRad(currentShift.rz);
+
+      const euler = new THREE.Euler(rxRad, ryRad, rzRad, 'ZYX');
+      const rotMat = new THREE.Matrix4().makeRotationFromEuler(euler);
+
+      const posArray = sceneCloud.geometry.attributes.position.array;
+      for (let i = 0; i < pointCount; i++) {
+        const bp = basePoints[i].clone().applyMatrix4(rotMat);
+        bp.x += currentShift.dx;
+        bp.y += currentShift.dy;
+        bp.z += currentShift.dz;
+
+        posArray[i * 3] = bp.x;
+        posArray[i * 3 + 1] = bp.y;
+        posArray[i * 3 + 2] = bp.z;
+
+        currentSceneCoords[i].copy(bp);
+      }
+      sceneCloud.geometry.attributes.position.needsUpdate = true;
+      updateCorrespondenceRays();
+      updateMetricsDisplay(computeCurrentRMSE());
+    }
+
+    function resetSliders() {
+      ['dx','dy','dz','rx','ry','rz'].forEach(k => {
+        const el = document.getElementById(`sl-${k}`);
+        if (el) el.value = 0;
+      });
+      onSliderChange();
+    }
+
+    function applyPreset(type) {
+      if (type === 'default') {
+        document.getElementById('sl-dx').value = 25;
+        document.getElementById('sl-dy').value = -20;
+        document.getElementById('sl-dz').value = 15;
+        document.getElementById('sl-rx').value = 6;
+        document.getElementById('sl-ry').value = -3;
+        document.getElementById('sl-rz').value = 15;
+        onSliderChange();
+      }
+    }
+
+    /* =========================================================================
+       5. 점-대응선 (Correspondence Line Segments) 계산 및 렌더링
+       ========================================================================= */
+    function updateCorrespondenceRays() {
+      if (!showCorrespondenceRays || (currentStep < 1 && currentStep !== 3)) {
+        if (rayLinesMesh) rayLinesMesh.visible = false;
+        return;
+      }
+      rayLinesMesh.visible = true;
+
+      const maxDist = parseFloat(document.getElementById('pMaxDist').value) || 80;
+      const maxDistSq = maxDist * maxDist;
+      const rayPoints = [];
+
+      // 매 5개 점마다 샘플링하여 시각적 혼잡 방지
+      for (let i = 0; i < pointCount; i += 6) {
+        const s = currentSceneCoords[i];
+        let minDistSq = Infinity;
+        let bestTarget = basePoints[0];
+
+        for (let j = 0; j < pointCount; j++) {
+          const dSq = s.distanceToSquared(basePoints[j]);
+          if (dSq < minDistSq) {
+            minDistSq = dSq;
+            bestTarget = basePoints[j];
+          }
+        }
+
+        if (minDistSq <= maxDistSq) {
+          rayPoints.push(s.x, s.y, s.z);
+          rayPoints.push(bestTarget.x, bestTarget.y, bestTarget.z);
+        }
+      }
+
+      rayLinesMesh.geometry.setAttribute('position', new THREE.Float32BufferAttribute(rayPoints, 3));
+      rayLinesMesh.geometry.attributes.position.needsUpdate = true;
+    }
+
+    function toggleCorrespondenceRays() {
+      showCorrespondenceRays = !showCorrespondenceRays;
+      const btn = document.getElementById('btnToggleRays');
+      if (btn) {
+        btn.className = showCorrespondenceRays 
+          ? "px-2 py-1 bg-purple-100 text-purple-800 rounded-lg transition font-extrabold border border-purple-400 flex items-center gap-1 shadow-2xs"
+          : "px-2 py-1 bg-slate-100 text-slate-500 rounded-lg transition font-extrabold border border-slate-200 flex items-center gap-1 shadow-2xs";
+      }
+      if (rayLinesMesh) rayLinesMesh.visible = showCorrespondenceRays;
+    }
+
+    /* =========================================================================
+       6. 3D 공분산 & 6-DOF ICP 반복 정합 알고리즘
+       ========================================================================= */
+    let isAligning = false;
+    let currentIteration = 0;
+
+    function computeCurrentRMSE() {
+      let totalSqDist = 0;
+      for (let i = 0; i < pointCount; i++) {
+        totalSqDist += currentSceneCoords[i].distanceToSquared(basePoints[i]);
+      }
+      return Math.sqrt(totalSqDist / pointCount);
+    }
+
+    function stepICPOnce() {
+      if (isAligning) return;
+      performSingleICPIteration();
+    }
+
+    function performSingleICPIteration() {
+      const maxDist = parseFloat(document.getElementById('pMaxDist').value) || 80;
+      const maxDistSq = maxDist * maxDist;
+
+      let cSrc = new THREE.Vector3(0, 0, 0);
+      let cDst = new THREE.Vector3(0, 0, 0);
+      const pairs = [];
+
+      for (let i = 0; i < pointCount; i++) {
+        const s = currentSceneCoords[i];
+        let minD = Infinity;
+        let bestRef = basePoints[0];
+
+        for (let j = 0; j < pointCount; j++) {
+          const d = s.distanceToSquared(basePoints[j]);
+          if (d < minD) {
+            minD = d;
+            bestRef = basePoints[j];
+          }
+        }
+        if (minD <= maxDistSq) {
+          pairs.push({ s, d: bestRef });
+          cSrc.add(s);
+          cDst.add(bestRef);
+        }
+      }
+
+      const validPairsCount = pairs.length;
+      if (validPairsCount < 10) return false;
+
+      cSrc.divideScalar(validPairsCount);
+      cDst.divideScalar(validPairsCount);
+
+      // 3D 공분산 행렬 계산
+      let Hxx = 0, Hxy = 0, Hxz = 0;
+      let Hyx = 0, Hyy = 0, Hyz = 0;
+      let Hzx = 0, Hzy = 0, Hzz = 0;
+
+      for (let i = 0; i < validPairsCount; i++) {
+        const p = pairs[i].s.clone().sub(cSrc);
+        const q = pairs[i].d.clone().sub(cDst);
+        Hxx += p.x * q.x; Hxy += p.x * q.y; Hxz += p.x * q.z;
+        Hyx += p.y * q.x; Hyy += p.y * q.y; Hyz += p.y * q.z;
+        Hzx += p.z * q.x; Hzy += p.z * q.y; Hzz += p.z * q.z;
+      }
+
+      // 회전 오차 도출
+      const dRotX = (Hyz - Hzy) / (Hyy + Hzz + 1e-6);
+      const dRotY = (Hzx - Hxz) / (Hxx + Hzz + 1e-6);
+      const dRotZ = (Hxy - Hyx) / (Hxx + Hyy + 1e-6);
+
+      const deltaEuler = new THREE.Euler(dRotX * 0.45, dRotY * 0.45, dRotZ * 0.45, 'ZYX');
+      const dRotMat = new THREE.Matrix4().makeRotationFromEuler(deltaEuler);
+      const trans = cDst.clone().sub(cSrc.clone().applyMatrix4(dRotMat)).multiplyScalar(0.45);
+
+      const posArray = sceneCloud.geometry.attributes.position.array;
+      for (let i = 0; i < pointCount; i++) {
+        const pt = currentSceneCoords[i];
+        const newPt = pt.clone().sub(cSrc).applyMatrix4(dRotMat).add(cSrc).add(trans);
+        pt.lerp(newPt, 0.7);
+
+        posArray[i * 3] = pt.x;
+        posArray[i * 3 + 1] = pt.y;
+        posArray[i * 3 + 2] = pt.z;
+      }
+      sceneCloud.geometry.attributes.position.needsUpdate = true;
+
+      currentIteration++;
+      const rmse = computeCurrentRMSE();
+      updateCorrespondenceRays();
+      updateMetricsDisplay(rmse);
+      return rmse;
+    }
+
+    async function runFullICP() {
+      if (isAligning) return;
+      isAligning = true;
+      document.getElementById('btnFullIcp').disabled = true;
+      document.getElementById('btnStepIcp').disabled = true;
+
+      const maxIter = parseInt(document.getElementById('pMaxIter').value) || 35;
+      const minErr = parseFloat(document.getElementById('pMinErr').value) || 0.015;
+
+      appendPacketLog('TX', `Lotus.Mv.ICPAligner 시작 (MaxIter: ${maxIter}, MinErr: ${minErr}mm)`);
+
+      for (let iter = 1; iter <= maxIter; iter++) {
+        const rmse = performSingleICPIteration();
+        if (iter % 3 === 0 || iter === maxIter || rmse < minErr) {
+          appendPacketLog('RX', `iter: ${iter.toString().padStart(2, '0')}, RMSE: ${rmse.toFixed(3)} mm`);
+        }
+
+        if (rmse < minErr) {
+          appendPacketLog('SYS', `[SUCCESS] ICP 허용공차 도달 수렴 완료 (RMSE: ${rmse.toFixed(3)} mm)`);
+          break;
+        }
+        await new Promise(res => setTimeout(res, 40));
+      }
+
+      isAligning = false;
+      document.getElementById('btnFullIcp').disabled = false;
+      document.getElementById('btnStepIcp').disabled = false;
+      
+      // 정합 완료 후 5단계 결과로 자동 전이
+      if (currentStep === 3) goToStep(4);
+    }
+
+    /* =========================================================================
+       7. 메트릭 디스플레이 & [R|T] 동차변환행렬 카드 갱신
+       ========================================================================= */
+    function updateMetricsDisplay(rmse) {
+      document.getElementById('iterationBadge').innerText = `ITER: ${currentIteration}`;
+      document.getElementById('valRmseDisplay').innerText = `${rmse.toFixed(2)} mm`;
+      document.getElementById('headerRmseVal').innerText = `${rmse.toFixed(2)} mm`;
+
+      // 0 ~ 100% 일치율 계산
+      const overlapPct = Math.max(0, Math.min(100, Math.round(100 - (rmse * 3.2))));
+      document.getElementById('valOverlapDisplay').innerText = `${overlapPct} %`;
+      const pBar = document.getElementById('overlapProgressBar');
+      if (pBar) pBar.style.width = `${overlapPct}%`;
+
+      const mDot = document.getElementById('monitorStatusDot');
+      const hStatus = document.getElementById('headerIcpStatus');
+      if (rmse <= 0.05) {
+        if (mDot) mDot.className = "w-2.5 h-2.5 rounded-full bg-emerald-500";
+        if (hStatus) { hStatus.innerText = "수렴 완료 ✓"; hStatus.className = "font-extrabold text-emerald-600"; }
+      } else if (rmse < 5.0) {
+        if (mDot) mDot.className = "w-2.5 h-2.5 rounded-full bg-blue-500 animate-pulse";
+        if (hStatus) { hStatus.innerText = "미세 정합 중"; hStatus.className = "font-extrabold text-blue-600"; }
+      } else {
+        if (mDot) mDot.className = "w-2.5 h-2.5 rounded-full bg-amber-500";
+        if (hStatus) { hStatus.innerText = "변위 인입 대기"; hStatus.className = "font-extrabold text-amber-600"; }
+      }
+
+      // [R|T] 4x4 행렬식 계산
+      let cx = 0, cy = 0, cz = 0;
+      for (let i = 0; i < pointCount; i++) {
+        cx += currentSceneCoords[i].x - basePoints[i].x;
+        cy += currentSceneCoords[i].y - basePoints[i].y;
+        cz += currentSceneCoords[i].z - basePoints[i].z;
+      }
+      cx /= pointCount; cy /= pointCount; cz /= pointCount;
+
+      const p0 = currentSceneCoords[0].clone().sub(new THREE.Vector3(cx, cy, cz));
+      const b0 = basePoints[0];
+      const rz = Math.atan2(p0.y, p0.x) - Math.atan2(b0.y, b0.x);
+      const rx = (parseFloat(document.getElementById('sl-rx').value) * Math.PI / 180);
+      const ry = (parseFloat(document.getElementById('sl-ry').value) * Math.PI / 180);
+
+      const euler = new THREE.Euler(rx, ry, rz, 'ZYX');
+      const m = new THREE.Matrix4().makeRotationFromEuler(euler);
+      m.setPosition(cx, cy, cz);
+      const te = m.elements;
+
+      const fmtR = (v) => (Math.abs(v) < 1e-4 ? "0.0000" : (v >= 0 ? "+" : "") + v.toFixed(4));
+      const fmtT = (v) => (Math.abs(v) < 1e-4 ? "0.000" : (v >= 0 ? "+" : "") + v.toFixed(3));
+
+      const tbody = document.getElementById('rtMatrixTableBody');
+      if (tbody) {
+        tbody.innerHTML = `
+          <tr><td class="rt-cell-r">${fmtR(te[0])}</td><td class="rt-cell-r">${fmtR(te[4])}</td><td class="rt-cell-r">${fmtR(te[8])}</td><td class="rt-cell-t">${fmtT(te[12])}</td></tr>
+          <tr><td class="rt-cell-r">${fmtR(te[1])}</td><td class="rt-cell-r">${fmtR(te[5])}</td><td class="rt-cell-r">${fmtR(te[9])}</td><td class="rt-cell-t">${fmtT(te[13])}</td></tr>
+          <tr><td class="rt-cell-r">${fmtR(te[2])}</td><td class="rt-cell-r">${fmtR(te[6])}</td><td class="rt-cell-r">${fmtR(te[10])}</td><td class="rt-cell-t">${fmtT(te[14])}</td></tr>
+          <tr><td class="rt-cell-h">0</td><td class="rt-cell-h">0</td><td class="rt-cell-h">0</td><td class="rt-cell-h">1</td></tr>
+        `;
+      }
+
+      const sT = document.getElementById('rtSummaryT'), sR = document.getElementById('rtSummaryR');
+      if (sT) sT.innerText = `T:[${fmtT(cx)}, ${fmtT(cy)}, ${fmtT(cz)}]mm`;
+      if (sR) sR.innerText = `R:[${(rx * 180 / Math.PI).toFixed(1)}°, ${(ry * 180 / Math.PI).toFixed(1)}°, ${(rz * 180 / Math.PI).toFixed(1)}°]`;
+    }
+
+    /* =========================================================================
+       8. 5단계 공정 시나리오 전이 및 UI 제어
+       ========================================================================= */
+    function goToStep(idx, options = {}) {
+      if (!options.fromAutoPlay && isAutoPlaying) stopAutoPlay();
+      currentStep = idx;
+
+      // 단계별 비주얼 상태 변경
+      if (currentStep === 0) {
+        // Step 1: 기준 모델만 표시
+        refCloud.visible = true;
+        sceneCloud.visible = false;
+        if (rayLinesMesh) rayLinesMesh.visible = false;
+        scannerBeamMesh.material.opacity = 0;
+        scanSweeperMesh.material.opacity = 0;
+        resetSliders();
+        appendPacketLog('SYS', `STEP 1 :: 기준 REF.ply 모델 안착 완료.`);
+      } else if (currentStep === 1) {
+        // Step 2: 왜곡된 부품 인입
+        refCloud.visible = true;
+        sceneCloud.visible = true;
+        updateCorrespondenceRays();
+        scannerBeamMesh.material.opacity = 0;
+        scanSweeperMesh.material.opacity = 0;
+        appendPacketLog('SYS', `STEP 2 :: Scene.ply 부품 6-DOF 오차 인입.`);
+      } else if (currentStep === 2) {
+        // Step 3: 레이저 스캔 애니메이션 트리거
+        refCloud.visible = true;
+        sceneCloud.visible = true;
+        triggerLaserScanCeremony();
+        appendPacketLog('TX', `STEP 3 :: AITZ 3DU 구조광 십자 스캔 시작.`);
+      } else if (currentStep === 3) {
+        // Step 4: ICP 정합 실행 대기/시작
+        refCloud.visible = true;
+        sceneCloud.visible = true;
+        updateCorrespondenceRays();
+        appendPacketLog('TX', `STEP 4 :: Lotus.Mv.ICP 반복 정합 루프 준비.`);
+      } else if (currentStep === 4) {
+        // Step 5: 최종 행렬 확정
+        refCloud.visible = true;
+        sceneCloud.visible = true;
+        updateCorrespondenceRays();
+        appendPacketLog('SYS', `STEP 5 :: 최종 [R|T] 변환 행렬 도출 및 로봇 위치보정 확정.`);
+      }
+
+      updateStepUI();
+    }
+
+    function triggerLaserScanCeremony() {
+      let startTime = performance.now();
+      const duration = 2400;
+
+      function scanAnim(now) {
+        const progress = Math.min(1.0, (now - startTime) / duration);
+        scannerBeamMesh.material.opacity = 0.35 + 0.15 * Math.sin(progress * Math.PI * 4);
+        scanSweeperMesh.material.opacity = 0.95;
+
+        if (progress <= 0.5) {
+          const t1 = progress / 0.5;
+          scanSweeperMesh.rotation.z = 0;
+          scanSweeperMesh.position.set(0, -105 + (Math.sin(t1 * Math.PI) * 2), (t1 * 60) - 30);
+        } else {
+          const t2 = (progress - 0.5) / 0.5;
+          scanSweeperMesh.rotation.z = Math.PI / 2;
+          scanSweeperMesh.position.set((t2 * 60) - 30, -105 + (Math.sin(t2 * Math.PI) * 2), 0);
+        }
+
+        if (progress < 1.0 && currentStep === 2) {
+          requestAnimationFrame(scanAnim);
+        } else {
+          scannerBeamMesh.material.opacity = 0;
+          scanSweeperMesh.material.opacity = 0;
+          if (currentStep === 2) markStepCompleted();
+        }
+      }
+      requestAnimationFrame(scanAnim);
+    }
+
+    function updateStepUI() {
+      const data = stepData[currentStep];
+      document.getElementById('stepBadge').innerText = data.badge;
+      document.getElementById('descIcon').innerText = data.icon;
+      document.getElementById('descHeading').innerHTML = data.heading;
+      document.getElementById('descBody').innerHTML = data.body;
+
+      document.querySelectorAll('.step-btn').forEach((btn, idx) => {
+        if (idx === currentStep) btn.classList.add('active');
+        else btn.classList.remove('active');
+      });
+
+      document.getElementById('prevBtn').disabled = (currentStep === 0);
+      document.getElementById('nextBtn').disabled = (currentStep === stepData.length - 1);
+    }
+
+    function markStepCompleted() {
+      const badgeEl = document.getElementById('stepBadge');
+      if (badgeEl) {
+        badgeEl.innerText = `${stepData[currentStep].badge} DONE ✓`;
+        badgeEl.className = "bg-emerald-600 text-white text-[10px] font-black px-2 py-0.5 rounded transition-all transform scale-105 shadow-xs";
+      }
+    }
+
+    function nextStep() { if (currentStep < stepData.length - 1) goToStep(currentStep + 1); }
+    function prevStep() { if (currentStep > 0) goToStep(currentStep - 1); }
+
+    /* =========================================================================
+       9. 원클릭 시네마틱 데모 (정상 수렴 OK vs 로컬 미니마 NG)
+       ========================================================================= */
+    function startCinematicDemo(type) {
+      if (isAutoPlaying) stopAutoPlay();
+      demoModeType = type;
+      updateButtonActiveStates();
+
+      if (type === 'OK') {
+        // 정상 수렴: 오차가 적당한 범위 안에서 완벽 정합
+        document.getElementById('sl-dx').value = 25;
+        document.getElementById('sl-dy').value = -20;
+        document.getElementById('sl-dz').value = 15;
+        document.getElementById('sl-rx').value = 6;
+        document.getElementById('sl-ry').value = -3;
+        document.getElementById('sl-rz').value = 15;
+        onSliderChange();
+        clearPacketLogs(`[DEMO: OK] 정상 정합 시연 모드 시작 (안전 수렴 영역 인입)`);
+      } else {
+        // 로컬 미니마 실패: 180° 반전 또는 대칭 축 착시를 유도하여 엉뚱한 정합 시연
+        document.getElementById('sl-dx').value = 10;
+        document.getElementById('sl-dy').value = 0;
+        document.getElementById('sl-dz').value = 0;
+        document.getElementById('sl-rx').value = 0;
+        document.getElementById('sl-ry').value = 0;
+        document.getElementById('sl-rz').value = 175; // 180도 회전 Trap
+        onSliderChange();
+        clearPacketLogs(`[DEMO: NG] Local Minima 함정 시연 모드 (180° 반전 오정합 유도)`);
+      }
+
+      goToStep(0);
+      startAutoPlay();
+    }
+
+    function updateButtonActiveStates() {
+      const bOK = document.getElementById('btnDemoOK');
+      const bNG = document.getElementById('btnDemoNG');
+      const bAuto = document.getElementById('autoPlayBtn');
+
+      if (bOK) {
+        if (demoModeType === 'OK') bOK.classList.add('btn-running-ok', 'animate-pulse');
+        else bOK.classList.remove('btn-running-ok', 'animate-pulse');
+      }
+      if (bNG) {
+        if (demoModeType === 'NG') bNG.classList.add('btn-running-ng', 'animate-pulse');
+        else bNG.classList.remove('btn-running-ng', 'animate-pulse');
+      }
+      if (bAuto) {
+        if (isAutoPlaying && !demoModeType) bAuto.classList.add('btn-running-auto', 'animate-pulse');
+        else bAuto.classList.remove('btn-running-auto', 'animate-pulse');
+      }
+    }
+
+    /* =========================================================================
+       10. 자동 재생 (Auto-Play) & 타이머 게이지
+       ========================================================================= */
+    function toggleAutoPlay() {
+      if (isAutoPlaying) stopAutoPlay();
+      else {
+        if (currentStep === stepData.length - 1) goToStep(0);
+        startAutoPlay();
+      }
+    }
+
+    function startAutoPlay() {
+      if (isAutoPlaying) return;
+      isAutoPlaying = true;
+      document.getElementById('playIcon').innerText = '⏸';
+      document.getElementById('playText').innerText = '일시 정지';
+      updateButtonActiveStates();
+      scheduleNextAutoStep();
+    }
+
+    function stopAutoPlay() {
+      isAutoPlaying = false;
+      if (autoPlayTimeoutId) { clearTimeout(autoPlayTimeoutId); autoPlayTimeoutId = null; }
+      if (autoStepProgressTimer) { clearInterval(autoStepProgressTimer); autoStepProgressTimer = null; }
+      const pWrap = document.getElementById('autoPlayProgressWrapper');
+      if (pWrap) pWrap.classList.add('hidden');
+      document.getElementById('playIcon').innerText = '▶';
+      document.getElementById('playText').innerText = '자동 재생';
+      demoModeType = null;
+      updateButtonActiveStates();
+    }
+
+    function scheduleNextAutoStep() {
+      if (!isAutoPlaying) return;
+      if (autoPlayTimeoutId) clearTimeout(autoPlayTimeoutId);
+
+      let waitTime = 3000;
+      if (currentStep === 2) waitTime = 2600;
+      else if (currentStep === 3) {
+        waitTime = 3500;
+        runFullICP(); // Step 4 진입 시 자동 정합 수행
+      }
+
+      const pWrap = document.getElementById('autoPlayProgressWrapper');
+      const pBar = document.getElementById('autoPlayProgressBar');
+      if (pWrap && pBar) {
+        pWrap.classList.remove('hidden');
+        pBar.style.width = '0%';
+        const pStart = performance.now();
+        if (autoStepProgressTimer) clearInterval(autoStepProgressTimer);
+        autoStepProgressTimer = setInterval(() => {
+          if (!isAutoPlaying) { clearInterval(autoStepProgressTimer); return; }
+          const elapsed = performance.now() - pStart;
+          const pct = Math.min(100, (elapsed / waitTime) * 100);
+          pBar.style.width = `${pct}%`;
+          if (pct >= 100) clearInterval(autoStepProgressTimer);
+        }, 50);
+      }
+
+      autoPlayTimeoutId = setTimeout(() => {
+        autoPlayTimeoutId = null;
+        if (!isAutoPlaying) return;
+        if (autoStepProgressTimer) clearInterval(autoStepProgressTimer);
+        if (pWrap) pWrap.classList.add('hidden');
+
+        if (currentStep < stepData.length - 1) {
+          goToStep(currentStep + 1, { fromAutoPlay: true });
+          scheduleNextAutoStep();
+        } else {
+          stopAutoPlay();
+        }
+      }, waitTime);
+    }
+
+    function resetSimulation() {
+      stopAutoPlay();
+      resetSliders();
+      currentIteration = 0;
+      goToStep(0);
+      clearPacketLogs("시뮬레이터가 초기화되었습니다.");
+    }
+
+    /* =========================================================================
+       11. UI 패널 토글 & 카메라 프리셋 (1920x1080 앵글 정렬)
+       ========================================================================= */
+    function toggleParamPanel() {
+      const content = document.getElementById('paramPanelContent');
+      const btn = document.getElementById('btnTogglePanel');
+      isParamPanelCollapsed = !isParamPanelCollapsed;
+      if (isParamPanelCollapsed) { content.classList.add('hidden'); btn.innerText = "OPEN"; }
+      else { content.classList.remove('hidden'); btn.innerText = "CLOSE"; }
+    }
+
+    function toggleStepPanel() {
+      const content = document.getElementById('stepListContent');
+      const btn = document.getElementById('btnToggleStepPanel');
+      isStepPanelCollapsed = !isStepPanelCollapsed;
+      if (isStepPanelCollapsed) { content.classList.add('hidden'); btn.innerText = "OPEN"; }
+      else { content.classList.remove('hidden'); btn.innerText = "CLOSE"; }
+    }
+
+    function setCameraView(view) {
+      document.querySelectorAll('.cam-preset-btn').forEach(b => b.classList.remove('active-cam'));
+      const activeBtn = document.getElementById(`camBtn_${view}`);
+      if (activeBtn) activeBtn.classList.add('active-cam');
+
+      if (view === 'iso') {
+        camera.position.set(110, 130, 160);
+        controls.target.set(0, 10, 0);
+      } else if (view === 'top') {
+        camera.position.set(0, 250, 0);
+        controls.target.set(0, 0, 0);
+      } else if (view === 'front') {
+        camera.position.set(0, 20, 240);
+        controls.target.set(0, 15, 0);
+      } else if (view === 'side') {
+        camera.position.set(240, 20, 0);
+        controls.target.set(0, 15, 0);
+      }
+      controls.update();
+    }
+
+    function setCameraFov(val) {
+      const num = Number(val);
+      camera.fov = num;
+      camera.updateProjectionMatrix();
+      document.getElementById('camFovVal').innerText = `${num}°`;
+    }
+
+    /* =========================================================================
+       12. 로그 패킷 터미널 & 이스터에그
+       ========================================================================= */
+    function getFormattedTimestamp() {
+      const n = new Date();
+      return `${String(n.getHours()).padStart(2,'0')}:${String(n.getMinutes()).padStart(2,'0')}:${String(n.getSeconds()).padStart(2,'0')}.${String(n.getMilliseconds()).padStart(3,'0')}`;
+    }
+
+    function appendPacketLog(type, message) {
+      const listEl = document.getElementById('packetLogList');
+      if (!listEl) return;
+      const row = document.createElement('div');
+      row.className = "leading-snug whitespace-nowrap flex items-center gap-1.5";
+      const timeStr = getFormattedTimestamp(), seqStr = String(packetSeqNo++).padStart(3, '0');
+      let tagHtml = `<span class="text-blue-700 font-semibold shrink-0">[SYS #${seqStr}]</span>`;
+      let msgColorClass = 'text-slate-700 font-normal';
+
+      if (type === 'TX') {
+        tagHtml = `<span class="text-emerald-700 font-bold shrink-0">[TX #${seqStr}]</span>`;
+        msgColorClass = 'text-emerald-900 font-medium';
+      } else if (type === 'RX') {
+        tagHtml = `<span class="text-amber-700 font-bold shrink-0">[RX #${seqStr}]</span>`;
+        msgColorClass = 'text-amber-900 font-medium';
+      }
+
+      row.innerHTML = `<span class="text-slate-500 font-mono shrink-0">[${timeStr}]</span>${tagHtml}<span class="${msgColorClass}">${message}</span>`;
+      listEl.appendChild(row);
+      while (listEl.children.length > 80) listEl.removeChild(listEl.firstChild);
+      listEl.scrollTop = listEl.scrollHeight;
+    }
+
+    function clearPacketLogs(customNotice = null) {
+      const listEl = document.getElementById('packetLogList');
+      if (!listEl) return;
+      packetSeqNo = 1;
+      listEl.innerHTML = `<div class="text-slate-700 font-bold whitespace-nowrap">[${getFormattedTimestamp()}] [SYS] ${customNotice || "로그가 초기화되었습니다."}</div>`;
+    }
+
+    function showGoldToast() {
+      const toast = document.getElementById('goldToastPopup');
+      if (!toast) return;
+      toast.classList.add('show-toast');
+      setTimeout(() => toast.classList.remove('show-toast'), 3600);
+    }
+
+    function initVisitorCounter() {
+      const el = document.getElementById('visitorCountVal');
+      if (!el) return;
+      let count = parseInt(localStorage.getItem('atm_sim_visitors') || '1970', 10);
+      count += 1;
+      localStorage.setItem('atm_sim_visitors', count);
+      el.innerText = count.toLocaleString();
+    }
+
+    /* =========================================================================
+       13. 렌더 루프 및 리사이즈
+       ========================================================================= */
+    function animate() {
+      requestAnimationFrame(animate);
+      controls.update();
+      renderer.render(scene, camera);
+    }
+
+    function onWindowResize() {
+      const container = document.getElementById('canvas-container');
+      const width = container.clientWidth, height = container.clientHeight;
+      camera.aspect = width / height;
+      camera.updateProjectionMatrix();
+      renderer.setSize(width, height);
+    }
+
+    window.onload = function() {
+      init3D();
+      initVisitorCounter();
+      document.getElementById('authorBadgeBtn').addEventListener('mouseenter', showGoldToast);
+    };
+  </script>
+</body>
+</html>
