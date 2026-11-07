@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <title>UF5 & UF6 위치보정 3D Simulator (Mobile M1.0)</title>
+  <title>UF5 & UF6 위치보정 3D Simulator (Mobile V2.0)</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
@@ -52,6 +52,20 @@
       background-color: #2563eb !important;
       color: #ffffff !important;
       border-color: #1d4ed8 !important;
+    }
+
+    /* V2.0: 활성 버튼 하이라이트 링 */
+    .btn-running-ok {
+      ring: 2px solid #34d399 !important;
+      box-shadow: 0 0 10px rgba(16, 185, 129, 0.5) !important;
+    }
+    .btn-running-ng {
+      ring: 2px solid #fb7185 !important;
+      box-shadow: 0 0 10px rgba(244, 63, 94, 0.5) !important;
+    }
+    .btn-running-auto {
+      ring: 2px solid #60a5fa !important;
+      box-shadow: 0 0 10px rgba(59, 130, 246, 0.5) !important;
     }
 
     /* 슬라이더 트랙과 손잡이(Thumb) 커스텀 스타일 */
@@ -124,22 +138,31 @@
   <!-- 3D WebGL Canvas -->
   <div id="canvas-container" class="absolute inset-0 z-0"></div>
 
-  <!-- [상단 헤더]: M1.0 (Nov.03) 정식 뱃지 및 기준 관점 버튼 -->
+  <!-- [상단 헤더]: V2.0 (Nov.7) 2행 슬림 뱃지, 2행 기준관점, 1행 가공선, 1행 타이틀 최적화 -->
   <header class="relative z-20 w-full pt-[calc(var(--sat)+8px)] px-3 pointer-events-none flex flex-col gap-1.5">
-    <div class="flex items-center justify-between gap-2 pointer-events-auto">
-      <div class="bg-white/90 backdrop-blur-md px-2.5 py-1 rounded-full shadow-md border border-slate-200/80 flex items-center gap-1.5">
-        <span class="bg-blue-600 text-white text-[10px] font-black px-1.5 py-0.5 rounded-full">M1.0 (Nov.03)</span>
-        <span class="text-xs font-black text-slate-900 tracking-tight">UF6 3D Simulator</span>
+    <div class="flex items-center justify-between gap-1.5 pointer-events-auto">
+      
+      <!-- [V2.0 UPDATE] 2행 최소폭 콤팩트 버전 뱃지 + 1행 타이틀 -->
+      <div class="bg-white/95 backdrop-blur-md px-2 py-1 rounded-2xl shadow-md border border-slate-200/80 flex items-center gap-1.5 min-w-0">
+        <div class="bg-blue-600 text-white rounded-lg px-1.5 py-0.5 flex flex-col items-center justify-center leading-none shrink-0 shadow-2xs">
+          <span class="text-[9px] font-black tracking-tight">V2.0</span>
+          <span class="text-[7.5px] font-bold text-blue-100 font-mono tracking-tighter">(Nov.7)</span>
+        </div>
+        <span class="text-xs font-black text-slate-900 tracking-tight whitespace-nowrap truncate">UF6 3D Simulator</span>
       </div>
 
-      <div class="flex items-center gap-1.5">
-        <!-- [요청 1] 'ISO' -> '기준 관점' 명칭 변경 -->
-        <button id="btnCamIso" onclick="setCameraView('iso')" class="cam-btn active-cam touch-btn bg-white/90 backdrop-blur-md px-2.5 py-1 rounded-full shadow-md border border-slate-200 text-[11px] font-bold text-slate-700">
-          기준 관점
+      <!-- [V2.0 UPDATE] 2행 기준/관점 + 1행 가공선(돋보기 삭제) + 설정 버튼 -->
+      <div class="flex items-center gap-1 shrink-0">
+        <!-- 2행 기준/관점 버튼 -->
+        <button id="btnCamIso" onclick="setCameraView('iso')" class="cam-btn active-cam touch-btn bg-white/90 backdrop-blur-md px-2 py-0.5 rounded-xl shadow-md border border-slate-200 flex flex-col items-center justify-center leading-tight">
+          <span class="text-[9.5px] font-black text-slate-700 leading-none">기준</span>
+          <span class="text-[8.5px] font-extrabold text-slate-600 leading-none">관점</span>
         </button>
-        <button id="btnCamFocus" onclick="setCameraView('focus_ab')" class="cam-btn touch-btn bg-orange-50/90 backdrop-blur-md px-2.5 py-1 rounded-full shadow-md border border-orange-300 text-[11px] font-extrabold text-orange-700 flex items-center gap-0.5">
-          <span>🔍</span><span>가공선</span>
+        <!-- 1행 가공선 버튼 (돋보기 아이콘 삭제) -->
+        <button id="btnCamFocus" onclick="setCameraView('focus_ab')" class="cam-btn touch-btn bg-orange-50/90 backdrop-blur-md px-2.5 py-1.5 rounded-xl shadow-md border border-orange-300 text-[11px] font-black text-orange-700 flex items-center justify-center leading-none">
+          가공선
         </button>
+        <!-- 설정창 버튼 -->
         <button onclick="toggleModal('menuModal')" class="touch-btn bg-slate-900/90 backdrop-blur-md text-white w-7 h-7 rounded-full shadow-md flex items-center justify-center text-xs font-black">
           ⚙️
         </button>
@@ -155,24 +178,24 @@
       </div>
       <div class="flex items-center gap-1 shrink-0 pl-2 border-l border-slate-700">
         <span class="text-slate-400 font-bold uppercase tracking-wider text-[9px]">CMD</span>
-        <span id="targetCoord" class="font-extrabold text-amber-300 truncate max-w-[110px] text-right">홈 대기</span>
+        <span id="targetCoord" class="font-extrabold text-amber-300 truncate max-w-[125px] text-right">홈 대기</span>
       </div>
     </div>
 
-    <!-- 단계 브리핑 칩 -->
+    <!-- [V2.0 UPDATE: 지인분 피드백] 단계 브리핑 칩 & Step Done 초록 뱃지 피드백 -->
     <div onclick="toggleModal('stepListModal')" class="pointer-events-auto bg-white/90 backdrop-blur-md px-3 py-1.5 rounded-2xl shadow-md border border-slate-200 flex items-center justify-between touch-btn">
       <div class="flex items-center gap-2 overflow-hidden">
-        <span id="mobileStepBadge" class="bg-blue-600 text-white text-[10px] font-black px-1.5 py-0.5 rounded-md shrink-0">STEP 1</span>
+        <span id="mobileStepBadge" class="bg-blue-600 text-white text-[10px] font-black px-1.5 py-0.5 rounded-md shrink-0 transition-colors duration-300">STEP 1</span>
         <span id="mobileStepTitle" class="text-xs font-extrabold text-slate-900 truncate">1. Base 좌표계 및 로봇/스캐너 준비</span>
       </div>
       <span class="text-slate-400 text-xs font-bold shrink-0 ml-1">목록 ▾</span>
     </div>
   </header>
 
-  <!-- [하단 컨트롤 독 & [요청 4] 완료 알림 배너] -->
-  <footer class="relative z-20 w-full pb-[calc(var(--sab)+8px)] px-3 pointer-events-none flex flex-col gap-2">
+  <!-- [하단 컨트롤 독 & 완료 알림 배너] -->
+  <footer class="relative z-20 w-full pb-[calc(var(--sab)+8px)] px-3 pointer-events-none flex flex-col gap-1.5">
     
-    <!-- [요청 4] 스캐너를 가리지 않도록 하단 컨트롤 독 바로 위에 배치된 완료/에러 알림 배너 -->
+    <!-- 작업 완료/실패 배너 (하단 독 바로 위 배치) -->
     <div id="cycleCompleteBanner" class="pointer-events-none w-full opacity-0 translate-y-2 transition-all duration-300">
       <div id="cycleBannerBox" class="bg-white/95 backdrop-blur-md px-4 py-2 rounded-2xl border-2 border-blue-500 shadow-xl flex items-center gap-2.5">
         <span id="cycleBannerIcon" class="w-6 h-6 rounded-full bg-emerald-500 text-white flex items-center justify-center text-xs font-black shrink-0">✓</span>
@@ -183,15 +206,20 @@
       </div>
     </div>
 
-    <!-- 메인 조작 독 -->
+    <!-- 메인 조작 독 카드 -->
     <div class="pointer-events-auto bg-white/95 backdrop-blur-md p-2 rounded-2xl shadow-2xl border border-slate-300 flex flex-col gap-1.5">
       
-      <!-- 상단 줄: OK / NG 시연 모드 퀵 버튼 + ICP 진단창 -->
+      <!-- [V2.0 UPDATE: 지인분 피드백] 자동재생 대기 프로그레스 게이지 바 -->
+      <div id="autoPlayProgressWrapper" class="w-full h-1 bg-slate-100 rounded-full overflow-hidden hidden">
+        <div id="autoPlayProgressBar" class="h-full bg-emerald-500 transition-all duration-75" style="width: 0%;"></div>
+      </div>
+
+      <!-- 상단 줄: OK / NG 시연 모드 퀵 버튼 + ICP 진단창 (활성 상태 링 피드백 탑재) -->
       <div class="flex items-center gap-1.5">
-        <button onclick="startCinematicDemo('OK')" class="touch-btn flex-1 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-extrabold shadow-sm flex items-center justify-center gap-1">
+        <button id="btnDemoOK" onclick="startCinematicDemo('OK')" class="touch-btn flex-1 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-extrabold shadow-sm flex items-center justify-center gap-1 transition-all">
           <span>🎬 OK 데모</span>
         </button>
-        <button onclick="startCinematicDemo('NG')" class="touch-btn flex-1 py-1.5 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-extrabold shadow-sm flex items-center justify-center gap-1">
+        <button id="btnDemoNG" onclick="startCinematicDemo('NG')" class="touch-btn flex-1 py-1.5 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-extrabold shadow-sm flex items-center justify-center gap-1 transition-all">
           <span>⚠️ NG 데모</span>
         </button>
         <button id="btnOpenIcp" onclick="toggleModal('icpModal')" class="touch-btn px-2.5 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-800 rounded-xl text-[11px] font-bold border border-slate-300 flex items-center gap-1">
@@ -205,7 +233,7 @@
         <button id="prevBtn" onclick="prevStep()" class="touch-btn px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-800 rounded-xl text-xs font-black border border-slate-300 shrink-0 disabled:opacity-30">
           ◀ 이전
         </button>
-        <button id="autoPlayBtn" onclick="toggleAutoPlay()" class="touch-btn flex-1 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-black shadow-sm flex items-center justify-center gap-1">
+        <button id="autoPlayBtn" onclick="toggleAutoPlay()" class="touch-btn flex-1 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-black shadow-sm flex items-center justify-center gap-1 transition-all">
           <span id="playIcon">▶</span><span id="playText">자동 재생</span>
         </button>
         <button id="nextBtn" onclick="nextStep()" class="touch-btn px-4 py-2 bg-slate-900 hover:bg-black text-white rounded-xl text-xs font-black shadow-sm shrink-0 disabled:opacity-30">
@@ -213,10 +241,12 @@
         </button>
       </div>
 
-      <!-- [요청 3] 한 줄로 표현된 ATM 로고, 제작자 정보 및 iPhone 14 해상도 최적화 안내 스트립 -->
+      <!-- [V2.0 UPDATE: 요청 1 & 3] atm_red.png 로고 (클릭 시 index.html 복귀) + 유재광 교육관 + iPhone 14 안내 (1줄 완성) -->
       <div class="pt-1.5 border-t border-slate-200/90 flex items-center justify-between text-[9px] text-slate-500 font-medium px-1 tracking-tight">
         <div class="flex items-center gap-1.5 truncate">
-          <span class="font-black italic text-red-600 text-[10px] tracking-tighter">ATM</span>
+          <a href="index.html" class="flex items-center touch-btn" title="메인 홈(index.html)으로 복귀">
+            <img src="atm_red.png" alt="ATM" class="h-3.5 w-auto object-contain cursor-pointer">
+          </a>
           <span class="text-slate-300">|</span>
           <span class="font-semibold text-slate-700 truncate">제작: 교육관 유재광</span>
         </div>
@@ -248,6 +278,7 @@
       </div>
     </div>
 
+    <!-- 6축 공차 LED 모니터 -->
     <div class="bg-slate-50 p-2.5 rounded-xl border border-slate-200 mt-2.5 flex flex-col gap-1.5 shrink-0">
       <div class="flex justify-between items-center text-[11px] font-mono font-bold text-slate-700">
         <span>6-DOF TOLERANCE MONITOR</span>
@@ -277,7 +308,7 @@
     <div class="flex-1 overflow-y-auto space-y-1.5 pr-0.5 text-xs font-bold" id="mobileStepListContainer"></div>
   </div>
 
-  <!-- ================= [바텀 시트 3: 환경설정 & UF5 회전 / UF6 변위값 (밝은 배경 + 큰 버튼 + 차별화 슬라이더)] ================= -->
+  <!-- ================= [바텀 시트 3: 환경설정 & UF5 회전 / UF6 변위값 (밝은 배경)] ================= -->
   <div id="menuModal" class="bottom-sheet closed absolute inset-x-0 bottom-0 z-40 bg-white/98 backdrop-blur-xl rounded-t-3xl shadow-2xl border-t border-slate-300 p-4 max-h-[86dvh] flex flex-col pb-[calc(var(--sab)+16px)]">
     <div class="w-12 h-1.5 bg-slate-300 rounded-full mx-auto mb-2.5 shrink-0"></div>
     <div class="flex items-center justify-between pb-2 border-b border-slate-200 mb-2 shrink-0">
@@ -286,13 +317,13 @@
       </div>
       <div class="flex items-center gap-1.5">
         <button onclick="resetDisplacements()" class="text-[11px] font-bold text-slate-700 bg-slate-100 hover:bg-slate-200 px-2.5 py-1 rounded-lg border border-slate-300 shadow-xs">0 초기화</button>
-        <button onclick="toggleModal('menuModal')" class="text-xs font-bold text-slate-400 bg-slate-100 px-2 py-0.5 rounded-full">닫기 ✕</button>
+        <button onclick="toggleModal('menuModal')" class="text-xs font-bold text-slate-400 bg-slate-100 px-2.5 py-1 rounded-full">닫기 ✕</button>
       </div>
     </div>
     
     <div class="space-y-3 overflow-y-auto pr-0.5 text-xs">
       
-      <!-- [1. UF5 마스터 원점 Z축 회전 옵션] -->
+      <!-- 1. UF5 마스터 원점 Z축 회전 옵션 -->
       <div class="bg-slate-50 p-3 rounded-2xl border border-slate-200 shadow-xs">
         <div class="flex items-center justify-between mb-2">
           <span class="font-extrabold text-slate-800 text-[11px] flex items-center gap-1">
@@ -308,15 +339,13 @@
         </div>
       </div>
 
-      <!-- [2. UF6 병진 변위 (dX, dY, dZ)] -->
+      <!-- 2. UF6 병진 변위 (dX, dY, dZ) -->
       <div class="bg-slate-50 p-3 rounded-2xl border border-slate-200 shadow-xs">
         <div class="flex items-center justify-between mb-2.5">
           <span class="font-extrabold text-slate-800 text-[11px]">📍 UF6 병진 위치 변위 (±1.50m)</span>
           <span class="text-[10px] font-bold text-amber-700 bg-amber-100 px-1.5 py-0.5 rounded">Yellow Thumb</span>
         </div>
         <div class="space-y-3">
-          
-          <!-- dX -->
           <div class="flex items-center gap-2">
             <span class="w-8 font-mono font-black text-rose-600 text-xs shrink-0">dX</span>
             <button onclick="stepDisp('dx', -0.05)" class="touch-btn w-8 h-8 rounded-xl bg-white border-2 border-slate-300 font-black text-slate-800 text-lg flex items-center justify-center shrink-0 shadow-xs leading-none">−</button>
@@ -325,7 +354,6 @@
             <span id="val_dx" class="w-13 font-mono font-black text-slate-900 text-right shrink-0 text-xs">+0.00</span>
           </div>
 
-          <!-- dY -->
           <div class="flex items-center gap-2">
             <span class="w-8 font-mono font-black text-emerald-600 text-xs shrink-0">dY</span>
             <button onclick="stepDisp('dy', -0.05)" class="touch-btn w-8 h-8 rounded-xl bg-white border-2 border-slate-300 font-black text-slate-800 text-lg flex items-center justify-center shrink-0 shadow-xs leading-none">−</button>
@@ -334,7 +362,6 @@
             <span id="val_dy" class="w-13 font-mono font-black text-slate-900 text-right shrink-0 text-xs">+0.00</span>
           </div>
 
-          <!-- dZ -->
           <div class="flex items-center gap-2">
             <span class="w-8 font-mono font-black text-blue-600 text-xs shrink-0">dZ</span>
             <button onclick="stepDisp('dz', -0.05)" class="touch-btn w-8 h-8 rounded-xl bg-white border-2 border-slate-300 font-black text-slate-800 text-lg flex items-center justify-center shrink-0 shadow-xs leading-none">−</button>
@@ -342,19 +369,16 @@
             <button onclick="stepDisp('dz', 0.05)" class="touch-btn w-8 h-8 rounded-xl bg-white border-2 border-slate-300 font-black text-slate-800 text-lg flex items-center justify-center shrink-0 shadow-xs leading-none">+</button>
             <span id="val_dz" class="w-13 font-mono font-black text-slate-900 text-right shrink-0 text-xs">+0.00</span>
           </div>
-
         </div>
       </div>
 
-      <!-- [3. UF6 회전 변위 (dRx, dRy, dRz)] -->
+      <!-- 3. UF6 회전 변위 (dRx, dRy, dRz) -->
       <div class="bg-slate-50 p-3 rounded-2xl border border-slate-200 shadow-xs">
         <div class="flex items-center justify-between mb-2.5">
           <span class="font-extrabold text-slate-800 text-[11px]">🔄 UF6 3축 회전 각도 (±35°)</span>
           <span class="text-[10px] font-bold text-purple-700 bg-purple-100 px-1.5 py-0.5 rounded">Purple Thumb</span>
         </div>
         <div class="space-y-3">
-          
-          <!-- dRx -->
           <div class="flex items-center gap-2">
             <span class="w-8 font-mono font-black text-amber-600 text-xs shrink-0">dRx</span>
             <button onclick="stepDisp('rx', -1)" class="touch-btn w-8 h-8 rounded-xl bg-white border-2 border-slate-300 font-black text-slate-800 text-lg flex items-center justify-center shrink-0 shadow-xs leading-none">−</button>
@@ -363,7 +387,6 @@
             <span id="val_rx" class="w-13 font-mono font-black text-slate-900 text-right shrink-0 text-xs">+0°</span>
           </div>
 
-          <!-- dRy -->
           <div class="flex items-center gap-2">
             <span class="w-8 font-mono font-black text-teal-600 text-xs shrink-0">dRy</span>
             <button onclick="stepDisp('ry', -1)" class="touch-btn w-8 h-8 rounded-xl bg-white border-2 border-slate-300 font-black text-slate-800 text-lg flex items-center justify-center shrink-0 shadow-xs leading-none">−</button>
@@ -372,7 +395,6 @@
             <span id="val_ry" class="w-13 font-mono font-black text-slate-900 text-right shrink-0 text-xs">+0°</span>
           </div>
 
-          <!-- dRz -->
           <div class="flex items-center gap-2">
             <span class="w-8 font-mono font-black text-purple-600 text-xs shrink-0">dRz</span>
             <button onclick="stepDisp('rz', -1)" class="touch-btn w-8 h-8 rounded-xl bg-white border-2 border-slate-300 font-black text-slate-800 text-lg flex items-center justify-center shrink-0 shadow-xs leading-none">−</button>
@@ -380,7 +402,6 @@
             <button onclick="stepDisp('rz', 1)" class="touch-btn w-8 h-8 rounded-xl bg-white border-2 border-slate-300 font-black text-slate-800 text-lg flex items-center justify-center shrink-0 shadow-xs leading-none">+</button>
             <span id="val_rz" class="w-13 font-mono font-black text-slate-900 text-right shrink-0 text-xs">+0°</span>
           </div>
-
         </div>
       </div>
 
@@ -393,12 +414,13 @@
       </div>
 
       <div class="pt-2 border-t border-slate-200 text-center text-slate-400 text-[11px]">
-        ATM Robot Automation • 유재광 교육관 (M1.0)
+        ATM Robot Automation • 유재광 교육관 (V2.0)
       </div>
     </div>
   </div>
 
   <script>
+    /* [V2.0 CHANGES]: Step 데이터 시퀀스 (PC v8.3 텍스트 규격 동기화) */
     const stepData = [
       { badge: "STEP 1", heading: "1. Base 좌표계 및 로봇/스캐너 준비", body: "Base 원점에 6축 다관절 로봇과 AITZ 3DU[3DM] 스캐너가 준비됩니다." },
       { badge: "STEP 2", heading: "2. 부품 마스터 기준점(UF5 Ref) 정의", body: "작업 테이블 위에 마스터 지그와 Org(UF5 Ref) 직교 3축이 형성됩니다." },
@@ -407,7 +429,7 @@
       { badge: "STEP 5", heading: "5. Point A & B 개별 포인트 정밀 티칭", body: "Point A 상공(Move P) -> 수직 티칭(Move L) -> B 상공 점프 및 수직 티칭" },
       { badge: "STEP 6", heading: "6. A → B 선형 보간(Move L) 검증 주행", body: "Point A에서 B까지 에메랄드 직선 보간 검증 주행 후 대기 위치로 복귀합니다." },
       { badge: "STEP 7", heading: "7. 부품 3D 변위 인입 (입체 화살표 연장)", body: "부품이 3D 변위로 인입되며, 마스터에서 변위점까지 점선 화살표가 실시간 연장됩니다." },
-      { badge: "STEP 8", heading: "8. AITZ 3DU 구조광 스캔 (공차 인터락 검사)", body: "3D 점군 스캔 라인이 스위핑되며 6축 공차 LED 램프에 즉시 반영됩니다." },
+      { badge: "STEP 8", heading: "8. AITZ 3DU 구조광 십자 직교 교차 스캔", body: "적색 슬릿 레이저가 X축 평행 1회 ➔ 90° 직교 Y축 평행 1회 교차 주사됩니다." },
       { badge: "STEP 9", heading: "9. 3DU 알고리즘 ICP 정합 수렴", body: "측정 점군이 ICP 정합 수렴하며 UF6 축과 보정 가공선 A'B'가 확정됩니다." },
       { badge: "STEP 10", heading: "10. UF6 기반 6자유도 보정 실링 도포", body: "보정 전 오차 점선 대비, UF6 정합 선 위에 보라색 실링 비드를 도포합니다." },
       { badge: "STEP 11", heading: "11. 작업 완료 및 안전 홈 복귀", body: "도포된 보라색 실링 비드를 완제품으로 보존하며 안전 홈 위치로 복귀합니다." }
@@ -415,6 +437,7 @@
 
     let currentStep = 0, autoPlayTimer = null, animProgress = 0, isAnimating = false;
     let currentCameraMode = 'iso', demoModeType = null;
+    let autoStepProgressTimer = null; // 자동재생 진행률 바 타이머
 
     let scene, camera, renderer, controls;
     let baseAxes, masterGroup, sheetGroup, robotGroup, robotArmGroup;
@@ -426,6 +449,7 @@
     let dispGroupA, dispGroupB;
     let lockOnBeam, standMesh, standEdge;
     let scannerGroup, scannerBeamMesh, cameraBeamMesh, cameraFlashMesh, scanSweeperMesh;
+    const SCANNER_HEIGHT_Y = 3.8;
     let uf5AxesGroup, uf5OrgLabel, uf5OrgMesh, uf6DashedAxesGroup, uf6SolidAxesGroup;
     let sheetMeshRef, sheetEdgeLinesRef, sheetBadgeSprite, orgPrimeSprite, sheetPointASprite, sheetPointBSprite;
     let errorCompareLineMesh;
@@ -435,7 +459,7 @@
 
     const baseOriginPos = new THREE.Vector3(-4.5, 0.0, 3.2);
 
-    // [Point A & B의 3D Z값 고저차: pta_z = 0.0, ptb_z = 0.50m 반영]
+    /* [V2.0 CHANGES]: Point A & B 3D Z값 50cm 경사 단차 유지 (pta_z: 0.0, ptb_z: 0.50) */
     const ufParams = {
       uf5_x: 4.0, uf5_y: 2.5, uf5_z: 1.5, uf5_rz: 0,
       pta_x: 0.8, pta_y: 0.4, pta_z: 0.00, pt_len: 1.6, pt_ang: 30, ptb_x: 2.19, ptb_y: 1.20, ptb_z: 0.50,
@@ -446,6 +470,7 @@
     let dynamicSheetShift = { pos: new THREE.Vector3(), rot: new THREE.Euler() };
     let camTransition = { active: false, startTime: 0, duration: 620, startPos: new THREE.Vector3(), endPos: new THREE.Vector3(), startTarget: new THREE.Vector3(), endTarget: new THREE.Vector3() };
 
+    /* [V2.0 CHANGES]: PC v8.3 공차 한도 설정 동기화 */
     const TOLERANCE_LIMIT = { dx_min: -1.0, dx_max: 1.3, dy_min: -1.0, dy_max: 1.3, dz_min: -1.0, dz_max: 1.0, rx_min: -15.0, rx_max: 18.0, ry_min: -15.0, ry_max: 18.0, rz_min: -20.0, rz_max: 25.0 };
     let isToleranceError = false, showTrail = true, trajectoryMesh = null, trajectoryPoints = [];
     const MAX_TRAIL_POINTS = 300;
@@ -491,6 +516,26 @@
       return { isOver };
     }
 
+    /* [V2.0 UPDATE: 지인분 피드백 1] 실행 중인 버튼 시각적 활성화 피드백 (링 & 펄스) */
+    function updateButtonActiveStates() {
+      const bOK = document.getElementById('btnDemoOK');
+      const bNG = document.getElementById('btnDemoNG');
+      const bAuto = document.getElementById('autoPlayBtn');
+
+      if (bOK) {
+        if (demoModeType === 'OK') bOK.classList.add('btn-running-ok', 'animate-pulse');
+        else bOK.classList.remove('btn-running-ok', 'animate-pulse');
+      }
+      if (bNG) {
+        if (demoModeType === 'NG') bNG.classList.add('btn-running-ng', 'animate-pulse');
+        else bNG.classList.remove('btn-running-ng', 'animate-pulse');
+      }
+      if (bAuto) {
+        if (autoPlayTimer && !demoModeType) bAuto.classList.add('btn-running-auto', 'animate-pulse');
+        else bAuto.classList.remove('btn-running-auto', 'animate-pulse');
+      }
+    }
+
     function toggleModal(modalId) {
       const modal = document.getElementById(modalId);
       if (!modal) return;
@@ -534,7 +579,7 @@
       });
     }
 
-    // [UF5 마스터 원점 Z축 회전 선택]
+    /* [V2.0 CHANGES]: UF5 마스터 원점 Z축 회전 시 스캐너 위치(공전)는 추종하되 본체 자세는 정면(0,0,0) 고정 */
     function setMasterRotation(deg) {
       ufParams.uf5_rz = deg;
       const lbl = document.getElementById('labelMasterRz');
@@ -556,9 +601,9 @@
       }
       if (scannerGroup) {
         const radY = THREE.MathUtils.degToRad(ufParams.uf5_rz);
-        const scannerOffset = new THREE.Vector3(1.2, 3.8, -0.6).applyAxisAngle(new THREE.Vector3(0, 1, 0), radY);
+        const scannerOffset = new THREE.Vector3(1.2, SCANNER_HEIGHT_Y, -0.6).applyAxisAngle(new THREE.Vector3(0, 1, 0), radY);
         scannerGroup.position.copy(masterOrigin).add(scannerOffset);
-        scannerGroup.rotation.set(0, 0, 0); // 항상 정면 고정
+        scannerGroup.rotation.set(0, 0, 0); // 정면 고정
       }
       applyStepTransforms(animProgress);
     }
@@ -625,6 +670,17 @@
       const qMaster = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), THREE.MathUtils.degToRad(ufParams.uf5_rz));
       const qDelta = new THREE.Quaternion().setFromEuler(new THREE.Euler(THREE.MathUtils.degToRad(ufParams.rx * scaleFactor), THREE.MathUtils.degToRad(ufParams.rz * scaleFactor), -THREE.MathUtils.degToRad(ufParams.ry * scaleFactor), 'ZYX'));
       return qMaster.multiply(qDelta);
+    }
+
+    /* [V2.0 CHANGES]: PC v8.3 동차변환행렬 연산 함수 이식 */
+    function computeUF5ToUF6StandardMatrix() {
+      const rx = THREE.MathUtils.degToRad(ufParams.rx);
+      const ry = THREE.MathUtils.degToRad(ufParams.ry);
+      const rz = THREE.MathUtils.degToRad(ufParams.rz);
+      const euler = new THREE.Euler(rx, ry, rz, 'ZYX');
+      const m = new THREE.Matrix4().makeRotationFromEuler(euler);
+      m.setPosition(ufParams.dx, ufParams.dy, ufParams.dz);
+      return m;
     }
 
     function interpolateMove(pStart, pEnd, t, opts, outVec) {
@@ -823,7 +879,7 @@
       scene = new THREE.Scene(); scene.background = new THREE.Color(0xf8fafc); scene.fog = new THREE.FogExp2(0xf8fafc, 0.018);
       
       camera = new THREE.PerspectiveCamera(52, width / height, 0.1, 100); 
-      // [요청 2] 초기 카메라 위치도 로봇이 화면 좌측에 나오고 박스가 우측에 배치되도록 최적화
+      // [V2.0 CHANGES]: 로봇(좌측)과 박스(우측) 황금비율 관점 카메라 초기 좌표
       camera.position.set(0.4, 7.8, 11.6);
       
       renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' });
@@ -961,7 +1017,7 @@
       scanSweeperMesh = new THREE.Mesh(new THREE.PlaneGeometry(3.6, 0.06), new THREE.MeshBasicMaterial({ color: 0xff2a55, side: THREE.DoubleSide, transparent: true, opacity: 0 }));
       scanSweeperMesh.rotation.x = Math.PI / 2; scannerGroup.add(scanSweeperMesh);
 
-      scannerGroup.position.copy(masterOrigin).add(new THREE.Vector3(1.2, 3.8, -0.6));
+      scannerGroup.position.copy(masterOrigin).add(new THREE.Vector3(1.2, SCANNER_HEIGHT_Y, -0.6));
       scene.add(scannerGroup);
     }
 
@@ -1153,29 +1209,47 @@
       if (trajectoryMesh) trajectoryMesh.visible = showTrail;
     }
 
-    function applyPresetCase(caseType) {
-      if (caseType === 'A') { ufParams.dx = 0.50; ufParams.dy = -0.25; ufParams.dz = 0.25; ufParams.rx = 5; ufParams.ry = -4; ufParams.rz = 10; }
-      else if (caseType === 'B') { ufParams.dx = 0.25; ufParams.dy = 0.25; ufParams.dz = 1.25; ufParams.rx = 0; ufParams.ry = 0; ufParams.rz = 0; }
-      else if (caseType === 'C') { ufParams.dx = -0.50; ufParams.dy = 0.50; ufParams.dz = -0.25; ufParams.rx = 14; ufParams.ry = -12; ufParams.rz = -8; }
-      else if (caseType === 'D') { ufParams.dx = 0.75; ufParams.dy = -0.50; ufParams.dz = 0.00; ufParams.rx = 0; ufParams.ry = 0; ufParams.rz = 32; }
+    /* [V2.0 UPDATE: 지인분 피드백 1] 원터치 데모 실행 및 버튼 링/CMD 텍스트 피드백 연동 */
+    function startCinematicDemo(type) {
+      if (autoPlayTimer) toggleAutoPlay();
+      demoModeType = type;
+      setMasterRotation(0);
+
+      // Point A와 B: Z축 단차 0.5m 반영
+      ufParams.pta_x = 0.8; ufParams.pta_y = 0.4; ufParams.pta_z = 0.0;
+      ufParams.ptb_x = 2.19; ufParams.ptb_y = 1.20; ufParams.ptb_z = 0.50;
+
+      const rndSteps = (min, max, step) => min + (Math.floor(Math.random() * (Math.round((max - min) / step) + 1)) * step);
+      const sign = () => (Math.random() > 0.5 ? 1 : -1);
+
+      if (type === 'OK') {
+        ufParams.dx = parseFloat((rndSteps(0.25, 0.75, 0.25) * sign()).toFixed(2));
+        ufParams.dy = parseFloat((rndSteps(0.25, 0.75, 0.25) * sign()).toFixed(2));
+        ufParams.dz = parseFloat((rndSteps(0.25, 0.50, 0.25) * sign()).toFixed(2));
+        ufParams.rx = rndSteps(3, 8, 1) * sign();
+        ufParams.ry = rndSteps(3, 8, 1) * sign();
+        ufParams.rz = rndSteps(5, 12, 1) * sign();
+      } else {
+        ufParams.dx = 0.25; ufParams.dy = -0.25; ufParams.dz = 0.25;
+        ufParams.rx = 4; ufParams.ry = -3; ufParams.rz = 8;
+        const ngAxis = Math.floor(Math.random() * 3);
+        if (ngAxis === 0) ufParams.dz = (Math.random() > 0.5 ? 1.25 : -1.25);
+        else if (ngAxis === 1) ufParams.rz = (Math.random() > 0.5 ? 32 : -30);
+        else ufParams.dx = (Math.random() > 0.5 ? 1.50 : -1.25);
+      }
+
       syncDispUI();
       recalculateParameters();
       if (masterGroup) { masterGroup.position.copy(masterOrigin); updateMasterStandHeight(); }
       checkToleranceStatus();
-      goToStep(7);
-    }
-
-    function startCinematicDemo(type) {
-      if (autoPlayTimer) toggleAutoPlay();
-      demoModeType = type;
-      if (type === 'OK') applyPresetCase('A');
-      else applyPresetCase('B');
-      
       resetTrajectoryTrail(); resetMoveMotionTrails();
-      goToStep(0); setCameraView('iso');
       
-      const pText = document.getElementById('playText');
-      if (pText) pText.innerText = type === 'OK' ? "데모(OK)" : "데모(NG)";
+      updateButtonActiveStates();
+      goToStep(0); setCameraView('iso');
+
+      const cmdEl = document.getElementById('targetCoord');
+      if (cmdEl) cmdEl.innerText = type === 'OK' ? "OK 데모 진행 중" : "NG 데모 진행 중";
+
       autoPlayTimer = true; scheduleNextAutoStep();
     }
 
@@ -1184,6 +1258,7 @@
       group.traverse(child => { if (child.material) { child.material.transparent = true; child.material.opacity = opacity; } });
     }
 
+    /* [V2.0 CHANGES]: PC v8.3 십자 직교 교차 스캔(Cross-Scanning) 로직 완전 이식 */
     function applyStepTransforms(t = 1) {
       if (!masterGroup || !sheetGroup || !robotGroup) return;
       const masterRadY = THREE.MathUtils.degToRad(ufParams.uf5_rz);
@@ -1191,10 +1266,9 @@
 
       if (scannerGroup) {
         scannerGroup.visible = true;
-        // 지반 박스 상단 중심 위치 추종 및 항상 정면(Front) 응시 고정
-        const scannerOffset = new THREE.Vector3(1.2, 3.8, -0.6).applyAxisAngle(new THREE.Vector3(0, 1, 0), masterRadY);
+        const scannerOffset = new THREE.Vector3(1.2, SCANNER_HEIGHT_Y, -0.6).applyAxisAngle(new THREE.Vector3(0, 1, 0), masterRadY);
         scannerGroup.position.copy(masterOrigin).add(scannerOffset);
-        scannerGroup.rotation.set(0, 0, 0);
+        scannerGroup.rotation.set(0, 0, 0); // 정면 고정
       }
       if (robotArmGroup) robotArmGroup.visible = true;
       robotGroup.visible = true;
@@ -1269,19 +1343,31 @@
         setGroupOpacity(uf6SolidAxesGroup, 1.0);
       }
 
+      /* [V2.0 CHANGES]: 8단계(Step 7 index) 십자 직교 교차 스캔 (X축 ➔ Y축) */
       if (scannerBeamMesh && cameraBeamMesh && cameraFlashMesh && scanSweeperMesh) {
         if (currentStep === 7) {
           scannerBeamMesh.material.opacity = THREE.MathUtils.lerp(0.20, 0.45, (Math.sin(performance.now() * 0.006) + 1) * 0.5);
-          scanSweeperMesh.material.opacity = 0.90;
-          const sweepZ = Math.sin(t * Math.PI * 2.5) * 1.4;
-          scanSweeperMesh.position.set(0, -3.8 + 0.05, sweepZ);
+          scanSweeperMesh.material.opacity = 0.92;
 
-          if (t >= 0.15 && t <= 0.95) {
-            const blinkProgress = (t - 0.15) / 0.80;
-            const isBlinkOn = Math.sin(blinkProgress * Math.PI * 14) > 0.20 ? 1.0 : 0.0;
-            cameraBeamMesh.material.opacity = isBlinkOn * 0.45;
-            cameraFlashMesh.material.opacity = isBlinkOn * 1.0;
-          } else { cameraBeamMesh.material.opacity = 0.0; cameraFlashMesh.material.opacity = 0.0; }
+          if (t <= 0.50) {
+            const p1 = t / 0.50;
+            scanSweeperMesh.rotation.z = 0;
+            const sweepZ = (p1 * 2.8) - 1.4;
+            scanSweeperMesh.position.set(0, -SCANNER_HEIGHT_Y + 0.05, sweepZ);
+
+            const isFlashOn = Math.sin(p1 * Math.PI * 6) > 0.25 ? 1.0 : 0.0;
+            cameraBeamMesh.material.opacity = isFlashOn * 0.45;
+            cameraFlashMesh.material.opacity = isFlashOn * 1.0;
+          } else {
+            const p2 = (t - 0.50) / 0.50;
+            scanSweeperMesh.rotation.z = Math.PI / 2;
+            const sweepX = (p2 * 2.8) - 1.4;
+            scanSweeperMesh.position.set(sweepX, -SCANNER_HEIGHT_Y + 0.05, 0);
+
+            const isFlashOn = Math.sin(p2 * Math.PI * 6) > 0.25 ? 1.0 : 0.0;
+            cameraBeamMesh.material.opacity = isFlashOn * 0.45;
+            cameraFlashMesh.material.opacity = isFlashOn * 1.0;
+          }
         } else { 
           scannerBeamMesh.material.opacity = 0.0; cameraBeamMesh.material.opacity = 0.0; cameraFlashMesh.material.opacity = 0.0; 
           scanSweeperMesh.material.opacity = 0.0;
@@ -1448,13 +1534,27 @@
 
     function updateStepUI() {
       const data = stepData[currentStep];
-      document.getElementById('mobileStepBadge').innerText = data.badge;
+      const badgeEl = document.getElementById('mobileStepBadge');
+      if (badgeEl) {
+        badgeEl.innerText = data.badge;
+        badgeEl.className = "bg-blue-600 text-white text-[10px] font-black px-1.5 py-0.5 rounded-md shrink-0 transition-colors duration-300";
+      }
       document.getElementById('mobileStepTitle').innerText = data.heading;
       
       document.getElementById('prevBtn').disabled = (currentStep === 0);
       document.getElementById('nextBtn').disabled = (currentStep === stepData.length - 1);
       buildStepListSheet();
+      updateButtonActiveStates();
       trigger3DAnimation();
+    }
+
+    /* [V2.0 UPDATE: 지인분 피드백 2] 스텝 완료 시 Step Done 초록 뱃지 전환 */
+    function markStepCompleted() {
+      const badgeEl = document.getElementById('mobileStepBadge');
+      if (badgeEl) {
+        badgeEl.innerText = `${stepData[currentStep].badge} DONE ✓`;
+        badgeEl.className = "bg-emerald-600 text-white text-[10px] font-black px-1.5 py-0.5 rounded-md shrink-0 transition-all duration-300 transform scale-105 shadow-xs";
+      }
     }
 
     function trigger3DAnimation() {
@@ -1463,7 +1563,7 @@
       if (currentStep === 4) duration = 6500; 
       else if (currentStep === 5) duration = 5200; 
       else if (currentStep === 9) duration = 4800; 
-      else if (currentStep === 7) duration = 5200; 
+      else if (currentStep === 7) duration = 5400; // 십자 교차 스캔 시간
       else if (currentStep === 8) duration = 1800; 
       else if (currentStep === 2 || currentStep === 10) duration = 2400;
       
@@ -1471,12 +1571,16 @@
         const linearT = Math.min(1, (now - startTime) / duration);
         animProgress = (currentStep === 2 || currentStep === 10) ? (1 - Math.pow(1 - linearT, 3)) : linearT;
         applyStepTransforms(animProgress);
-        if (linearT < 1) requestAnimationFrame(stepAnim); else { isAnimating = false; applyStepTransforms(1); }
+        if (linearT < 1) requestAnimationFrame(stepAnim);
+        else { 
+          isAnimating = false; 
+          applyStepTransforms(1);
+          markStepCompleted(); // 스텝 완료 피드백 점등
+        }
       }
       requestAnimationFrame(stepAnim);
     }
 
-    // [요청 2] 기준 관점 구도 최적화 (로봇이 화면 좌측에 오고 박스가 우측에 배치되도록 lookAt/camPos 재조정)
     function setCameraView(view, animateCam = true) {
       if (!controls || !camera) return;
       currentCameraMode = view;
@@ -1555,37 +1659,64 @@
     function nextStep() { if (currentStep < stepData.length - 1) goToStep(currentStep + 1); }
     function prevStep() { if (currentStep > 0) goToStep(currentStep - 1); }
 
+    /* [V2.0 UPDATE: 지인분 피드백 2] 자동재생 중 다음 단계 대기 프로그레스 게이지 연동 */
     function scheduleNextAutoStep() {
       if (!autoPlayTimer) return;
       let waitTime = 4200;
       if (currentStep === 4) waitTime = 7200; 
       else if (currentStep === 5) waitTime = 5900; 
-      else if (currentStep === 7) waitTime = 5800; 
+      else if (currentStep === 7) waitTime = 6000; 
       else if (currentStep === 9) waitTime = 5400; 
       else if (currentStep === 10) waitTime = 3000;
 
+      const pWrap = document.getElementById('autoPlayProgressWrapper');
+      const pBar = document.getElementById('autoPlayProgressBar');
+      if (pWrap && pBar) {
+        pWrap.classList.remove('hidden');
+        pBar.style.width = '0%';
+        const pStart = performance.now();
+        if (autoStepProgressTimer) clearInterval(autoStepProgressTimer);
+        autoStepProgressTimer = setInterval(() => {
+          if (!autoPlayTimer) { clearInterval(autoStepProgressTimer); return; }
+          const elapsed = performance.now() - pStart;
+          const pct = Math.min(100, (elapsed / waitTime) * 100);
+          pBar.style.width = `${pct}%`;
+          if (pct >= 100) clearInterval(autoStepProgressTimer);
+        }, 50);
+      }
+
       autoPlayTimer = setTimeout(() => {
         if (!autoPlayTimer) return;
+        if (autoStepProgressTimer) clearInterval(autoStepProgressTimer);
+        if (pWrap) pWrap.classList.add('hidden');
+
         if (currentStep < stepData.length - 1) {
           goToStep(currentStep + 1);
           scheduleNextAutoStep();
         } else {
           clearTimeout(autoPlayTimer); autoPlayTimer = null;
           demoModeType = null;
+          updateButtonActiveStates();
           document.getElementById('playIcon').innerText = "▶"; document.getElementById('playText').innerText = "자동 재생";
         }
       }, waitTime);
     }
 
     function toggleAutoPlay() {
+      const pWrap = document.getElementById('autoPlayProgressWrapper');
       if (autoPlayTimer) {
         clearTimeout(autoPlayTimer); autoPlayTimer = null;
+        if (autoStepProgressTimer) clearInterval(autoStepProgressTimer);
+        if (pWrap) pWrap.classList.add('hidden');
         demoModeType = null;
+        updateButtonActiveStates();
         document.getElementById('playIcon').innerText = "▶"; document.getElementById('playText').innerText = "자동 재생";
       } else {
         if (currentStep === stepData.length - 1) { resetTrajectoryTrail(); resetMoveMotionTrails(); goToStep(0); setCameraView('iso'); }
         document.getElementById('playIcon').innerText = "⏸"; document.getElementById('playText').innerText = "일시 정지";
-        autoPlayTimer = true; scheduleNextAutoStep();
+        autoPlayTimer = true;
+        updateButtonActiveStates();
+        scheduleNextAutoStep();
       }
     }
 
@@ -1603,8 +1734,40 @@
       }
     }
 
+    /* [V2.0 CHANGES]: PC v8.3 Horn 쿼터니언 강체 변환 ICP 엔진 이식 */
+    let ICP_PARTICLE_COUNT = 180;
     let icpScene, icpCamera, icpRenderer, icpMasterGroup, icpMeasuredGroup, icpMasterPoints, icpMeasuredPoints;
-    let icpBasePositions = new Float32Array(180 * 3);
+    let icpBasePositions = new Float32Array(ICP_PARTICLE_COUNT * 3);
+
+    function solveRigidHorn(source, target) {
+      const n = Math.min(source.length, target.length);
+      const cs = new THREE.Vector3(), ct = new THREE.Vector3();
+      for (let i=0;i<n;i++) { cs.add(source[i]); ct.add(target[i]); }
+      cs.multiplyScalar(1/n); ct.multiplyScalar(1/n);
+      let Sxx=0,Sxy=0,Sxz=0,Syx=0,Syy=0,Syz=0,Szx=0,Szy=0,Szz=0;
+      for (let i=0;i<n;i++) {
+        const a=source[i].clone().sub(cs), b=target[i].clone().sub(ct);
+        Sxx+=a.x*b.x; Sxy+=a.x*b.y; Sxz+=a.x*b.z;
+        Syx+=a.y*b.x; Syy+=a.y*b.y; Syz+=a.y*b.z;
+        Szx+=a.z*b.x; Szy+=a.z*b.y; Szz+=a.z*b.z;
+      }
+      const tr=Sxx+Syy+Szz;
+      const N=[
+        [tr, Syz-Szy, Szx-Sxz, Sxy-Syx],
+        [Syz-Szy, Sxx-Syy-Szz, Sxy+Syx, Szx+Sxz],
+        [Szx-Sxz, Sxy+Syx, -Sxx+Syy-Szz, Syz+Szy],
+        [Sxy-Syx, Szx+Sxz, Syz+Szy, -Sxx-Syy+Szz]
+      ];
+      let v=[1,0,0,0];
+      for(let k=0;k<60;k++) {
+        const w=N.map(row=>row.reduce((sum,val,j)=>sum+val*v[j],0));
+        const norm=Math.hypot(...w); if(norm<1e-12) break;
+        v=w.map(x=>x/norm);
+      }
+      const q=new THREE.Quaternion(v[1],v[2],v[3],v[0]).normalize();
+      const pos=ct.clone().sub(cs.applyQuaternion(q));
+      return {position:pos, quaternion:q};
+    }
 
     function initICPMiniView() {
       const container = document.getElementById('icpCanvasContainer');
