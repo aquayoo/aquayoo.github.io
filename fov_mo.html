@@ -47,20 +47,22 @@
 </head>
 <body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col font-sans overflow-x-hidden">
 
-  <!-- 1. 헤더: 버전 박스 + 영문 단독 타이틀 + Home 버튼 + 2단 프리셋 -->
+  <!-- 1. 헤더: 회사 로고(atm_red.png) + 버전 박스 + 타이틀 + Home 버튼 + 2단 프리셋 -->
   <header class="bg-slate-900/95 backdrop-blur border-b border-slate-800 px-3 py-2 sticky top-0 z-30 space-y-2">
     <!-- 타이틀 바 -->
     <div class="flex items-center justify-between">
       <div class="flex items-center gap-2">
+        <!-- 회사 레드 로고 (atm_red.png) -->
+        <img src="atm_red.png" alt="ATM" class="h-5 sm:h-6 object-contain" onerror="this.style.display='none'">
         <span class="px-2 py-0.5 text-[11px] font-bold rounded bg-blue-500/20 text-blue-400 border border-blue-500/40 font-mono tracking-wide">
-          V1.5 (Nov.07)
+          V1.6 (Nov.07)
         </span>
-        <h1 class="text-sm sm:text-base font-extrabold tracking-tight text-white font-mono">
+        <h1 class="text-sm sm:text-base font-extrabold tracking-tight text-white font-mono truncate">
           FOV & WD Optical System
         </h1>
       </div>
       <!-- Home 아이콘 버튼 -->
-      <a href="index.html" class="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 active:bg-blue-600 border border-slate-700 text-slate-300 hover:text-white transition-colors" title="홈으로 이동">
+      <a href="index.html" class="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 active:bg-blue-600 border border-slate-700 text-slate-300 hover:text-white transition-colors flex-shrink-0" title="홈으로 이동">
         <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
           <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
           <polyline points="9 22 9 12 15 12 15 22"/>
@@ -108,13 +110,13 @@
       </div>
     </div>
 
-    <!-- 하단 조작 패널 (모바일 툴바 간섭 방지 pb-14 추가) -->
-    <div class="w-full lg:w-[460px] flex flex-col bg-slate-900 p-3 pb-14 gap-2.5 overflow-y-auto">
+    <!-- 하단 조작 패널 (모바일 최적화 여백 pb-12) -->
+    <div class="w-full lg:w-[460px] flex flex-col bg-slate-900 p-3 pb-12 gap-2.5 overflow-y-auto">
       
-      <!-- [1구역] 2D Sensor View (30%) + 광학 계산기 (70%) -->
+      <!-- [1구역] 2D Sensor View (32%) + 광학 계산기 (68%) -->
       <div class="flex gap-2">
         
-        <!-- 2D Sensor View (약 32%) -->
+        <!-- 2D Sensor View -->
         <div class="w-[32%] bg-slate-950 p-2 rounded-lg border border-slate-800 flex flex-col justify-between">
           <div class="flex items-center justify-between mb-1">
             <span class="text-[10px] font-bold text-slate-300 tracking-tight">2D Sensor View</span>
@@ -140,7 +142,7 @@
           </div>
         </div>
 
-        <!-- 광학 계산기 ( FOV ↔ WD ) (약 68%) -->
+        <!-- 광학 계산기 ( FOV ↔ WD ) -->
         <div class="w-[68%] bg-slate-950 p-2.5 rounded-lg border border-blue-900/40 flex flex-col justify-between">
           <div class="flex items-center justify-between mb-1.5 border-b border-slate-800 pb-1">
             <span class="text-xs font-bold text-blue-400 flex items-center gap-1 font-mono">
@@ -202,39 +204,32 @@
 
       </div>
 
-      <!-- [2구역] WD 조절 슬라이더 (100~2200mm 범위 + 정밀 눈금 매핑) -->
+      <!-- [2구역] WD 조절 슬라이더 (100~2200mm 범위) -->
       <div class="bg-slate-950 p-2.5 rounded-lg border border-slate-800 space-y-2">
         <div class="flex justify-between items-center text-xs">
           <span class="font-bold text-slate-200">WD 거리 조절 슬라이더</span>
           <span class="text-amber-400 font-mono font-bold text-xs"><span id="sliderWdVal">700</span> mm</span>
         </div>
         
-        <!-- 슬라이더 바 및 1:1 비례 눈금 컨테이너 -->
         <div class="relative w-full pt-1 pb-4">
           <input type="range" id="wdRange" min="100" max="2200" step="5" value="700" class="w-full h-2 bg-slate-800 rounded-lg cursor-pointer">
           
-          <!-- 슬라이더 수치와 1:1 일치하는 틱 마커 (범위: 100~2200, 분모 2100mm) -->
-          <!-- LS: 100mm -> 0% -->
           <div class="absolute top-5 left-[0%] -translate-x-1 flex flex-col items-center pointer-events-none">
             <div class="w-[1px] h-1.5 bg-slate-600 mb-0.5"></div>
             <span class="text-[9px] font-mono text-slate-400">LS</span>
           </div>
-          <!-- LZ: 200mm -> (200-100)/2100 = 4.76% -->
           <div class="absolute top-5 left-[4.8%] -translate-x-1/2 flex flex-col items-center pointer-events-none">
             <div class="w-[1px] h-1.5 bg-slate-600 mb-0.5"></div>
             <span class="text-[9px] font-mono text-slate-400">LZ</span>
           </div>
-          <!-- 3DU: 700mm -> (700-100)/2100 = 28.57% -->
           <div class="absolute top-5 left-[28.6%] -translate-x-1/2 flex flex-col items-center pointer-events-none">
             <div class="w-[1px] h-1.5 bg-blue-500 mb-0.5"></div>
             <span class="text-[9px] font-mono text-blue-400 font-bold">3DU</span>
           </div>
-          <!-- 3DM: 1400mm -> (1400-100)/2100 = 61.9% -->
           <div class="absolute top-5 left-[61.9%] -translate-x-1/2 flex flex-col items-center pointer-events-none">
             <div class="w-[1px] h-1.5 bg-blue-500 mb-0.5"></div>
             <span class="text-[9px] font-mono text-blue-400 font-bold">3DM</span>
           </div>
-          <!-- MAX: 2200mm -> 100% -->
           <div class="absolute top-5 right-[0%] translate-x-1 flex flex-col items-center pointer-events-none">
             <div class="w-[1px] h-1.5 bg-slate-600 mb-0.5"></div>
             <span class="text-[9px] font-mono text-slate-400">2200</span>
@@ -246,44 +241,75 @@
         </div>
       </div>
 
-      <!-- [3구역] 측정 부품 (Target) 조정 -->
-      <div class="bg-slate-950 p-2.5 rounded-lg border border-slate-800 space-y-2">
-        <div class="flex justify-between items-center text-xs">
+      <!-- [★ 신규 3구역] 중요 광학 공식 카드 (수식 + 실시간 수치 대입형 힌트) -->
+      <div class="bg-gradient-to-br from-slate-950 to-blue-950/40 p-2.5 rounded-lg border border-blue-500/30 space-y-2">
+        <div class="flex items-center justify-between border-b border-slate-800/80 pb-1">
           <div class="flex items-center gap-1.5">
-            <span class="w-2 h-2 rounded bg-amber-400"></span>
-            <span class="font-bold text-slate-200 whitespace-nowrap">측정 부품 (Target) 조정</span>
+            <span class="px-1.5 py-0.2 rounded bg-amber-500/20 text-amber-400 border border-amber-500/40 text-[10px] font-bold">중요</span>
+            <span class="text-xs font-bold text-slate-200">FOV 기본 광학 공식</span>
           </div>
-          <!-- 퀵 프리셋 -->
-          <div class="flex gap-1 text-[10px]">
-            <button onclick="setTargetPreset(50, 35)" class="px-1.5 py-0.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded border border-slate-700">소형(50×35)</button>
-            <button onclick="setTargetPreset(200, 150)" class="px-1.5 py-0.5 bg-slate-800 hover:bg-slate-700 text-amber-300 font-semibold rounded border border-slate-700">표준(200×150)</button>
-            <button onclick="setTargetPreset(350, 250)" class="px-1.5 py-0.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded border border-slate-700">대형(350×250)</button>
+          <span class="text-[10px] text-blue-400 font-mono">비례식 닮음비</span>
+        </div>
+
+        <!-- 분수 수식 표현 -->
+        <div class="flex items-center justify-center gap-2 py-1">
+          <span class="text-xs sm:text-sm font-bold text-amber-300 font-mono">FOV<sub class="text-[10px]">(W)</sub> =</span>
+          <div class="flex flex-col items-center">
+            <div class="text-xs font-bold text-slate-100 font-mono pb-0.5 px-2 border-b-2 border-blue-400 tracking-wide">
+              WD × 센서크기<sub class="text-[9px] text-slate-300">(W)</sub>
+            </div>
+            <div class="text-xs font-bold text-blue-300 font-mono pt-0.5">
+              초점거리 (f)
+            </div>
           </div>
         </div>
-        
-        <div class="flex items-center justify-between text-xs">
-          <div class="flex items-center gap-1">
-            <span class="text-slate-400 text-[11px]">부품 가로(W):</span>
-            <input type="number" id="inputTargetW" class="w-16 bg-slate-900 border border-slate-700 text-right font-mono text-amber-300 font-bold px-1 py-0.5 rounded focus:border-amber-400 outline-none" value="200">
-            <span class="text-[10px] text-slate-400">mm</span>
-          </div>
-          <span class="text-slate-500 font-bold">×</span>
-          <div class="flex items-center gap-1">
-            <span class="text-slate-400 text-[11px]">부품 세로(H):</span>
-            <input type="number" id="inputTargetH" class="w-16 bg-slate-900 border border-slate-700 text-right font-mono text-amber-300 font-bold px-1 py-0.5 rounded focus:border-amber-400 outline-none" value="150">
-            <span class="text-[10px] text-slate-400">mm</span>
-          </div>
+
+        <!-- 실시간 동적 수치 대입 힌트 박스 -->
+        <div class="bg-slate-900/90 rounded p-1.5 text-center font-mono text-[11px] border border-slate-800 text-slate-300">
+          <span class="text-slate-400 text-[10px] block mb-0.5">현재 장비 실시간 수치 대입:</span>
+          <span id="formulaDynamicText" class="text-emerald-400 font-bold">
+            ( 700 × 7.2 ) ÷ 15 = 336 mm
+          </span>
         </div>
       </div>
 
-      <!-- [4구역] 커스텀 패널 (센서 60% : 조리개 40% 배치 + F1.4 추가) -->
-      <div id="customControlPanel" class="hidden bg-slate-950 p-2.5 rounded-lg border border-blue-900/40 space-y-2.5">
-        <div class="text-xs font-semibold text-blue-400 flex items-center justify-between border-b border-slate-800 pb-1">
+      <!-- [4구역] 커스텀 전용 패널 (커스텀 버튼 클릭 시에만 노출: 타깃 조정 + 센서 + 조리개 일원화) -->
+      <div id="customControlPanel" class="hidden bg-slate-950 p-2.5 rounded-lg border border-blue-900/50 space-y-3">
+        <div class="text-xs font-bold text-blue-400 flex items-center justify-between border-b border-slate-800 pb-1">
           <span>커스텀 파라미터 세부설정</span>
-          <span class="text-[10px] text-slate-400">산업용 실무 범위</span>
+          <span class="text-[10px] text-slate-400">자유 변경 모드</span>
         </div>
 
-        <!-- 초점거리 (4 ~ 35mm) -->
+        <!-- 1) 측정 부품 (Target) 크기 조정 (커스텀 안으로 이동) -->
+        <div class="space-y-1.5 bg-slate-900/70 p-2 rounded border border-slate-800">
+          <div class="flex justify-between items-center text-xs">
+            <div class="flex items-center gap-1.5">
+              <span class="w-2 h-2 rounded bg-amber-400"></span>
+              <span class="font-bold text-slate-200 whitespace-nowrap">측정 부품 (Target) 조정</span>
+            </div>
+            <div class="flex gap-1 text-[9px]">
+              <button onclick="setTargetPreset(50, 35)" class="px-1 py-0.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded border border-slate-700">소형(50×35)</button>
+              <button onclick="setTargetPreset(200, 150)" class="px-1 py-0.5 bg-slate-800 hover:bg-slate-700 text-amber-300 font-semibold rounded border border-slate-700">표준(200×150)</button>
+              <button onclick="setTargetPreset(350, 250)" class="px-1 py-0.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded border border-slate-700">대형(350×250)</button>
+            </div>
+          </div>
+          
+          <div class="flex items-center justify-between text-xs pt-0.5">
+            <div class="flex items-center gap-1">
+              <span class="text-slate-400 text-[11px]">부품 가로(W):</span>
+              <input type="number" id="inputTargetW" class="w-14 bg-slate-950 border border-slate-700 text-right font-mono text-amber-300 font-bold px-1 py-0.5 rounded focus:border-amber-400 outline-none" value="200">
+              <span class="text-[10px] text-slate-400">mm</span>
+            </div>
+            <span class="text-slate-500 font-bold">×</span>
+            <div class="flex items-center gap-1">
+              <span class="text-slate-400 text-[11px]">부품 세로(H):</span>
+              <input type="number" id="inputTargetH" class="w-14 bg-slate-950 border border-slate-700 text-right font-mono text-amber-300 font-bold px-1 py-0.5 rounded focus:border-amber-400 outline-none" value="150">
+              <span class="text-[10px] text-slate-400">mm</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 2) 초점거리 슬라이더 (4 ~ 35mm) -->
         <div class="space-y-1">
           <div class="flex justify-between text-[11px]">
             <span class="text-slate-400">초점거리 (f):</span>
@@ -298,14 +324,12 @@
           </div>
         </div>
 
-        <!-- 센서 크기(60%) + 조리개 선택창(40%) 가로 2열 배치 -->
+        <!-- 3) 센서 크기(60%) + 조리개 선택창(40%) -->
         <div class="flex gap-2 pt-1 border-t border-slate-800">
-          
           <!-- 좌측 60%: 센서 크기 가로/세로 직접입력 + 0.1mm 대형 증감 버튼 -->
           <div class="w-[60%] space-y-1.5 pr-1 border-r border-slate-800">
             <span class="text-[11px] font-bold text-slate-300 block">센서 크기 (±0.1mm)</span>
             
-            <!-- 센서 가로 (기본 7.2mm) -->
             <div class="flex items-center justify-between gap-1 text-xs">
               <span class="text-slate-400 text-[10px] w-8">가로</span>
               <div class="flex items-center gap-0.5">
@@ -319,7 +343,6 @@
               </div>
             </div>
 
-            <!-- 센서 세로 (기본 5.4mm) -->
             <div class="flex items-center justify-between gap-1 text-xs">
               <span class="text-slate-400 text-[10px] w-8">세로</span>
               <div class="flex items-center gap-0.5">
@@ -334,7 +357,7 @@
             </div>
           </div>
 
-          <!-- 우측 40%: 조리개 2열 그리드 선택창 (F1.4 추가) -->
+          <!-- 우측 40%: 조리개 2열 그리드 선택창 -->
           <div class="w-[40%] space-y-1">
             <span class="text-[11px] font-bold text-slate-300 block">조리개 (F)</span>
             <div class="grid grid-cols-2 gap-1 text-[10px]">
@@ -357,7 +380,7 @@
 
   <script>
     /* ============================================================
-       1. 프리셋 데이터 (V1.5)
+       1. 프리셋 데이터 (V1.6)
        ============================================================ */
     const PRESETS = {
       '3DU_16': {
@@ -461,7 +484,7 @@
     grid.position.y = -350;
     scene.add(grid);
 
-    // 카메라 바디
+    // 카메라 바디 메쉬
     const camGroup = new THREE.Group();
     const camBody = new THREE.Mesh(
       new THREE.BoxGeometry(60, 60, 90),
@@ -519,7 +542,7 @@
     const wdLabelObject = new THREE.CSS2DObject(wdLabelDiv);
 
     /* ============================================================
-       3. 광학 공식 연산 & 동기화
+       3. 연산 및 동기화
        ============================================================ */
     function calculateOptics() {
       const { sensorW, sensorH, focal, wd, pxW, pxH, aperture } = currentParams;
@@ -557,7 +580,6 @@
       const pBR = new THREE.Vector3( halfW, -halfH, wd);
       const pBL = new THREE.Vector3(-halfW, -halfH, wd);
 
-      // Frustum 와이어
       const linePositions = [
         pCam.x, pCam.y, pCam.z, pTL.x, pTL.y, pTL.z,
         pCam.x, pCam.y, pCam.z, pTR.x, pTR.y, pTR.z,
@@ -573,7 +595,6 @@
       frustumLines = new THREE.LineSegments(lineGeo, new THREE.LineBasicMaterial({ color: 0x38bdf8, transparent: true, opacity: 0.8 }));
       scene.add(frustumLines);
 
-      // 반투명 피라미드 면
       const pyrPositions = [
         pCam.x, pCam.y, pCam.z, pTR.x, pTR.y, pTR.z, pTL.x, pTL.y, pTL.z,
         pCam.x, pCam.y, pCam.z, pBR.x, pBR.y, pBR.z, pTR.x, pTR.y, pTR.z,
@@ -592,7 +613,6 @@
       }));
       scene.add(frustumMesh);
 
-      // WD 중심선
       const centerLineGeo = new THREE.BufferGeometry().setFromPoints([
         new THREE.Vector3(0, 0, 0),
         new THREE.Vector3(0, 0, wd)
@@ -604,14 +624,12 @@
       wdCenterLine.computeLineDistances();
       scene.add(wdCenterLine);
 
-      // 라벨 위치
       fovLabelObject.position.set(0, halfH + 25, wd);
       scene.add(fovLabelObject);
 
       wdLabelObject.position.set(0, 20, wd * 0.5);
       scene.add(wdLabelObject);
 
-      // DOF 볼륨
       if (showDof && Dn < Df) {
         const farZ = Math.min(Df, wd * 1.6);
         const wNear = (currentParams.sensorW * Dn) / currentParams.focal;
@@ -634,7 +652,7 @@
     }
 
     function updateUI(optics) {
-      const { wd, sensorW, sensorH } = currentParams;
+      const { wd, sensorW, sensorH, focal } = currentParams;
       const { fovW, fovH, res, Dn, Df, totalDof } = optics;
 
       if (document.activeElement !== document.getElementById('inputFovW')) {
@@ -650,7 +668,6 @@
       document.getElementById('wdRange').value = wd;
       document.getElementById('sliderWdVal').innerText = Math.round(wd);
 
-      // 커스텀 센서 인풋 업데이트
       if (document.activeElement !== document.getElementById('inputSensorW')) {
         document.getElementById('inputSensorW').value = sensorW.toFixed(1);
       }
@@ -664,6 +681,12 @@
         document.getElementById('dofRangeText').innerText = `${Math.round(Dn)} mm ~ ∞`;
       } else {
         document.getElementById('dofRangeText').innerText = `${Math.round(Dn)} ~ ${Math.round(Df)} mm (${Math.round(totalDof)}mm)`;
+      }
+
+      // [신규] 실시간 동적 공식 힌트 텍스트 갱신
+      const formulaEl = document.getElementById('formulaDynamicText');
+      if (formulaEl) {
+        formulaEl.innerText = `( ${Math.round(wd)} × ${sensorW.toFixed(1)} ) ÷ ${focal.toFixed(0)} = ${Math.round(fovW)} mm`;
       }
 
       // 2D Sensor View
@@ -708,6 +731,7 @@
       });
       document.getElementById(`btn_${key}`).className = "preset-btn py-1.5 text-xs font-bold rounded border bg-blue-600 border-blue-400 text-white shadow-sm transition-all text-center";
 
+      // 커스텀 모드일 때만 커스텀 패널(타깃 조정 + 센서 + 조리개) 노출
       const customPanel = document.getElementById('customControlPanel');
       if (key === 'CUSTOM') {
         customPanel.classList.remove('hidden');
@@ -715,6 +739,8 @@
         document.getElementById('customFocalRange').value = currentParams.focal;
         document.getElementById('inputSensorW').value = currentParams.sensorW.toFixed(1);
         document.getElementById('inputSensorH').value = currentParams.sensorH.toFixed(1);
+        document.getElementById('inputTargetW').value = targetSpec.w;
+        document.getElementById('inputTargetH').value = targetSpec.h;
         updateApertureButtonUI(currentParams.aperture);
       } else {
         customPanel.classList.add('hidden');
@@ -738,7 +764,6 @@
       syncAll();
     };
 
-    // FOV 5mm 증감
     window.stepFov = function(axis, step) {
       const optics = calculateOptics();
       if (axis === 'W') {
@@ -767,7 +792,6 @@
       }
     });
 
-    // 커스텀 센서 ±0.1mm 증감 및 직접입력
     window.stepSensor = function(axis, step) {
       if (axis === 'W') {
         currentParams.sensorW = Math.max(1.0, Math.min(50.0, +(currentParams.sensorW + step).toFixed(1)));
@@ -793,7 +817,6 @@
       }
     });
 
-    // WD 슬라이더 & 숫자 입력
     document.getElementById('wdRange').addEventListener('input', (e) => {
       currentParams.wd = parseFloat(e.target.value);
       syncAll();
@@ -807,7 +830,6 @@
       }
     });
 
-    // 타깃 크기 변경
     document.getElementById('inputTargetW').addEventListener('input', (e) => {
       const val = parseFloat(e.target.value);
       if (!isNaN(val) && val > 0) {
@@ -834,7 +856,6 @@
       syncAll();
     };
 
-    // 커스텀 초점거리 슬라이더
     document.getElementById('customFocalRange').addEventListener('input', (e) => {
       const f = parseFloat(e.target.value);
       currentParams.focal = f;
@@ -842,7 +863,6 @@
       syncAll();
     });
 
-    // 조리개 버튼 이벤트
     function updateApertureButtonUI(val) {
       document.querySelectorAll('.f-btn').forEach(btn => {
         const fVal = parseFloat(btn.innerText.replace('F', ''));
