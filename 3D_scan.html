@@ -1,0 +1,1676 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>3D 구조광 Simulator</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Three.js & OrbitControls -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Pretendard:wght@400;500;600;700;800;900&display=swap');
+    body { margin: 0; overflow: hidden; background-color: #f8fafc; font-family: 'Pretendard', -apple-system, sans-serif; user-select: none; }
+    .glass-panel-light {
+      background: rgba(255, 255, 255, 0.96);
+      backdrop-filter: blur(14px);
+      border: 1px solid rgba(226, 232, 240, 0.95);
+      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.06), 0 8px 10px -6px rgba(0, 0, 0, 0.03);
+    }
+    .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+    .custom-scrollbar::-webkit-scrollbar-track { background: #f1f5f9; }
+    .custom-scrollbar::-webkit-scrollbar-thumb { background: #94a3b8; border-radius: 4px; }
+    
+    .pm-btn-large {
+      width: 24px;
+      height: 22px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 5px;
+      background-color: #ffffff;
+      color: #0f172a;
+      font-weight: 900;
+      font-size: 14px;
+      line-height: 1;
+      border: 1.5px solid #cbd5e1;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+      transition: all 0.1s ease;
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+    .pm-btn-large:hover {
+      background-color: #2563eb;
+      color: #ffffff;
+      border-color: #1d4ed8;
+      transform: scale(1.08);
+    }
+    .pm-btn-large:active {
+      transform: scale(0.92);
+    }
+
+    input[type="range"] { -webkit-appearance: none; appearance: none; background: transparent; }
+    input[type="range"]::-webkit-slider-runnable-track {
+      height: 4px;
+      border-radius: 9999px;
+      background-color: #cbd5e1;
+    }
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 12px;
+      height: 12px;
+      margin-top: -4px;
+      border-radius: 50%;
+      background-color: #facc15;
+      border: 2px solid #ca8a04;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+      cursor: pointer;
+      transition: transform 0.1s ease;
+    }
+    input[type="range"]::-webkit-slider-thumb:hover {
+      transform: scale(1.25);
+      background-color: #eab308;
+    }
+    .tab-btn.active {
+      background: #2563eb !important;
+      color: #ffffff !important;
+      font-weight: 800;
+      box-shadow: 0 2px 4px rgba(37,99,235,0.25);
+    }
+    .model-btn.active {
+      background: #7c3aed !important;
+      color: #ffffff !important;
+      font-weight: 800;
+    }
+  </style>
+</head>
+<body class="w-screen h-screen relative select-none text-slate-800">
+
+  <!-- 3D WebGL Canvas -->
+  <div id="canvas-container" class="absolute inset-0 z-0 cursor-grab active:cursor-grabbing"></div>
+
+  <!-- 상단 네비게이션 헤더 (간결한 1행 구성) -->
+  <header class="absolute top-0 left-0 right-0 h-14 z-20 flex items-center justify-between px-5 glass-panel-light border-b border-slate-200">
+    <div class="flex items-center gap-2.5 flex-shrink-0">
+      <div class="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center font-bold text-white shadow-sm shadow-blue-500/30">
+        <i data-lucide="scan" class="w-5 h-5"></i>
+      </div>
+      <div class="flex items-center gap-2">
+        <h1 class="text-sm font-extrabold tracking-tight text-slate-900 whitespace-nowrap">
+          3D 구조광 Simulator
+        </h1>
+        <span class="text-[10px] bg-blue-50 text-blue-700 border border-blue-200 px-2 py-0.5 rounded-md font-mono font-bold whitespace-nowrap">
+          V1.0 (Nov.11)
+        </span>
+      </div>
+    </div>
+
+    <!-- 중앙 컨트롤: 모델 선택 및 뷰 모드 탭 (텍스트 줄바꿈 없는 1행 버튼) -->
+    <div class="flex items-center gap-2 flex-shrink-0">
+      <!-- 모델 선택 -->
+      <div class="flex items-center bg-slate-100 p-0.5 rounded-xl border border-slate-200 text-xs">
+        <button onclick="switchPartModel('panel')" id="btn-model-panel" class="model-btn active px-2.5 py-1 rounded-lg transition font-semibold whitespace-nowrap flex items-center gap-1">
+          <i data-lucide="layers" class="w-3.5 h-3.5"></i> 차체곡면
+        </button>
+        <button onclick="switchPartModel('dodeca')" id="btn-model-dodeca" class="model-btn px-2.5 py-1 rounded-lg transition text-slate-700 hover:text-purple-700 font-semibold whitespace-nowrap flex items-center gap-1">
+          <i data-lucide="gem" class="w-3.5 h-3.5"></i> 정12면체
+        </button>
+      </div>
+
+      <!-- 3D 뷰 모드 탭 -->
+      <div class="flex items-center bg-slate-100 p-0.5 rounded-xl border border-slate-200 text-xs">
+        <button onclick="setRenderMode('cad')" id="tab-cad" class="tab-btn active px-2.5 py-1 rounded-lg transition font-semibold whitespace-nowrap flex items-center gap-1">
+          <i data-lucide="box" class="w-3.5 h-3.5"></i> 실물
+        </button>
+        <button onclick="setRenderMode('pattern')" id="tab-pattern" class="tab-btn px-2.5 py-1 rounded-lg transition text-slate-700 hover:text-blue-600 font-semibold whitespace-nowrap flex items-center gap-1">
+          <i data-lucide="align-justify" class="w-3.5 h-3.5"></i> 패턴투사
+        </button>
+        <button onclick="setRenderMode('cloud')" id="tab-cloud" class="tab-btn px-2.5 py-1 rounded-lg transition text-slate-700 hover:text-blue-600 font-semibold whitespace-nowrap flex items-center gap-1">
+          <i data-lucide="layout-grid" class="w-3.5 h-3.5"></i> PointCloud
+        </button>
+        <button onclick="setRenderMode('mesh')" id="tab-mesh" class="tab-btn px-2.5 py-1 text-xs rounded-lg text-slate-600 hover:text-blue-600 transition flex items-center gap-1 font-semibold whitespace-nowrap">
+          <i data-lucide="triangle" class="w-3.5 h-3.5"></i> 3D Mesh
+        </button>
+      </div>
+    </div>
+
+    <!-- 우측 유틸리티 & 큼직한 집 모양 아이콘 단독 홈 복귀 버튼 -->
+    <div class="flex items-center gap-1.5 flex-shrink-0">
+      <button onclick="toggleLeftPanel()" class="px-2 py-1.5 text-xs bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 rounded-lg flex items-center gap-1 transition shadow-xs font-semibold whitespace-nowrap">
+        <i data-lucide="panel-left-close" class="w-3.5 h-3.5"></i> 좌측창
+      </button>
+      <button onclick="toggleRightPanel()" class="px-2 py-1.5 text-xs bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 rounded-lg flex items-center gap-1 transition shadow-xs font-semibold whitespace-nowrap">
+        <i data-lucide="panel-right-close" class="w-3.5 h-3.5"></i> 우측창
+      </button>
+      <button onclick="toggleBottomDeck()" class="px-2 py-1.5 text-xs bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 rounded-lg flex items-center gap-1 transition shadow-xs font-semibold whitespace-nowrap">
+        <i data-lucide="layout-bottom" class="w-3.5 h-3.5"></i> 조작덱
+      </button>
+      <button onclick="resetCameraView()" class="px-2 py-1.5 text-xs bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 rounded-lg flex items-center gap-1 transition shadow-xs font-semibold whitespace-nowrap" title="시점 리셋">
+        <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i>
+      </button>
+      <!-- 집 아이콘 단독 홈 복귀 버튼 -->
+      <a href="./index.html" class="w-8 h-8 bg-slate-900 hover:bg-blue-600 text-white rounded-lg flex items-center justify-center shadow-sm transition" title="메인 런처(index.html)로 복귀">
+        <i data-lucide="home" class="w-4 h-4"></i>
+      </a>
+    </div>
+  </header>
+
+  <!-- 좌측 도킹 패널 (260px) -->
+  <aside id="left-panel" class="absolute top-16 left-4 w-[260px] max-h-[calc(100vh-17rem)] z-10 glass-panel-light rounded-2xl flex flex-col p-3 custom-scrollbar overflow-y-auto transition-all duration-300">
+    <div class="bg-blue-50/70 border border-blue-200 p-2 rounded-xl mb-2.5 text-[10.5px]">
+      <div class="flex items-center justify-between text-blue-900 font-extrabold mb-1">
+        <span class="flex items-center gap-1"><i data-lucide="camera" class="w-3 h-3 text-blue-600"></i> 광학 사양</span>
+        <span class="text-[9px] bg-blue-600 text-white px-1.5 py-0.2 rounded font-mono font-bold">15mm / F4.0</span>
+      </div>
+      <div class="space-y-0.5 text-slate-600 font-mono text-[10px]">
+        <div>• 센서 규격: <span class="text-slate-900 font-bold">7.2 × 5.4 mm</span></div>
+        <div>• 픽셀 해상도: <span class="text-slate-900 font-bold">1602 × 1202</span></div>
+        <div>• 수평 화각: <span class="text-emerald-700 font-bold">26.99°</span></div>
+        <div>• 수직 화각: <span class="text-emerald-700 font-bold">20.41°</span></div>
+        <div>• 기준거리: <span class="text-blue-700 font-extrabold">WD 700 mm</span></div>
+      </div>
+    </div>
+
+    <!-- 패턴 엔진 -->
+    <div class="flex items-center justify-between pb-1 border-b border-slate-200 mb-2">
+      <span class="text-xs font-bold text-slate-900 flex items-center gap-1">
+        <i data-lucide="layers" class="w-3.5 h-3.5 text-blue-600"></i> 패턴 투사 엔진
+      </span>
+      <span id="pattern-badge" class="text-[9px] px-1.5 py-0.5 rounded bg-blue-100 text-blue-800 font-mono font-bold border border-blue-200">
+        P1: Gray #1
+      </span>
+    </div>
+
+    <div class="flex gap-1.5 mb-2">
+      <button onclick="startSinglePass10Scan()" id="btn-scan" class="flex-1 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold flex items-center justify-center gap-1 shadow-xs transition">
+        <i data-lucide="play" class="w-3 h-3" id="btn-scan-icon"></i>
+        <span id="btn-scan-text">10패턴 스캔 (1회)</span>
+      </button>
+      <button onclick="nextPatternStep()" class="px-2 py-1.5 bg-white hover:bg-slate-50 text-slate-800 border border-slate-200 rounded-lg text-xs font-semibold flex items-center gap-1 transition shadow-xs">
+        다음 <i data-lucide="chevron-right" class="w-3 h-3"></i>
+      </button>
+    </div>
+
+    <div class="bg-slate-50 p-2 rounded-xl border border-slate-200 mb-2">
+      <div class="flex justify-between text-[10px] mb-1">
+        <span class="text-slate-600 font-medium">패턴 인덱스</span>
+        <span class="font-mono text-blue-600 font-extrabold" id="pattern-step-text">Step 1 / 10</span>
+      </div>
+      <input type="range" id="pattern-slider" min="1" max="10" value="1" step="1" oninput="onPatternSliderChange(this.value)" class="w-full cursor-pointer">
+      <div class="flex justify-between text-[8px] text-slate-500 mt-1 font-mono">
+        <span>1:그레이</span>
+        <span>6:세선</span>
+        <span>7:위상(0°)</span>
+        <span>10:(270°)</span>
+      </div>
+    </div>
+
+    <div class="bg-slate-50 border border-slate-200 p-2 rounded-xl text-[10px] text-slate-700 leading-snug mb-2">
+      <p id="pattern-desc"><strong>[그레이 코드 1단계]</strong> 화면을 좌/우 2개 구역으로 분할하여 1차 번지수를 부여합니다.</p>
+    </div>
+
+    <!-- 삼각측량 교점 검사기 -->
+    <div class="border-t border-slate-200 pt-2">
+      <div class="flex items-center justify-between mb-1">
+        <span class="text-xs font-bold text-slate-900 flex items-center gap-1">
+          <i data-lucide="crosshair" class="w-3.5 h-3.5 text-amber-600"></i> 삼각측량 검사
+        </span>
+        <span class="text-[9px] text-slate-400">부품 클릭</span>
+      </div>
+      
+      <div class="space-y-1 font-mono text-[10px] bg-slate-50 p-2 rounded-xl border border-slate-200">
+        <div class="flex justify-between text-slate-700">
+          <span class="text-slate-500">카메라 픽셀:</span>
+          <span id="val-cam-px" class="text-emerald-700 font-bold">(u: 801, v: 601)</span>
+        </div>
+        <div class="flex justify-between text-slate-700">
+          <span class="text-slate-500">스캐너 거리:</span>
+          <span id="val-dist-s" class="text-amber-800 font-bold">700.0 mm</span>
+        </div>
+        <div class="border-t border-slate-200 my-0.5 pt-0.5 flex justify-between text-slate-800">
+          <span class="text-slate-500">3D FOV 판정:</span>
+          <span id="val-fov-status" class="text-emerald-700 font-black">INSIDE (스캔 유효)</span>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- 우측 도킹 패널 (280px) -->
+  <aside id="right-panel" class="absolute top-16 right-4 w-[280px] max-h-[calc(100vh-17rem)] z-10 glass-panel-light rounded-2xl flex flex-col p-3 custom-scrollbar overflow-y-auto transition-all duration-300">
+    
+    <!-- 1. 카메라 뷰파인더 -->
+    <div class="mb-2.5">
+      <div class="flex items-center justify-between mb-1">
+        <span class="text-xs font-bold text-slate-900 flex items-center gap-1">
+          <i data-lucide="video" class="w-3.5 h-3.5 text-emerald-600"></i> 카메라 뷰파인더
+        </span>
+        <span id="viewfinder-status-badge" class="text-[9px] bg-emerald-100 text-emerald-800 border border-emerald-200 px-1.5 py-0.2 rounded font-mono font-bold">LIVE</span>
+      </div>
+      <div class="relative w-full aspect-video bg-slate-950 rounded-xl border border-slate-300 overflow-hidden shadow-inner flex items-center justify-center">
+        <canvas id="viewfinder-canvas" width="320" height="180" class="w-full h-full object-cover"></canvas>
+        <div class="absolute inset-0 pointer-events-none border border-slate-700/50 flex items-center justify-center">
+          <div class="w-7 h-7 border border-white/40 rounded-full"></div>
+          <div class="w-14 h-[1px] bg-white/30 absolute"></div>
+          <div class="h-14 w-[1px] bg-white/30 absolute"></div>
+        </div>
+        <div class="absolute bottom-1 right-1.5 text-[8.5px] font-mono text-emerald-400 font-bold bg-black/60 px-1 rounded">
+          <span id="viewfinder-mode-tag">Fringe 15mm</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 2. 3D FOV 계측 범위 -->
+    <div class="border-t border-slate-200 pt-2 mb-2.5">
+      <div class="flex items-center justify-between mb-1">
+        <span class="text-xs font-bold text-slate-900 flex items-center gap-1">
+          <i data-lucide="cone" class="w-3.5 h-3.5 text-blue-600"></i> 3D FOV 계측 범위
+        </span>
+        <button onclick="resetFrustumRange()" class="text-[9.5px] text-blue-600 hover:text-blue-800 font-semibold underline">초기화</button>
+      </div>
+
+      <div class="space-y-1 bg-slate-50 p-2 rounded-xl border border-slate-200 text-[10px] font-mono">
+        <div class="flex items-center justify-between gap-1">
+          <span class="text-emerald-800 font-sans font-bold w-10">Zmin:</span>
+          <button onclick="stepParam('slider-zmin', -10)" class="pm-btn-large">−</button>
+          <input type="range" id="slider-zmin" min="300" max="650" value="500" step="10" oninput="updateFrustumRange()" class="flex-1 cursor-pointer">
+          <button onclick="stepParam('slider-zmin', 10)" class="pm-btn-large">+</button>
+          <span id="lbl-zmin" class="text-emerald-700 font-extrabold w-11 text-right">500</span>
+        </div>
+
+        <div class="flex items-center justify-between gap-1">
+          <span class="text-rose-800 font-sans font-bold w-10">Zmax:</span>
+          <button onclick="stepParam('slider-zmax', -10)" class="pm-btn-large">−</button>
+          <input type="range" id="slider-zmax" min="700" max="1300" value="900" step="10" oninput="updateFrustumRange()" class="flex-1 cursor-pointer">
+          <button onclick="stepParam('slider-zmax', 10)" class="pm-btn-large">+</button>
+          <span id="lbl-zmax" class="text-rose-700 font-extrabold w-11 text-right">900</span>
+        </div>
+
+        <div class="pt-0.5 border-t border-slate-200 flex items-center justify-between text-[9px]">
+          <span class="text-slate-600 font-sans font-semibold">스캔 점군:</span>
+          <span id="lbl-valid-points" class="font-extrabold text-blue-700 font-mono">2,160 pts (100%)</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 3. 부품 6-DOF 설정 (1행 2열) -->
+    <div class="border-t border-slate-200 pt-2">
+      <div class="flex items-center justify-between mb-1">
+        <span class="text-xs font-bold text-slate-900 flex items-center gap-1">
+          <i data-lucide="package" class="w-3.5 h-3.5 text-purple-600"></i> 부품 6-DOF 설정
+        </span>
+        <button onclick="resetPartPose()" class="text-[9.5px] text-purple-600 hover:text-purple-800 font-semibold underline">기준위치</button>
+      </div>
+
+      <div class="bg-slate-50 p-2 rounded-xl border border-slate-200 text-[10px] font-mono space-y-1">
+        <!-- 1행: dX / dRx -->
+        <div class="grid grid-cols-2 gap-1.5">
+          <div class="bg-white p-1 rounded border border-slate-200 flex flex-col gap-0.5">
+            <div class="flex justify-between text-purple-900 font-sans font-bold text-[9px]">
+              <span>dX(전후)</span><span id="lbl-part-dx" class="font-mono text-purple-700">+0</span>
+            </div>
+            <div class="flex items-center gap-1">
+              <button onclick="stepParam('slider-part-dx', -20)" class="pm-btn-large">−</button>
+              <input type="range" id="slider-part-dx" min="-500" max="500" value="0" step="10" oninput="updatePartPoseFromSliders()" class="w-full">
+              <button onclick="stepParam('slider-part-dx', 20)" class="pm-btn-large">+</button>
+            </div>
+          </div>
+          <div class="bg-white p-1 rounded border border-slate-200 flex flex-col gap-0.5">
+            <div class="flex justify-between text-indigo-900 font-sans font-bold text-[9px]">
+              <span>dRx(경사)</span><span id="lbl-part-rx" class="font-mono text-indigo-700">0°</span>
+            </div>
+            <div class="flex items-center gap-1">
+              <button onclick="stepParam('slider-part-rx', -2)" class="pm-btn-large">−</button>
+              <input type="range" id="slider-part-rx" min="-20" max="20" value="0" step="1" oninput="updatePartPoseFromSliders()" class="w-full">
+              <button onclick="stepParam('slider-part-rx', 2)" class="pm-btn-large">+</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- 2행: dY / dRy -->
+        <div class="grid grid-cols-2 gap-1.5">
+          <div class="bg-white p-1 rounded border border-slate-200 flex flex-col gap-0.5">
+            <div class="flex justify-between text-purple-900 font-sans font-bold text-[9px]">
+              <span>dY(좌우)</span><span id="lbl-part-dy" class="font-mono text-purple-700">+0</span>
+            </div>
+            <div class="flex items-center gap-1">
+              <button onclick="stepParam('slider-part-dy', -20)" class="pm-btn-large">−</button>
+              <input type="range" id="slider-part-dy" min="-500" max="500" value="0" step="10" oninput="updatePartPoseFromSliders()" class="w-full">
+              <button onclick="stepParam('slider-part-dy', 20)" class="pm-btn-large">+</button>
+            </div>
+          </div>
+          <div class="bg-white p-1 rounded border border-slate-200 flex flex-col gap-0.5">
+            <div class="flex justify-between text-indigo-900 font-sans font-bold text-[9px]">
+              <span>dRy(경사)</span><span id="lbl-part-ry" class="font-mono text-indigo-700">0°</span>
+            </div>
+            <div class="flex items-center gap-1">
+              <button onclick="stepParam('slider-part-ry', -2)" class="pm-btn-large">−</button>
+              <input type="range" id="slider-part-ry" min="-20" max="20" value="0" step="1" oninput="updatePartPoseFromSliders()" class="w-full">
+              <button onclick="stepParam('slider-part-ry', 2)" class="pm-btn-large">+</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- 3행: dZ / dRz -->
+        <div class="grid grid-cols-2 gap-1.5">
+          <div class="bg-white p-1 rounded border border-slate-200 flex flex-col gap-0.5">
+            <div class="flex justify-between text-purple-900 font-sans font-bold text-[9px]">
+              <span>dZ(높이)</span><span id="lbl-part-dz" class="font-mono text-purple-700">+0</span>
+            </div>
+            <div class="flex items-center gap-1">
+              <button onclick="stepParam('slider-part-dz', -20)" class="pm-btn-large">−</button>
+              <input type="range" id="slider-part-dz" min="0" max="800" value="0" step="10" oninput="updatePartPoseFromSliders()" class="w-full">
+              <button onclick="stepParam('slider-part-dz', 20)" class="pm-btn-large">+</button>
+            </div>
+          </div>
+          <div class="bg-white p-1 rounded border border-slate-200 flex flex-col gap-0.5">
+            <div class="flex justify-between text-indigo-900 font-sans font-bold text-[9px]">
+              <span>dRz(회전)</span><span id="lbl-part-rz" class="font-mono text-indigo-700">0°</span>
+            </div>
+            <div class="flex items-center gap-1">
+              <button onclick="stepParam('slider-part-rz', -3)" class="pm-btn-large">−</button>
+              <input type="range" id="slider-part-rz" min="-30" max="30" value="0" step="1" oninput="updatePartPoseFromSliders()" class="w-full">
+              <button onclick="stepParam('slider-part-rz', 3)" class="pm-btn-large">+</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ==========================================================
+       하단 중앙 일체형 로봇 조작 덱 & 1행 가로 FK 모니터
+       (모든 라벨과 슬라이더를 1행으로 컴팩트하게 정돈하여 중앙 공간 확보)
+       ========================================================== -->
+  <section id="bottom-deck" class="absolute bottom-9 left-1/2 -translate-x-1/2 w-[860px] max-w-[calc(100vw-36rem)] z-30 glass-panel-light rounded-2xl p-2.5 border border-slate-200 shadow-2xl transition-all duration-300">
+    <div class="flex items-center justify-between pb-1 border-b border-slate-200 mb-1.5">
+      <div class="flex items-center gap-2">
+        <span class="w-2.5 h-2.5 rounded-full bg-blue-600 animate-pulse"></span>
+        <span class="text-xs font-black text-slate-900 tracking-tight">로봇 관절 조작 덱 & 스캐너 위치 실시간 모니터</span>
+      </div>
+      <div class="flex items-center gap-2">
+        <button onclick="setWD700LookAtPose()" class="text-[9.5px] bg-blue-600 hover:bg-blue-700 text-white px-2.5 py-0.5 rounded-md font-bold shadow-2xs whitespace-nowrap" title="부품 상공 WD 700mm 최적 조준 자세로 즉시 이동">WD 700 조준</button>
+        <button onclick="resetJogAngles()" class="text-[9.5px] bg-slate-200 hover:bg-slate-300 text-slate-700 px-2 py-0.5 rounded-md font-semibold whitespace-nowrap" title="초기 안전 대기 자세">원점</button>
+        <button onclick="toggleBottomDeck()" class="text-slate-400 hover:text-slate-700 ml-1"><i data-lucide="chevron-down" class="w-4 h-4"></i></button>
+      </div>
+    </div>
+
+    <div class="space-y-1 text-[10px] font-mono">
+      <!-- 1행: J1 | J2 | J3 (1행 인라인 배치) -->
+      <div class="grid grid-cols-3 gap-1.5 bg-slate-50 px-2 py-1 rounded-xl border border-slate-200">
+        <div class="flex items-center gap-1">
+          <span class="w-11 font-sans font-bold text-amber-900 text-[9.5px] whitespace-nowrap">J1(S선회):</span>
+          <button onclick="stepParam('slider-j1', -2)" class="pm-btn-large">−</button>
+          <input type="range" id="slider-j1" min="-170" max="170" value="0" step="0.5" oninput="updateRobotJog()" class="flex-1 cursor-pointer">
+          <button onclick="stepParam('slider-j1', 2)" class="pm-btn-large">+</button>
+          <span id="lbl-j1" class="w-8 text-right font-bold text-amber-700">0°</span>
+        </div>
+        <div class="flex items-center gap-1">
+          <span class="w-11 font-sans font-bold text-amber-900 text-[9.5px] whitespace-nowrap">J2(L하부):</span>
+          <button onclick="stepParam('slider-j2', -2)" class="pm-btn-large">−</button>
+          <input type="range" id="slider-j2" min="-90" max="90" value="18" step="0.5" oninput="updateRobotJog()" class="flex-1 cursor-pointer">
+          <button onclick="stepParam('slider-j2', 2)" class="pm-btn-large">+</button>
+          <span id="lbl-j2" class="w-8 text-right font-bold text-amber-700">18°</span>
+        </div>
+        <div class="flex items-center gap-1">
+          <span class="w-11 font-sans font-bold text-amber-900 text-[9.5px] whitespace-nowrap">J3(U상부):</span>
+          <button onclick="stepParam('slider-j3', -2)" class="pm-btn-large">−</button>
+          <input type="range" id="slider-j3" min="-120" max="120" value="38" step="0.5" oninput="updateRobotJog()" class="flex-1 cursor-pointer">
+          <button onclick="stepParam('slider-j3', 2)" class="pm-btn-large">+</button>
+          <span id="lbl-j3" class="w-8 text-right font-bold text-amber-700">38°</span>
+        </div>
+      </div>
+
+      <!-- 2행: J4 | J5 | J6 (1행 인라인 배치) -->
+      <div class="grid grid-cols-3 gap-1.5 bg-slate-50 px-2 py-1 rounded-xl border border-slate-200">
+        <div class="flex items-center gap-1">
+          <span class="w-11 font-sans font-bold text-amber-900 text-[9.5px] whitespace-nowrap">J4(R롤):</span>
+          <button onclick="stepParam('slider-j4', -2)" class="pm-btn-large">−</button>
+          <input type="range" id="slider-j4" min="-180" max="180" value="0" step="0.5" oninput="updateRobotJog()" class="flex-1 cursor-pointer">
+          <button onclick="stepParam('slider-j4', 2)" class="pm-btn-large">+</button>
+          <span id="lbl-j4" class="w-8 text-right font-bold text-amber-700">0°</span>
+        </div>
+        <div class="flex items-center gap-1">
+          <span class="w-11 font-sans font-bold text-amber-900 text-[9.5px] whitespace-nowrap">J5(B손목):</span>
+          <button onclick="stepParam('slider-j5', -2)" class="pm-btn-large">−</button>
+          <input type="range" id="slider-j5" min="-120" max="120" value="-56" step="0.5" oninput="updateRobotJog()" class="flex-1 cursor-pointer">
+          <button onclick="stepParam('slider-j5', 2)" class="pm-btn-large">+</button>
+          <span id="lbl-j5" class="w-8 text-right font-bold text-amber-700">-56°</span>
+        </div>
+        <div class="flex items-center gap-1">
+          <span class="w-11 font-sans font-bold text-amber-900 text-[9.5px] whitespace-nowrap">J6(T플랜지):</span>
+          <button onclick="stepParam('slider-j6', -2)" class="pm-btn-large">−</button>
+          <input type="range" id="slider-j6" min="-360" max="360" value="0" step="1" oninput="updateRobotJog()" class="flex-1 cursor-pointer">
+          <button onclick="stepParam('slider-j6', 2)" class="pm-btn-large">+</button>
+          <span id="lbl-j6" class="w-8 text-right font-bold text-amber-700">0°</span>
+        </div>
+      </div>
+
+      <!-- 3행: [스캐너 FK 모니터] 1개 행 가로 정렬 -->
+      <div class="bg-white px-3 py-1 rounded-xl border border-slate-200 flex items-center justify-between text-slate-700 text-[10px]">
+        <div class="flex items-center gap-2.5">
+          <span class="font-sans font-bold text-slate-500 whitespace-nowrap">[스캐너 Base 위치]:</span>
+          <span class="whitespace-nowrap">X: <b id="deck-cart-x" class="text-blue-700 font-extrabold text-[10.5px]">1160</b> mm</span>
+          <span class="whitespace-nowrap">Y: <b id="deck-cart-y" class="text-blue-700 font-extrabold text-[10.5px]">0</b> mm</span>
+          <span class="whitespace-nowrap">Z: <b id="deck-cart-z" class="text-blue-700 font-extrabold text-[10.5px]">820</b> mm</span>
+        </div>
+        <div class="h-3 w-[1px] bg-slate-300"></div>
+        <div class="flex items-center gap-2.5">
+          <span class="font-sans font-bold text-slate-500 whitespace-nowrap">[스캐너 자세]:</span>
+          <span class="whitespace-nowrap">Rx: <b id="deck-cart-rx" class="text-red-700 font-extrabold text-[10.5px]">0.0°</b></span>
+          <span class="whitespace-nowrap">Ry: <b id="deck-cart-ry" class="text-red-700 font-extrabold text-[10.5px]">-36.0°</b></span>
+          <span class="whitespace-nowrap">Rz: <b id="deck-cart-rz" class="text-red-700 font-extrabold text-[10.5px]">0.0°</b></span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 하단 상태 바 -->
+  <footer class="absolute bottom-0 left-0 right-0 h-8 z-20 glass-panel-light border-t border-slate-200 px-6 flex items-center justify-between text-[11px] text-slate-600 font-mono">
+    <div class="flex items-center gap-6">
+      <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-red-600"></span>Base_X (Red)</span>
+      <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-emerald-600"></span>Base_Y (Green)</span>
+      <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-blue-600"></span>Base_Z (Blue)</span>
+      <span class="text-slate-300 hidden sm:inline">|</span>
+      <span class="text-emerald-700 font-bold hidden sm:inline">● 3D FOV 스캔 유효 영역 (녹색)</span>
+      <span class="text-slate-500 font-semibold hidden sm:inline">● FOV 이탈 비계측 영역 (그레이)</span>
+    </div>
+    <div class="flex items-center gap-4 text-slate-500 font-sans font-medium">
+      <span>마우스 좌클릭: 3D 회전 | 우클릭: 이동 | 휠: 줌인/줌아웃</span>
+    </div>
+  </footer>
+
+  <!-- Three.js 3D 로직 스크립트 -->
+  <script>
+    let scene, camera, renderer, controls;
+    let robotArmGroup;
+    let j1Group, j2Group, j3Group, j4Group, j5Group, j6Group;
+    let scannerToolGroup;
+    let partMesh, partEdgesMesh, partJigGroup, jigBaseMesh, jigPins = [], largeWorktableGroup, largeWorktableMesh;
+    let pointCloudPoints, triangleMeshGroup;
+    let frustumMesh, frustumLines;
+    let rayLine, lightPlaneMesh, intersectionMarker;
+    let frameScanner, frameBase;
+
+    // 광학 파라미터
+    const opticalParams = {
+      sensorW: 7.2,
+      sensorH: 5.4,
+      focalLength: 15.0,
+      ratioW: 7.2 / 15.0,
+      ratioH: 5.4 / 15.0,
+      zMin: 500.0,
+      zMax: 900.0,
+      wdCenter: 700.0
+    };
+
+    // 부품 센터 기준 좌표
+    const partBaseCenter = { x: 1200.0, y: 250.0, z: 0.0 };
+    let partOffset = { dx: 0, dy: 0, dz: 0, rx: 0, ry: 0, rz: 0 };
+    let currentPartModel = 'panel'; // 'panel' or 'dodeca'
+
+    // 롱암 기구학 치수
+    const ROBOT_ARM_L2 = 1050;
+    const ROBOT_ARM_L3 = 950;
+    const ROBOT_D1 = 260;
+
+    // 검증된 로봇 관절 각도 (초기 안착 자세)
+    let jogAngles = { j1: 0.0, j2: 18.0, j3: 38.0, j4: 0.0, j5: -56.0, j6: 0.0 };
+
+    // 상태 변수
+    let currentStep = 1;
+    let isSinglePassScanning = false;
+    let scanTimeoutId = null;
+    let currentRenderMode = 'cad';
+    let rawPartPositions = []; 
+    let lastHitPoint = new THREE.Vector3(1200, 250, 0);
+
+    const patternDescriptions = [
+      "<strong>[그레이 코드 1단계]</strong> 화면을 좌/우 2개 대구역으로 분할하여 1차 번지수를 지정합니다.",
+      "<strong>[그레이 코드 2단계]</strong> 4개 영역으로 세분화하여 대상물의 가로 구역을 좁혀갑니다.",
+      "<strong>[그레이 코드 3단계]</strong> 8개 영역으로 분할하여 프로젝터 열 위치를 추적합니다.",
+      "<strong>[그레이 코드 4단계]</strong> 16개 영역 분할로 중밀도 주소 블록을 결정합니다.",
+      "<strong>[그레이 코드 5단계]</strong> 32개 영역 분할로 세부 줄무늬 구역을 확정합니다.",
+      "<strong>[그레이 코드 6단계]</strong> 64개 정밀 분할로 최종 그레이 코드 바코드 번지수를 부여합니다.",
+      "<strong>[위상 천이 7단계 (0°)]</strong> 정현파 사인 줄무늬를 투사하여 밝기 기울기 측정을 시작합니다.",
+      "<strong>[위상 천이 8단계 (90°)]</strong> 1/4 주기를 이동 투사하여 위상차를 계산합니다.",
+      "<strong>[위상 천이 9단계 (180°)]</strong> 2/4 주기를 반전 투사하여 외란광 간섭을 상쇄합니다.",
+      "<strong>[위상 천이 10단계 (270°)]</strong> 3/4 주기 최종 투사로 0.01mm급 서브픽셀 정밀 위상을 완성합니다."
+    ];
+
+    function init() {
+      const container = document.getElementById('canvas-container');
+      
+      scene = new THREE.Scene();
+      scene.background = new THREE.Color(0xf8fafc);
+      scene.fog = null;
+
+      // 카메라 시점 설정: 로봇과 작업대/부품이 한눈에 들어오는 최적 구도
+      camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 10, 10000);
+      camera.position.set(1600, 1100, 1400);
+
+      renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, powerPreference: 'high-performance' });
+      renderer.setSize(window.innerWidth, window.innerHeight);
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+      renderer.shadowMap.enabled = true;
+      renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+      container.appendChild(renderer.domElement);
+
+      controls = new THREE.OrbitControls(camera, renderer.domElement);
+      controls.enableDamping = true;
+      controls.dampingFactor = 0.05;
+      controls.maxPolarAngle = Math.PI / 2 - 0.01;
+      // 로봇과 부품 사이 중심점을 정확히 응시
+      controls.target.set(600, 380, 50);
+
+      setupLighting();
+      setupCleanFactoryEnvironment();
+      setup1p85LongArmYellowRobot();
+      setupAutomotivePartWithWideRange();
+      setupOpticalFrustumMesh();
+      setupTriangulationVisuals();
+
+      window.addEventListener('resize', onWindowResize);
+      renderer.domElement.addEventListener('pointerdown', onDocumentPointerDown);
+
+      updateViewfinderCanvas();
+      applyJointAnglesToRobot();
+      updateFrustumAndFilterPoints();
+
+      animate();
+      lucide.createIcons();
+    }
+
+    function setupLighting() {
+      const hemiLight = new THREE.HemisphereLight(0xffffff, 0xcbd5e1, 0.75);
+      hemiLight.position.set(0, 2000, 0);
+      scene.add(hemiLight);
+
+      const dirLight = new THREE.DirectionalLight(0xffffff, 0.95);
+      dirLight.position.set(1200, 2400, 1400);
+      dirLight.castShadow = true;
+      dirLight.shadow.mapSize.width = 2048;
+      dirLight.shadow.mapSize.height = 2048;
+      dirLight.shadow.bias = -0.0005;
+      scene.add(dirLight);
+
+      const fillLight = new THREE.DirectionalLight(0xbae6fd, 0.35);
+      fillLight.position.set(-1000, 1000, -1000);
+      scene.add(fillLight);
+    }
+
+    function setupCleanFactoryEnvironment() {
+      const floorGeo = new THREE.PlaneGeometry(6000, 6000);
+      const floorMat = new THREE.MeshStandardMaterial({ color: 0xe2e8f0, roughness: 0.5, metalness: 0.05 });
+      const floor = new THREE.Mesh(floorGeo, floorMat);
+      floor.rotation.x = -Math.PI / 2;
+      floor.receiveShadow = true;
+      scene.add(floor);
+
+      const grid = new THREE.GridHelper(5000, 50, 0x94a3b8, 0xcbd5e1);
+      grid.position.y = 1;
+      scene.add(grid);
+
+      const mountPlate = new THREE.Mesh(
+        new THREE.CylinderGeometry(300, 320, 30, 32),
+        new THREE.MeshStandardMaterial({ color: 0x1e293b, metalness: 0.7, roughness: 0.3 })
+      );
+      mountPlate.position.set(0, 15, 0);
+      mountPlate.receiveShadow = true;
+      scene.add(mountPlate);
+    }
+
+    function createJointBadge(text) {
+      const canvas = document.createElement('canvas'); canvas.width = 110; canvas.height = 64;
+      const ctx = canvas.getContext('2d');
+      ctx.fillStyle = 'rgba(15, 23, 42, 0.75)'; 
+      ctx.strokeStyle = '#f59e0b'; ctx.lineWidth = 4;
+      ctx.beginPath(); ctx.roundRect(6, 6, 98, 52, 14); ctx.fill(); ctx.stroke();
+      ctx.font = "900 28px 'Pretendard', sans-serif"; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; 
+      ctx.fillStyle = '#fde047'; ctx.fillText(text, 55, 33);
+      const sprite = new THREE.Sprite(new THREE.SpriteMaterial({ map: new THREE.CanvasTexture(canvas), depthTest: false, transparent: true }));
+      sprite.scale.set(75, 44, 1);
+      return sprite;
+    }
+
+    function createTopPriorityAxes(length, radius) {
+      const group = new THREE.Group();
+      const createAxis = (dir, colorHex, labelText) => {
+        const axisGroup = new THREE.Group();
+        const mat = new THREE.MeshBasicMaterial({ color: colorHex, depthTest: false, depthWrite: false });
+        const stem = new THREE.Mesh(new THREE.CylinderGeometry(radius, radius, length, 16), mat);
+        stem.position.y = length / 2;
+        const head = new THREE.Mesh(new THREE.ConeGeometry(radius * 2.4, radius * 5.0, 16), mat);
+        head.position.y = length + (radius * 2.5);
+        stem.renderOrder = 998; head.renderOrder = 998;
+        axisGroup.add(stem); axisGroup.add(head);
+
+        if (dir.x !== 0) axisGroup.rotation.z = -Math.PI / 2;
+        else if (dir.z < 0) axisGroup.rotation.x = -Math.PI / 2;
+        else if (dir.z > 0) axisGroup.rotation.x = Math.PI / 2;
+
+        const canvas = document.createElement('canvas'); canvas.width = 256; canvas.height = 80;
+        const ctx = canvas.getContext('2d');
+        ctx.font = "900 32px 'Pretendard', sans-serif"; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+        ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 5; ctx.strokeText(labelText, 128, 40);
+        ctx.fillStyle = colorHex; ctx.fillText(labelText, 128, 40);
+        const sprite = new THREE.Sprite(new THREE.SpriteMaterial({ map: new THREE.CanvasTexture(canvas), depthTest: false, transparent: true }));
+        sprite.scale.set(140, 44, 1);
+        sprite.position.copy(dir.clone().multiplyScalar(length + (radius * 5.0) + 35));
+        sprite.renderOrder = 999;
+
+        group.add(axisGroup);
+        group.add(sprite);
+      };
+
+      createAxis(new THREE.Vector3(1, 0, 0), '#dc2626', 'Base_X');
+      createAxis(new THREE.Vector3(0, 0, -1), '#16a34a', 'Base_Y');
+      createAxis(new THREE.Vector3(0, 1, 0), '#2563eb', 'Base_Z');
+      return group;
+    }
+
+    function setup1p85LongArmYellowRobot() {
+      robotArmGroup = new THREE.Group();
+
+      const bodyYellow = new THREE.MeshStandardMaterial({ color: 0xf59e0b, metalness: 0.25, roughness: 0.35 });
+      const armYellow = new THREE.MeshStandardMaterial({ color: 0xfbbf24, metalness: 0.22, roughness: 0.32 });
+      const darkGraph = new THREE.MeshStandardMaterial({ color: 0x1e293b, metalness: 0.55, roughness: 0.38 });
+      const steelMetal = new THREE.MeshStandardMaterial({ color: 0x64748b, metalness: 0.70, roughness: 0.28 });
+      const toolMat = new THREE.MeshStandardMaterial({ color: 0x334155, metalness: 0.6, roughness: 0.3 });
+
+      const basePedestal = new THREE.Mesh(new THREE.CylinderGeometry(230, 260, 100, 32), darkGraph);
+      basePedestal.position.y = 50;
+      basePedestal.castShadow = true;
+      robotArmGroup.add(basePedestal);
+
+      j1Group = new THREE.Group();
+      j1Group.position.set(0, 100, 0);
+
+      const j1Body = new THREE.Mesh(new THREE.CylinderGeometry(200, 220, 140, 32), bodyYellow);
+      j1Body.position.y = 70;
+      j1Body.castShadow = true;
+      j1Group.add(j1Body);
+
+      const j1Motor = new THREE.Mesh(new THREE.CylinderGeometry(65, 65, 130, 24), darkGraph);
+      j1Motor.position.set(120, 70, 0);
+      j1Motor.rotation.z = Math.PI / 2;
+      j1Group.add(j1Motor);
+
+      const b1 = createJointBadge('J1');
+      b1.position.set(0, 150, 180);
+      j1Group.add(b1);
+
+      j2Group = new THREE.Group();
+      j2Group.position.set(0, 160, 0);
+
+      const shoulder = new THREE.Mesh(new THREE.BoxGeometry(230, 210, 230), bodyYellow);
+      shoulder.position.y = 45;
+      shoulder.castShadow = true;
+      j2Group.add(shoulder);
+
+      const lowerArm = new THREE.Mesh(new THREE.CylinderGeometry(85, 110, ROBOT_ARM_L2, 32), bodyYellow);
+      lowerArm.position.set(0, ROBOT_ARM_L2 / 2 + 45, 0);
+      lowerArm.castShadow = true;
+      j2Group.add(lowerArm);
+
+      const j2Motor = new THREE.Mesh(new THREE.CylinderGeometry(60, 60, 160, 24), darkGraph);
+      j2Motor.position.set(-65, 80, 110);
+      j2Group.add(j2Motor);
+
+      const b2 = createJointBadge('J2');
+      b2.position.set(0, 130, 150);
+      j2Group.add(b2);
+
+      j3Group = new THREE.Group();
+      j3Group.position.set(0, ROBOT_ARM_L2 + 45, 0);
+
+      const elbow = new THREE.Mesh(new THREE.SphereGeometry(115, 32, 24), bodyYellow);
+      j3Group.add(elbow);
+
+      const upperArm = new THREE.Mesh(new THREE.CylinderGeometry(75, 88, ROBOT_ARM_L3, 32), armYellow);
+      upperArm.position.set(ROBOT_ARM_L3 / 2, 0, 0);
+      upperArm.rotation.z = Math.PI / 2;
+      upperArm.castShadow = true;
+      j3Group.add(upperArm);
+
+      const b3 = createJointBadge('J3');
+      b3.position.set(110, 95, 0);
+      j3Group.add(b3);
+
+      j4Group = new THREE.Group();
+      j4Group.position.set(ROBOT_ARM_L3, 0, 0);
+
+      const j4Housing = new THREE.Mesh(new THREE.CylinderGeometry(65, 75, 120, 24), darkGraph);
+      j4Housing.rotation.z = Math.PI / 2;
+      j4Group.add(j4Housing);
+
+      const b4 = createJointBadge('J4');
+      b4.position.set(65, 85, 0);
+      j4Group.add(b4);
+
+      j5Group = new THREE.Group();
+      j5Group.position.set(70, 0, 0);
+
+      const wrist = new THREE.Mesh(new THREE.SphereGeometry(65, 24, 24), bodyYellow);
+      j5Group.add(wrist);
+
+      const b5 = createJointBadge('J5');
+      b5.position.set(45, 75, 0);
+      j5Group.add(b5);
+
+      j6Group = new THREE.Group();
+      j6Group.position.set(55, 0, 0);
+
+      const flange = new THREE.Mesh(new THREE.CylinderGeometry(55, 55, 20, 32), steelMetal);
+      flange.rotation.z = Math.PI / 2;
+      j6Group.add(flange);
+
+      // Eye-in-Hand 스캐너 툴
+      scannerToolGroup = new THREE.Group();
+      scannerToolGroup.position.set(18, 0, 0);
+
+      const bracket = new THREE.Mesh(new THREE.BoxGeometry(28, 100, 230), toolMat);
+      bracket.position.set(14, 0, 0);
+      scannerToolGroup.add(bracket);
+
+      const scannerBody = new THREE.Mesh(
+        new THREE.BoxGeometry(85, 95, 310),
+        new THREE.MeshStandardMaterial({ color: 0x18181b, roughness: 0.35, metalness: 0.7 })
+      );
+      scannerBody.position.set(65, -15, 0);
+      scannerBody.castShadow = true;
+      scannerToolGroup.add(scannerBody);
+
+      const projectorLens = new THREE.Mesh(
+        new THREE.CylinderGeometry(28, 32, 24, 32),
+        new THREE.MeshStandardMaterial({ color: 0x38bdf8, emissive: 0x0284c7, emissiveIntensity: 0.7, roughness: 0.1 })
+      );
+      projectorLens.position.set(110, -15, 85);
+      projectorLens.rotation.z = Math.PI / 2;
+      scannerToolGroup.add(projectorLens);
+
+      const cameraLens = new THREE.Mesh(
+        new THREE.CylinderGeometry(25, 27, 24, 32),
+        new THREE.MeshStandardMaterial({ color: 0x09090b, roughness: 0.1, metalness: 0.9 })
+      );
+      cameraLens.position.set(110, -15, -85);
+      cameraLens.rotation.z = Math.PI / 2;
+      scannerToolGroup.add(cameraLens);
+
+      frameScanner = new THREE.AxesHelper(130);
+      frameScanner.position.set(110, -15, -85);
+      scannerToolGroup.add(frameScanner);
+
+      j6Group.add(scannerToolGroup);
+      j5Group.add(j6Group);
+      j4Group.add(j5Group);
+      j3Group.add(j4Group);
+      j2Group.add(j3Group);
+      j1Group.add(j2Group);
+      robotArmGroup.add(j1Group);
+
+      frameBase = createTopPriorityAxes(260, 5.5);
+      frameBase.position.set(0, 2, 0);
+      robotArmGroup.add(frameBase);
+
+      const baseRing = new THREE.Mesh(
+        new THREE.RingGeometry(70, 85, 32),
+        new THREE.MeshBasicMaterial({ color: 0x0284c7, side: THREE.DoubleSide, transparent: true, opacity: 0.75, depthTest: false })
+      );
+      baseRing.rotation.x = Math.PI / 2;
+      baseRing.position.y = 2.5;
+      baseRing.renderOrder = 998;
+      robotArmGroup.add(baseRing);
+
+      scene.add(robotArmGroup);
+    }
+
+    // 정12면체 고밀도 평면 테셀레이션 생성기 (약 2,160개 정점)
+    function buildHighDensityDodecahedronGeometry(radius = 150) {
+      const phi = (1 + Math.sqrt(5)) / 2;
+      const a = 1, b = 1 / phi;
+
+      const V = [
+        [-a, -a, -a], [-a, -a,  a], [-a,  a, -a], [-a,  a,  a],
+        [ a, -a, -a], [ a, -a,  a], [ a,  a, -a], [ a,  a,  a],
+        [ 0, -b, -phi], [ 0, -b,  phi], [ 0,  b, -phi], [ 0,  b,  phi],
+        [-b, -phi,  0], [-b,  phi,  0], [ b, -phi,  0], [ b,  phi,  0],
+        [-phi,  0, -b], [ phi,  0, -b], [-phi,  0,  b], [ phi,  0,  b]
+      ].map(p => {
+        const len = Math.hypot(p[0], p[1], p[2]);
+        return new THREE.Vector3(p[0]/len * radius, p[1]/len * radius, p[2]/len * radius);
+      });
+
+      const pentagons = [
+        [3, 11, 7, 15, 13],
+        [7, 19, 17, 6, 15],
+        [17, 4, 8, 10, 6],
+        [8, 0, 16, 2, 10],
+        [0, 12, 1, 18, 16],
+        [6, 10, 2, 13, 15],
+        [2, 16, 18, 3, 13],
+        [18, 1, 9, 11, 3],
+        [4, 14, 12, 0, 8],
+        [11, 9, 5, 19, 7],
+        [14, 5, 9, 1, 12],
+        [5, 14, 4, 17, 19]
+      ];
+
+      const vertices = [];
+      const normals = [];
+      const SUBDIV = 6;
+
+      pentagons.forEach(indices => {
+        const pts = indices.map(idx => V[idx]);
+        const center = new THREE.Vector3();
+        pts.forEach(p => center.add(p));
+        center.divideScalar(5);
+
+        const fn = new THREE.Vector3().crossVectors(
+          pts[1].clone().sub(pts[0]),
+          pts[2].clone().sub(pts[0])
+        ).normalize();
+
+        for (let i = 0; i < 5; i++) {
+          const pA = center;
+          const pB = pts[i];
+          const pC = pts[(i + 1) % 5];
+
+          for (let row = 0; row < SUBDIV; row++) {
+            for (let col = 0; col <= row; col++) {
+              const u1 = row / SUBDIV, v1 = col / SUBDIV;
+              const u2 = (row + 1) / SUBDIV, v2 = col / SUBDIV;
+              const u3 = (row + 1) / SUBDIV, v3 = (col + 1) / SUBDIV;
+
+              const getPt = (u, v) => {
+                const w = 1 - u;
+                return new THREE.Vector3(
+                  w * pA.x + (u - v) * pB.x + v * pC.x,
+                  w * pA.y + (u - v) * pB.y + v * pC.y,
+                  w * pA.z + (u - v) * pB.z + v * pC.z
+                );
+              };
+
+              const pt1 = getPt(u1, v1);
+              const pt2 = getPt(u2, v2);
+              const pt3 = getPt(u3, v3);
+
+              vertices.push(pt1.x, pt1.y + radius, pt1.z);
+              vertices.push(pt2.x, pt2.y + radius, pt2.z);
+              vertices.push(pt3.x, pt3.y + radius, pt3.z);
+              normals.push(fn.x, fn.y, fn.z, fn.x, fn.y, fn.z, fn.x, fn.y, fn.z);
+
+              if (col < row) {
+                const u4 = row / SUBDIV, v4 = (col + 1) / SUBDIV;
+                const pt4 = getPt(u4, v4);
+                vertices.push(pt1.x, pt1.y + radius, pt1.z);
+                vertices.push(pt3.x, pt3.y + radius, pt3.z);
+                vertices.push(pt4.x, pt4.y + radius, pt4.z);
+                normals.push(fn.x, fn.y, fn.z, fn.x, fn.y, fn.z, fn.x, fn.y, fn.z);
+              }
+            }
+          }
+        }
+      });
+
+      const geo = new THREE.BufferGeometry();
+      geo.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
+      geo.setAttribute('normal', new THREE.Float32BufferAttribute(normals, 3));
+      return geo;
+    }
+
+    function buildPartGeometry(type) {
+      if (type === 'dodeca') {
+        return buildHighDensityDodecahedronGeometry(150);
+      } else {
+        const geo = new THREE.ParametricBufferGeometry((u, v, target) => {
+          const x = (u - 0.5) * 340;
+          const z = (v - 0.5) * 240;
+          const y = Math.sin(u * Math.PI) * 40 + Math.cos(v * Math.PI * 2) * 16 - Math.pow(u - 0.5, 2) * 46;
+          target.set(x, y + 78, z);
+        }, 48, 48);
+        geo.computeVertexNormals();
+        return geo;
+      }
+    }
+
+    function setupAutomotivePartWithWideRange() {
+      largeWorktableGroup = new THREE.Group();
+      largeWorktableGroup.position.set(partBaseCenter.x, 0, partBaseCenter.z);
+
+      const tableW = 1600, tableD = 1400, tableH = 25;
+      const tableGeo = new THREE.BoxGeometry(tableW, tableH, tableD);
+      const tableMat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.2, metalness: 0.1 });
+      largeWorktableMesh = new THREE.Mesh(tableGeo, tableMat);
+      largeWorktableMesh.position.y = 120;
+      largeWorktableMesh.receiveShadow = true;
+      largeWorktableMesh.castShadow = true;
+      largeWorktableGroup.add(largeWorktableMesh);
+
+      const tableEdge = new THREE.LineSegments(new THREE.EdgesGeometry(tableGeo), new THREE.LineBasicMaterial({ color: 0x94a3b8 }));
+      tableEdge.position.copy(largeWorktableMesh.position);
+      largeWorktableGroup.add(tableEdge);
+
+      const legMat = new THREE.MeshStandardMaterial({ color: 0x475569, metalness: 0.6, roughness: 0.3 });
+      [
+        [-700, 55, -600], [0, 55, -600], [700, 55, -600],
+        [-700, 55,  600], [0, 55,  600], [700, 55,  600]
+      ].forEach(pos => {
+        const leg = new THREE.Mesh(new THREE.BoxGeometry(45, 110, 45), legMat);
+        leg.position.set(...pos);
+        leg.castShadow = true;
+        leg.receiveShadow = true;
+        largeWorktableGroup.add(leg);
+      });
+      scene.add(largeWorktableGroup);
+
+      partJigGroup = new THREE.Group();
+      partJigGroup.position.set(partBaseCenter.x, partBaseCenter.y, partBaseCenter.z);
+
+      const jigBaseGeo = new THREE.BoxGeometry(420, 26, 320);
+      const jigBaseMat = new THREE.MeshPhysicalMaterial({
+        color: 0x38bdf8,
+        transparent: true,
+        opacity: 0.16,
+        roughness: 0.1,
+        metalness: 0.1,
+        transmission: 0.6,
+        depthWrite: false
+      });
+      jigBaseMesh = new THREE.Mesh(jigBaseGeo, jigBaseMat);
+      jigBaseMesh.position.y = 13;
+      partJigGroup.add(jigBaseMesh);
+
+      const jigEdge = new THREE.LineSegments(new THREE.EdgesGeometry(jigBaseGeo), new THREE.LineBasicMaterial({ color: 0x0284c7, transparent: true, opacity: 0.35 }));
+      jigEdge.position.copy(jigBaseMesh.position);
+      partJigGroup.add(jigEdge);
+
+      jigPins = [];
+      const pinMat = new THREE.MeshStandardMaterial({ color: 0x64748b, transparent: true, opacity: 0.3 });
+      for (let x of [-150, 150]) {
+        for (let z of [-110, 110]) {
+          const pin = new THREE.Mesh(new THREE.CylinderGeometry(8, 10, 40, 16), pinMat);
+          pin.position.set(x, 40, z);
+          partJigGroup.add(pin);
+          jigPins.push(pin);
+        }
+      }
+
+      const partGeo = buildPartGeometry(currentPartModel);
+      const count = partGeo.attributes.position.count;
+      const colors = new Float32Array(count * 3);
+      for (let i = 0; i < count; i++) {
+        colors[i*3] = 0.55; colors[i*3+1] = 0.60; colors[i*3+2] = 0.68;
+      }
+      partGeo.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+
+      const partCadMat = new THREE.MeshStandardMaterial({
+        vertexColors: true,
+        metalness: 0.45,
+        roughness: 0.35,
+        side: THREE.DoubleSide
+      });
+      partMesh = new THREE.Mesh(partGeo, partCadMat);
+      partMesh.castShadow = true;
+      partMesh.receiveShadow = true;
+      partJigGroup.add(partMesh);
+
+      const edgesGeo = new THREE.EdgesGeometry(partGeo, 24);
+      partEdgesMesh = new THREE.LineSegments(edgesGeo, new THREE.LineBasicMaterial({ color: 0x1e293b, linewidth: 2, transparent: true, opacity: 0.85 }));
+      partEdgesMesh.visible = (currentPartModel === 'dodeca');
+      partJigGroup.add(partEdgesMesh);
+
+      cacheRawPartPositions(partGeo);
+
+      const ptsGeo = new THREE.BufferGeometry();
+      const ptsMat = new THREE.PointsMaterial({ color: 0x1d4ed8, size: 4.0, sizeAttenuation: true });
+      pointCloudPoints = new THREE.Points(ptsGeo, ptsMat);
+      partJigGroup.add(pointCloudPoints);
+      pointCloudPoints.visible = false;
+
+      triangleMeshGroup = new THREE.Group();
+      const wireMesh = new THREE.Mesh(partGeo, new THREE.MeshStandardMaterial({ color: 0x2563eb, wireframe: true, side: THREE.DoubleSide }));
+      triangleMeshGroup.add(wireMesh);
+      triangleMeshGroup.visible = false;
+      partJigGroup.add(triangleMeshGroup);
+
+      scene.add(partJigGroup);
+    }
+
+    function cacheRawPartPositions(geo) {
+      const posAttr = geo.attributes.position;
+      rawPartPositions = [];
+      for (let i = 0; i < posAttr.count; i++) {
+        rawPartPositions.push(new THREE.Vector3(posAttr.getX(i), posAttr.getY(i), posAttr.getZ(i)));
+      }
+    }
+
+    function switchPartModel(type) {
+      currentPartModel = type;
+      document.getElementById('btn-model-panel').classList.toggle('active', type === 'panel');
+      document.getElementById('btn-model-dodeca').classList.toggle('active', type === 'dodeca');
+
+      const newGeo = buildPartGeometry(type);
+      const count = newGeo.attributes.position.count;
+      const colors = new Float32Array(count * 3);
+      for (let i = 0; i < count; i++) {
+        colors[i*3] = 0.55; colors[i*3+1] = 0.60; colors[i*3+2] = 0.68;
+      }
+      newGeo.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+
+      partMesh.geometry.dispose();
+      partMesh.geometry = newGeo;
+      cacheRawPartPositions(newGeo);
+
+      if (partEdgesMesh) {
+        partEdgesMesh.geometry.dispose();
+        partEdgesMesh.geometry = new THREE.EdgesGeometry(newGeo, type === 'dodeca' ? 18 : 35);
+        partEdgesMesh.visible = (type === 'dodeca' && currentRenderMode === 'cad');
+      }
+
+      if (triangleMeshGroup && triangleMeshGroup.children[0]) {
+        triangleMeshGroup.children[0].geometry.dispose();
+        triangleMeshGroup.children[0].geometry = newGeo;
+      }
+
+      updateFrustumAndFilterPoints();
+      updateViewfinderCanvas();
+    }
+
+    function setupOpticalFrustumMesh() {
+      const frustumGroup = new THREE.Group();
+      const volumeGeo = new THREE.BufferGeometry();
+      const volumeMat = new THREE.MeshBasicMaterial({ color: 0x3b82f6, transparent: true, opacity: 0.14, side: THREE.DoubleSide, depthWrite: false });
+      frustumMesh = new THREE.Mesh(volumeGeo, volumeMat);
+      frustumGroup.add(frustumMesh);
+
+      const linesGeo = new THREE.BufferGeometry();
+      const linesMat = new THREE.LineBasicMaterial({ vertexColors: true, linewidth: 1.5, transparent: true, opacity: 0.85 });
+      frustumLines = new THREE.LineSegments(linesGeo, linesMat);
+      frustumGroup.add(frustumLines);
+      frameScanner.add(frustumGroup);
+    }
+
+    function updateFrustumGeometry() {
+      const zMin = opticalParams.zMin, zMax = opticalParams.zMax;
+      const wMin = zMin * opticalParams.ratioW, hMin = zMin * opticalParams.ratioH;
+      const wMax = zMax * opticalParams.ratioW, hMax = zMax * opticalParams.ratioH;
+
+      const p1 = new THREE.Vector3(zMin,  hMin / 2, -wMin / 2), p2 = new THREE.Vector3(zMin,  hMin / 2,  wMin / 2);
+      const p3 = new THREE.Vector3(zMin, -hMin / 2,  wMin / 2), p4 = new THREE.Vector3(zMin, -hMin / 2, -wMin / 2);
+      const p5 = new THREE.Vector3(zMax,  hMax / 2, -wMax / 2), p6 = new THREE.Vector3(zMax,  hMax / 2,  wMax / 2);
+      const p7 = new THREE.Vector3(zMax, -hMax / 2,  wMax / 2), p8 = new THREE.Vector3(zMax, -hMax / 2, -wMax / 2);
+
+      const vertices = [];
+      function addQuad(a, b, c, d) {
+        vertices.push(a.x, a.y, a.z,  b.x, b.y, b.z,  c.x, c.y, c.z);
+        vertices.push(a.x, a.y, a.z,  c.x, c.y, c.z,  d.x, d.y, d.z);
+      }
+      addQuad(p1, p2, p3, p4); addQuad(p5, p8, p7, p6);
+      addQuad(p1, p5, p6, p2); addQuad(p2, p6, p7, p3);
+      addQuad(p3, p7, p8, p4); addQuad(p4, p8, p5, p1);
+
+      frustumMesh.geometry.dispose();
+      frustumMesh.geometry = new THREE.BufferGeometry();
+      frustumMesh.geometry.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
+
+      const linePositions = [], lineColors = [];
+      function addSeg(a, b, color) {
+        linePositions.push(a.x, a.y, a.z, b.x, b.y, b.z);
+        lineColors.push(color.r, color.g, color.b, color.r, color.g, color.b);
+      }
+      const cGreen = new THREE.Color(0x059669), cRed = new THREE.Color(0xe11d48), cBlue = new THREE.Color(0x2563eb), cDull = new THREE.Color(0x94a3b8);
+      addSeg(p1, p2, cGreen); addSeg(p2, p3, cGreen); addSeg(p3, p4, cGreen); addSeg(p4, p1, cGreen);
+      addSeg(p5, p6, cRed); addSeg(p6, p7, cRed); addSeg(p7, p8, cRed); addSeg(p8, p5, cRed);
+      addSeg(p1, p5, cBlue); addSeg(p2, p6, cBlue); addSeg(p3, p7, cBlue); addSeg(p4, p8, cBlue);
+      const origin = new THREE.Vector3(0, 0, 0);
+      addSeg(origin, p1, cDull); addSeg(origin, p2, cDull); addSeg(origin, p3, cDull); addSeg(origin, p4, cDull);
+
+      frustumLines.geometry.dispose();
+      frustumLines.geometry = new THREE.BufferGeometry();
+      frustumLines.geometry.setAttribute('position', new THREE.Float32BufferAttribute(linePositions, 3));
+      frustumLines.geometry.setAttribute('color', new THREE.Float32BufferAttribute(lineColors, 3));
+
+      document.getElementById('lbl-zmin').innerText = `${Math.round(zMin)}`;
+      document.getElementById('lbl-zmax').innerText = `${Math.round(zMax)}`;
+    }
+
+    function setupTriangulationVisuals() {
+      const rayGeo = new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(0, 0, 0), new THREE.Vector3(0, 0, 0)]);
+      rayLine = new THREE.Line(rayGeo, new THREE.LineBasicMaterial({ color: 0x059669, linewidth: 2 }));
+      scene.add(rayLine);
+
+      const planeGeo = new THREE.BufferGeometry();
+      const planePos = new Float32Array(18);
+      planeGeo.setAttribute('position', new THREE.BufferAttribute(planePos, 3));
+      lightPlaneMesh = new THREE.Mesh(
+        planeGeo,
+        new THREE.MeshBasicMaterial({ color: 0x0284c7, transparent: true, opacity: 0.35, side: THREE.DoubleSide, depthWrite: false })
+      );
+      scene.add(lightPlaneMesh);
+
+      intersectionMarker = new THREE.Mesh(
+        new THREE.SphereGeometry(8.0, 16, 16),
+        new THREE.MeshStandardMaterial({ color: 0xd97706, emissive: 0xb45309, emissiveIntensity: 0.9 })
+      );
+      intersectionMarker.position.set(partBaseCenter.x, partBaseCenter.y + 78, partBaseCenter.z);
+      scene.add(intersectionMarker);
+    }
+
+    function updateFrustumAndFilterPoints() {
+      updateFrustumGeometry();
+
+      scene.updateMatrixWorld(true);
+      const camWorldMat = frameScanner.matrixWorld;
+      const invCamMat = new THREE.Matrix4().copy(camWorldMat).invert();
+
+      const validPointPositions = [];
+      let totalPts = rawPartPositions.length;
+      let insideCount = 0;
+
+      const zMin = opticalParams.zMin, zMax = opticalParams.zMax;
+      const rW = opticalParams.ratioW, rH = opticalParams.ratioH;
+
+      const colorAttr = partMesh.geometry.attributes.color;
+
+      for (let i = 0; i < totalPts; i++) {
+        const worldPt = rawPartPositions[i].clone().applyMatrix4(partJigGroup.matrixWorld);
+        const localPt = worldPt.clone().applyMatrix4(invCamMat);
+        const distZ = localPt.x; 
+
+        let isInside = false;
+        if (distZ >= zMin && distZ <= zMax) {
+          const halfW = (distZ * rW) / 2;
+          const halfH = (distZ * rH) / 2;
+          if (Math.abs(localPt.z) <= halfW && Math.abs(localPt.y) <= halfH) {
+            validPointPositions.push(rawPartPositions[i].x, rawPartPositions[i].y, rawPartPositions[i].z);
+            insideCount++;
+            isInside = true;
+          }
+        }
+
+        if (isInside) {
+          colorAttr.setXYZ(i, 0.05, 0.75, 0.45);
+        } else {
+          colorAttr.setXYZ(i, 0.35, 0.40, 0.48);
+        }
+      }
+      colorAttr.needsUpdate = true;
+
+      pointCloudPoints.geometry.dispose();
+      pointCloudPoints.geometry = new THREE.BufferGeometry();
+      pointCloudPoints.geometry.setAttribute('position', new THREE.Float32BufferAttribute(validPointPositions, 3));
+
+      const ratio = Math.round((insideCount / totalPts) * 100);
+      document.getElementById('lbl-valid-points').innerText = `${insideCount.toLocaleString()} pts (${ratio}%)`;
+
+      checkIntersectionInFrustum(lastHitPoint, invCamMat);
+    }
+
+    function checkIntersectionInFrustum(hitPoint, invCamMat = null) {
+      if (!invCamMat) {
+        scene.updateMatrixWorld(true);
+        invCamMat = new THREE.Matrix4().copy(frameScanner.matrixWorld).invert();
+      }
+      const localHit = hitPoint.clone().applyMatrix4(invCamMat);
+      const distZ = localHit.x;
+      const zMin = opticalParams.zMin, zMax = opticalParams.zMax;
+      const halfW = (distZ * opticalParams.ratioW) / 2, halfH = (distZ * opticalParams.ratioH) / 2;
+
+      document.getElementById('val-dist-s').innerText = `${distZ.toFixed(1)} mm`;
+
+      const isInside = (distZ >= zMin && distZ <= zMax && Math.abs(localHit.z) <= halfW && Math.abs(localHit.y) <= halfH);
+      const statusEl = document.getElementById('val-fov-status');
+      if (isInside) {
+        statusEl.innerText = "INSIDE (스캔 유효)";
+        statusEl.className = "text-emerald-700 font-black";
+        intersectionMarker.material.color.setHex(0xd97706);
+      } else {
+        statusEl.innerText = "OUT OF FOV";
+        statusEl.className = "text-rose-600 font-black animate-pulse";
+        intersectionMarker.material.color.setHex(0xe11d48);
+      }
+    }
+
+    // 순수 순기구학(FK) 로봇 관절 제어 & 실시간 정밀 모니터링 연동
+    function applyJointAnglesToRobot() {
+      if (!j1Group) return;
+
+      for (const k in jogAngles) {
+        if (isNaN(jogAngles[k])) jogAngles[k] = 0;
+      }
+
+      const deg2rad = Math.PI / 180;
+      j1Group.rotation.y = jogAngles.j1 * deg2rad;
+      j2Group.rotation.z = jogAngles.j2 * deg2rad;
+      j3Group.rotation.z = jogAngles.j3 * deg2rad;
+      j4Group.rotation.x = jogAngles.j4 * deg2rad;
+      j5Group.rotation.z = jogAngles.j5 * deg2rad;
+      j6Group.rotation.x = jogAngles.j6 * deg2rad;
+
+      scene.updateMatrixWorld(true);
+      
+      const toolWorld = new THREE.Vector3();
+      frameScanner.getWorldPosition(toolWorld);
+
+      const cartX = Math.round(toolWorld.x);
+      const cartY = Math.round(-toolWorld.z);
+      const cartZ = Math.round(toolWorld.y);
+      const currentGroundPitch = -jogAngles.j2 - jogAngles.j3 - jogAngles.j5;
+
+      document.getElementById('deck-cart-x').innerText = cartX;
+      document.getElementById('deck-cart-y').innerText = cartY;
+      document.getElementById('deck-cart-z').innerText = cartZ;
+      document.getElementById('deck-cart-rx').innerText = `${jogAngles.j4.toFixed(1)}°`;
+      document.getElementById('deck-cart-ry').innerText = `${currentGroundPitch.toFixed(1)}°`;
+      document.getElementById('deck-cart-rz').innerText = `${(jogAngles.j6 + jogAngles.j1).toFixed(1)}°`;
+
+      for (let i = 1; i <= 6; i++) {
+        document.getElementById(`lbl-j${i}`).innerText = `${jogAngles[`j${i}`].toFixed(0)}°`;
+        document.getElementById(`slider-j${i}`).value = jogAngles[`j${i}`];
+      }
+
+      updateTriangulationRayAndPlane(lastHitPoint);
+      updateFrustumAndFilterPoints();
+    }
+
+    function updateRobotJog() {
+      jogAngles.j1 = parseFloat(document.getElementById('slider-j1').value);
+      jogAngles.j2 = parseFloat(document.getElementById('slider-j2').value);
+      jogAngles.j3 = parseFloat(document.getElementById('slider-j3').value);
+      jogAngles.j4 = parseFloat(document.getElementById('slider-j4').value);
+      jogAngles.j5 = parseFloat(document.getElementById('slider-j5').value);
+      jogAngles.j6 = parseFloat(document.getElementById('slider-j6').value);
+
+      applyJointAnglesToRobot();
+      updateViewfinderCanvas();
+    }
+
+    function setWD700LookAtPose() {
+      const curX = partBaseCenter.x + partOffset.dx;
+      const curZ = partBaseCenter.z - partOffset.dy;
+
+      const j1Angle = THREE.MathUtils.radToDeg(Math.atan2(-curZ, curX));
+      
+      jogAngles.j1 = parseFloat(j1Angle.toFixed(1));
+      jogAngles.j2 = 18.0;
+      jogAngles.j3 = 38.0;
+      jogAngles.j4 = 0.0;
+      jogAngles.j5 = -56.0;
+      jogAngles.j6 = 0.0;
+
+      applyJointAnglesToRobot();
+      
+      const targetCenter = new THREE.Vector3(curX, partBaseCenter.y + partOffset.dz + (currentPartModel === 'dodeca' ? 150 : 78), curZ);
+      updateTriangulationRayAndPlane(targetCenter);
+      updateViewfinderCanvas(targetCenter);
+    }
+
+    function resetJogAngles() {
+      jogAngles = { j1: 0, j2: 14, j3: 36, j4: 0, j5: -85, j6: 0 };
+      applyJointAnglesToRobot();
+      updateViewfinderCanvas();
+    }
+
+    function stepParam(id, delta) {
+      const el = document.getElementById(id);
+      if (!el) return;
+      let val = parseFloat(el.value) + delta;
+      val = Math.max(parseFloat(el.min), Math.min(parseFloat(el.max), val));
+      el.value = val;
+      if (id.startsWith('slider-part-')) updatePartPoseFromSliders();
+      else if (id.startsWith('slider-z')) updateFrustumRange();
+      else if (id.startsWith('slider-j')) updateRobotJog();
+    }
+
+    function updatePartPoseFromSliders() {
+      partOffset.dx = parseFloat(document.getElementById('slider-part-dx').value);
+      partOffset.dy = parseFloat(document.getElementById('slider-part-dy').value);
+      partOffset.dz = parseFloat(document.getElementById('slider-part-dz').value);
+      partOffset.rx = parseFloat(document.getElementById('slider-part-rx').value);
+      partOffset.ry = parseFloat(document.getElementById('slider-part-ry').value);
+      partOffset.rz = parseFloat(document.getElementById('slider-part-rz').value);
+
+      const curX = partBaseCenter.x + partOffset.dx;
+      const curY = partBaseCenter.y + partOffset.dz;
+      const curZ = partBaseCenter.z - partOffset.dy;
+
+      document.getElementById('lbl-part-dx').innerText = `${partOffset.dx > 0 ? '+' : ''}${partOffset.dx.toFixed(0)}`;
+      document.getElementById('lbl-part-dy').innerText = `${partOffset.dy > 0 ? '+' : ''}${partOffset.dy.toFixed(0)}`;
+      document.getElementById('lbl-part-dz').innerText = `+${partOffset.dz.toFixed(0)}`;
+      document.getElementById('lbl-part-rx').innerText = `${partOffset.rx.toFixed(0)}°`;
+      document.getElementById('lbl-part-ry').innerText = `${partOffset.ry.toFixed(0)}°`;
+      document.getElementById('lbl-part-rz').innerText = `${partOffset.rz.toFixed(0)}°`;
+
+      partJigGroup.position.set(curX, curY, curZ);
+      partJigGroup.rotation.set(
+        THREE.MathUtils.degToRad(partOffset.rx),
+        THREE.MathUtils.degToRad(partOffset.rz),
+        THREE.MathUtils.degToRad(partOffset.ry),
+        'ZYX'
+      );
+      partJigGroup.updateMatrixWorld(true);
+
+      largeWorktableGroup.position.set(curX, 0, curZ);
+      largeWorktableGroup.updateMatrixWorld(true);
+
+      const newCenter = new THREE.Vector3(curX, curY + (currentPartModel === 'dodeca' ? 150 : 78), curZ);
+      updateTriangulationRayAndPlane(newCenter);
+      updateFrustumAndFilterPoints();
+    }
+
+    function resetPartPose() {
+      ['dx','dy','dz','rx','ry','rz'].forEach(k => {
+        document.getElementById(`slider-part-${k}`).value = 0;
+      });
+      updatePartPoseFromSliders();
+    }
+
+    function updateFrustumRange() {
+      opticalParams.zMin = parseFloat(document.getElementById('slider-zmin').value);
+      opticalParams.zMax = parseFloat(document.getElementById('slider-zmax').value);
+      if (opticalParams.zMin >= opticalParams.zMax - 50) {
+        opticalParams.zMin = opticalParams.zMax - 50;
+        document.getElementById('slider-zmin').value = opticalParams.zMin;
+      }
+      updateFrustumAndFilterPoints();
+    }
+
+    function resetFrustumRange() {
+      opticalParams.zMin = 500.0;
+      opticalParams.zMax = 900.0;
+      document.getElementById('slider-zmin').value = 500;
+      document.getElementById('slider-zmax').value = 900;
+      updateFrustumAndFilterPoints();
+    }
+
+    function updateTriangulationRayAndPlane(targetPoint) {
+      lastHitPoint.copy(targetPoint);
+
+      const camWorldPos = new THREE.Vector3();
+      frameScanner.getWorldPosition(camWorldPos);
+
+      const projLocalPos = new THREE.Vector3(110, -15, 85);
+      const projWorldPos = projLocalPos.clone();
+      scannerToolGroup.localToWorld(projWorldPos);
+
+      const rayPos = rayLine.geometry.attributes.position.array;
+      rayPos[0] = camWorldPos.x; rayPos[1] = camWorldPos.y; rayPos[2] = camWorldPos.z;
+      rayPos[3] = targetPoint.x; rayPos[4] = targetPoint.y; rayPos[5] = targetPoint.z;
+      rayLine.geometry.attributes.position.needsUpdate = true;
+
+      const planePos = lightPlaneMesh.geometry.attributes.position.array;
+      const vTop = targetPoint.clone().add(new THREE.Vector3(0, 90, 0));
+      const vBottom = targetPoint.clone().add(new THREE.Vector3(0, -90, 0));
+
+      planePos[0] = projWorldPos.x; planePos[1] = projWorldPos.y; planePos[2] = projWorldPos.z;
+      planePos[3] = vTop.x; planePos[4] = vTop.y; planePos[5] = vTop.z;
+      planePos[6] = vBottom.x; planePos[7] = vBottom.y; planePos[8] = vBottom.z;
+
+      planePos[9] = projWorldPos.x; planePos[10] = projWorldPos.y; planePos[11] = projWorldPos.z;
+      planePos[12] = vBottom.x; planePos[13] = vBottom.y; planePos[14] = vBottom.z;
+      planePos[15] = projWorldPos.x; planePos[16] = projWorldPos.y - 120; planePos[17] = projWorldPos.z;
+      lightPlaneMesh.geometry.attributes.position.needsUpdate = true;
+
+      intersectionMarker.position.copy(targetPoint);
+      document.getElementById('val-cam-px').innerText = `(u: ${Math.round(801 + (targetPoint.z - partJigGroup.position.z) * 1.5)}, v: ${Math.round(601 - (targetPoint.y - (partJigGroup.position.y + 78)) * 1.5)})`;
+    }
+
+    const raycaster = new THREE.Raycaster();
+    const mouse = new THREE.Vector2();
+
+    function onDocumentPointerDown(event) {
+      if (event.clientX < 280 || event.clientX > window.innerWidth - 300 || event.clientY < 65 || event.clientY > window.innerHeight - 170) {
+        return;
+      }
+      mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+      mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+
+      raycaster.setFromCamera(mouse, camera);
+      const intersects = raycaster.intersectObject(partMesh);
+
+      if (intersects.length > 0) {
+        const hitPoint = intersects[0].point;
+        updateTriangulationRayAndPlane(hitPoint);
+        updateFrustumAndFilterPoints();
+        updateViewfinderCanvas(hitPoint);
+      }
+    }
+
+    function updateViewfinderCanvas(hitPoint = null) {
+      const cvs = document.getElementById('viewfinder-canvas');
+      const ctx = cvs.getContext('2d');
+      const w = cvs.width, h = cvs.height;
+
+      ctx.fillStyle = '#0f172a';
+      ctx.fillRect(0, 0, w, h);
+
+      if (currentStep <= 6) {
+        const numStripes = Math.pow(2, currentStep);
+        const stripeW = w / numStripes;
+        for (let i = 0; i < numStripes; i++) {
+          if (i % 2 === 1) {
+            ctx.fillStyle = '#f8fafc';
+            ctx.fillRect(i * stripeW, 0, stripeW, h);
+          }
+        }
+      } else {
+        const phaseShiftIndex = currentStep - 7;
+        const phaseAngle = (phaseShiftIndex * Math.PI) / 2;
+        const freq = 12;
+        for (let x = 0; x < w; x++) {
+          const intensity = Math.sin((x / w) * freq * Math.PI * 2 + phaseAngle) * 0.5 + 0.5;
+          const val = Math.floor(intensity * 255);
+          ctx.fillStyle = `rgb(${val},${val},${val})`;
+          ctx.fillRect(x, 0, 1, h);
+        }
+      }
+
+      if (!isSinglePassScanning && currentStep === 10) {
+        ctx.fillStyle = 'rgba(15, 23, 42, 0.40)';
+        ctx.fillRect(0, 0, w, h);
+
+        ctx.fillStyle = 'rgba(56, 189, 248, 0.40)';
+        ctx.strokeStyle = '#38bdf8';
+        ctx.lineWidth = 2.5;
+
+        if (currentPartModel === 'dodeca') {
+          ctx.beginPath();
+          const r = 55, cx = w / 2, cy = h / 2;
+          for (let i = 0; i < 5; i++) {
+            const a = (i * Math.PI * 2 / 5) - Math.PI / 2;
+            const px = cx + r * Math.cos(a), py = cy + r * Math.sin(a);
+            if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+          }
+          ctx.closePath();
+          ctx.fill();
+          ctx.stroke();
+
+          ctx.strokeStyle = '#0284c7';
+          ctx.lineWidth = 1.5;
+          ctx.beginPath();
+          for (let i = 0; i < 5; i++) {
+            const a = (i * Math.PI * 2 / 5) - Math.PI / 2;
+            ctx.moveTo(cx, cy);
+            ctx.lineTo(cx + r * Math.cos(a), cy + r * Math.sin(a));
+          }
+          ctx.stroke();
+        } else {
+          ctx.beginPath();
+          ctx.roundRect(50, 32, w - 100, h - 64, 14);
+          ctx.fill();
+          ctx.stroke();
+
+          ctx.strokeStyle = '#0284c7';
+          ctx.lineWidth = 1.5;
+          ctx.beginPath();
+          ctx.moveTo(80, 90); ctx.lineTo(w - 80, 90);
+          ctx.arc(w/2, 90, 24, 0, Math.PI * 2);
+          ctx.stroke();
+        }
+
+        document.getElementById('viewfinder-status-badge').innerText = 'SCANNED 2D';
+        document.getElementById('viewfinder-status-badge').className = 'text-[9px] bg-blue-100 text-blue-800 border border-blue-200 px-1.5 py-0.2 rounded font-mono font-bold';
+        document.getElementById('viewfinder-mode-tag').innerText = '2D Image Acquired';
+      } else {
+        document.getElementById('viewfinder-status-badge').innerText = 'LIVE';
+        document.getElementById('viewfinder-status-badge').className = 'text-[9px] bg-red-100 text-red-700 border border-red-200 px-1.5 py-0.2 rounded font-mono font-bold animate-pulse';
+        document.getElementById('viewfinder-mode-tag').innerText = `Step ${currentStep} Pattern`;
+      }
+
+      ctx.strokeStyle = '#10b981';
+      ctx.lineWidth = 1.5;
+      ctx.strokeRect(40, 25, w - 80, h - 50);
+
+      if (hitPoint) {
+        ctx.fillStyle = '#f59e0b';
+        ctx.beginPath();
+        ctx.arc(w / 2, h / 2, 4, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+
+    function setPatternStep(step) {
+      currentStep = parseInt(step);
+      document.getElementById('pattern-slider').value = currentStep;
+      document.getElementById('pattern-step-text').innerText = `Step ${currentStep} / 10`;
+
+      if (currentStep <= 6) {
+        document.getElementById('pattern-badge').innerText = `P${currentStep}: Gray #${currentStep}`;
+        document.getElementById('pattern-badge').className = "text-[9.5px] px-1.5 py-0.5 rounded bg-blue-100 text-blue-800 font-mono font-bold border border-blue-200";
+      } else {
+        const deg = (currentStep - 7) * 90;
+        document.getElementById('pattern-badge').innerText = `P${currentStep}: Phase (${deg}°)`;
+        document.getElementById('pattern-badge').className = "text-[9.5px] px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-800 font-mono font-bold border border-emerald-200";
+      }
+
+      document.getElementById('pattern-desc').innerHTML = patternDescriptions[currentStep - 1];
+      updateViewfinderCanvas();
+    }
+
+    function nextPatternStep() {
+      let next = currentStep + 1;
+      if (next > 10) next = 1;
+      setPatternStep(next);
+    }
+
+    function onPatternSliderChange(val) {
+      setPatternStep(val);
+    }
+
+    function startSinglePass10Scan() {
+      if (isSinglePassScanning) {
+        stopSinglePassScan();
+        return;
+      }
+
+      isSinglePassScanning = true;
+      const btn = document.getElementById('btn-scan');
+      const btnText = document.getElementById('btn-scan-text');
+      btn.classList.replace('bg-emerald-600', 'bg-rose-600');
+      btn.classList.replace('hover:bg-emerald-700', 'hover:bg-rose-700');
+      btnText.innerText = "스캔 중지";
+
+      setPatternStep(1);
+
+      function runNextStep(step) {
+        if (!isSinglePassScanning) return;
+        setPatternStep(step);
+
+        if (step < 10) {
+          scanTimeoutId = setTimeout(() => { runNextStep(step + 1); }, 450);
+        } else {
+          scanTimeoutId = setTimeout(() => {
+            stopSinglePassScan();
+            updateViewfinderCanvas();
+          }, 500);
+        }
+      }
+
+      scanTimeoutId = setTimeout(() => { runNextStep(2); }, 450);
+      lucide.createIcons();
+    }
+
+    function stopSinglePassScan() {
+      isSinglePassScanning = false;
+      if (scanTimeoutId) clearTimeout(scanTimeoutId);
+      const btn = document.getElementById('btn-scan');
+      const btnText = document.getElementById('btn-scan-text');
+      btn.classList.replace('bg-rose-600', 'bg-emerald-600');
+      btn.classList.replace('hover:bg-rose-700', 'hover:bg-emerald-700');
+      btnText.innerText = "10패턴 스캔 (1회)";
+      lucide.createIcons();
+    }
+
+    function setRenderMode(mode) {
+      currentRenderMode = mode;
+      document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.classList.remove('active');
+      });
+      document.getElementById(`tab-${mode}`).classList.add('active');
+
+      partMesh.visible = (mode === 'cad' || mode === 'pattern');
+      pointCloudPoints.visible = (mode === 'cloud');
+      triangleMeshGroup.visible = (mode === 'mesh');
+
+      if (mode === 'cloud' || mode === 'mesh') {
+        jigBaseMesh.visible = false;
+        jigPins.forEach(p => p.visible = false);
+        if (partEdgesMesh) partEdgesMesh.visible = false;
+      } else {
+        jigBaseMesh.visible = true;
+        jigPins.forEach(p => p.visible = true);
+        if (partEdgesMesh) partEdgesMesh.visible = (currentPartModel === 'dodeca');
+      }
+
+      if (mode === 'pattern') {
+        partMesh.material.vertexColors = false;
+        partMesh.material.color.setHex(0xffffff);
+        partMesh.material.needsUpdate = true;
+      } else if (mode === 'cad') {
+        partMesh.material.vertexColors = true;
+        partMesh.material.needsUpdate = true;
+      }
+    }
+
+    function toggleLeftPanel() {
+      document.getElementById('left-panel').classList.toggle('-translate-x-[110%]');
+    }
+    function toggleRightPanel() {
+      document.getElementById('right-panel').classList.toggle('translate-x-[110%]');
+    }
+    function toggleBottomDeck() {
+      document.getElementById('bottom-deck').classList.toggle('translate-y-[120%]');
+    }
+
+    function resetCameraView() {
+      camera.position.set(1600, 1100, 1400);
+      controls.target.set(600, 380, 50);
+      controls.update();
+    }
+
+    function onWindowResize() {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+    }
+
+    function animate() {
+      requestAnimationFrame(animate);
+      controls.update();
+
+      if (intersectionMarker) {
+        const s = 1 + Math.sin(Date.now() * 0.006) * 0.15;
+        intersectionMarker.scale.set(s, s, s);
+      }
+
+      renderer.render(scene, camera);
+    }
+
+    window.onload = init;
+  </script>
+</body>
+</html>
