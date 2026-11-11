@@ -38,7 +38,7 @@
       border: 1px solid var(--card-border);
       border-radius: 1.5rem;
       padding: 2.5rem;
-      max-width: 960px;
+      max-width: 980px;
       width: 100%;
       box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
     }
@@ -56,7 +56,7 @@
     .brand-wrap {
       display: flex;
       flex-direction: column;
-      gap: 0.2rem;
+      gap: 0.25rem;
     }
 
     .brand {
@@ -120,7 +120,7 @@
       background: rgba(245, 158, 11, 0.1);
       border: 1px solid rgba(245, 158, 11, 0.3);
       color: #fde68a;
-      padding: 0.6rem 1.2rem;
+      padding: 0.55rem 1.2rem;
       border-radius: 9999px;
       font-size: 0.82rem;
       line-height: 1.4;
@@ -138,7 +138,7 @@
       flex-shrink: 0;
     }
 
-    /* 5대 모듈 유연 그리드 (간결하고 번잡하지 않은 5열 / 모바일 2~3열 레이아웃) */
+    /* 5대 모듈 그리드 (PC 5열 / 태블릿 3열 / 모바일 2열 자동 대응) */
     .modules-grid {
       display: grid;
       grid-template-columns: repeat(5, 1fr);
@@ -205,11 +205,11 @@
       color: #0f172a;
     }
 
-    /* 베타 뱃지 (버튼 우측 상단) */
+    /* 베타 뱃지 */
     .beta-badge {
       position: absolute;
       top: 0px;
-      right: 12px;
+      right: 10px;
       background: var(--accent-amber);
       color: #0f172a;
       font-size: 0.65rem;
@@ -217,49 +217,30 @@
       padding: 0.15rem 0.4rem;
       border-radius: 0.35rem;
       letter-spacing: 0.04em;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.4);
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
     }
 
     /* 버튼 하단 텍스트 */
     .module-title {
       margin-top: 0.85rem;
-      font-size: 0.98rem;
+      font-size: 0.95rem;
       font-weight: 700;
       text-align: center;
       color: #ffffff;
+      white-space: nowrap;
     }
 
     .module-desc {
-      font-size: 0.76rem;
+      font-size: 0.75rem;
       color: var(--text-sub);
       text-align: center;
       margin-top: 0.3rem;
       line-height: 1.35;
-    }
-
-    /* 준비 중 (Disabled) 스타일 */
-    .module-item.disabled {
-      cursor: not-allowed;
-      opacity: 0.45;
-    }
-
-    .module-item.disabled:hover {
-      transform: none;
-    }
-
-    .module-item.disabled .circle-btn {
-      border-color: #475569;
-      box-shadow: none;
-      background: #0f172a;
-    }
-
-    .module-item.disabled .btn-icon,
-    .module-item.disabled .btn-code {
-      color: #64748b;
+      word-break: keep-all;
     }
 
     /* 반응형 디자인 */
-    @media (max-width: 860px) {
+    @media (max-width: 880px) {
       .modules-grid {
         grid-template-columns: repeat(3, 1fr);
         gap: 1.5rem 1rem;
@@ -310,14 +291,14 @@
       <p class="welcome-text">신입 연구원 및 엔지니어 여러분, 환영합니다.</p>
       <h1 class="main-title">ATM 직무 기술 교육 시스템</h1>
       
-      <!-- 베타 및 개발 안내 문구 -->
+      <!-- 베타 및 개발 안내 공지 배너 -->
       <div class="notice-banner">
         <span class="notice-tag">NOTICE</span>
-        <span>신규 추가 모듈(ICP 등)은 <strong>베타 연구 버전</strong>으로, 알고리즘 구상 및 테스트 단계에 따라 일부 동작이 제한될 수 있습니다.</span>
+        <span>신규 추가 모듈(ICP, 3D Scan 등)은 <strong>베타 연구 버전</strong>으로, 알고리즘 구상 및 테스트 단계에 따라 일부 동작이 제한될 수 있습니다.</span>
       </div>
     </section>
 
-    <!-- 3. 원형 링크 모듈 (5개 슬롯 구성) -->
+    <!-- 3. 원형 링크 모듈 (5대 핵심 교육 모듈) -->
     <nav class="modules-grid">
       <!-- ① UF6 PC 시뮬레이터 -->
       <a href="uf6_pc.html" class="module-item">
@@ -326,7 +307,7 @@
           <span class="btn-code">uf6_pc</span>
         </div>
         <div class="module-title">UF6 3D (PC)</div>
-        <div class="module-desc">데스크톱 정밀 시뮬레이터</div>
+        <div class="module-desc">데스크톱 정밀 시뮬레이터[cite: 1]</div>
       </a>
 
       <!-- ② UF6 모바일 시뮬레이터 -->
@@ -336,7 +317,7 @@
           <span class="btn-code">uf6_mo</span>
         </div>
         <div class="module-title">UF6 3D (Mobile)</div>
-        <div class="module-desc">현장 터치 최적화 뷰어</div>
+        <div class="module-desc">현장 터치 최적화 뷰어[cite: 1]</div>
       </a>
 
       <!-- ③ FOV 모듈 -->
@@ -349,7 +330,7 @@
         <div class="module-desc">광학 화각 및 작업거리</div>
       </a>
 
-      <!-- ④ ICP PC 시뮬레이터 (신규 링크 / 베타) -->
+      <!-- ④ ICP PC 시뮬레이터 (베타) -->
       <a href="icp_pc.html" class="module-item">
         <div class="circle-btn">
           <span class="beta-badge">BETA</span>
@@ -360,15 +341,16 @@
         <div class="module-desc">포인트클라우드 정합[cite: 1]</div>
       </a>
 
-      <!-- ⑤ 내일 추가 예정 슬롯 -->
-      <div class="module-item disabled" title="내일 추가 예정인 신규 프로젝트입니다">
+      <!-- ⑤ 구조광 3D Scan 모듈 (신규 연동 / 베타) -->
+      <a href="3D_scan.html" class="module-item">
         <div class="circle-btn">
-          <span class="btn-icon">⏳</span>
-          <span class="btn-code">추가 예정</span>
+          <span class="beta-badge">BETA</span>
+          <span class="btn-icon">📸</span>
+          <span class="btn-code">3D_scan</span>
         </div>
-        <div class="module-title">신규 프로젝트</div>
-        <div class="module-desc">내일 오픈 예정 모듈</div>
-      </div>
+        <div class="module-title">구조광 3D Scan</div>
+        <div class="module-desc">Pointcloud 생성</div>
+      </a>
     </nav>
   </main>
 
