@@ -20,13 +20,19 @@
       border: 1px solid rgba(226, 232, 240, 0.95);
       box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.06), 0 8px 10px -6px rgba(0, 0, 0, 0.03);
     }
+    .ortho-panel-shell {
+      background: rgba(255, 255, 255, 0.72);
+      backdrop-filter: blur(8px);
+      border: 1px solid rgba(203, 213, 225, 0.95);
+      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.06);
+    }
     .custom-scrollbar::-webkit-scrollbar { width: 4px; }
     .custom-scrollbar::-webkit-scrollbar-track { background: #f1f5f9; }
     .custom-scrollbar::-webkit-scrollbar-thumb { background: #94a3b8; border-radius: 4px; }
     
     .pm-btn-large {
-      width: 24px;
-      height: 22px;
+      width: 22px;
+      height: 20px;
       display: inline-flex;
       align-items: center;
       justify-content: center;
@@ -34,7 +40,7 @@
       background-color: #ffffff;
       color: #0f172a;
       font-weight: 900;
-      font-size: 14px;
+      font-size: 13px;
       line-height: 1;
       border: 1.5px solid #cbd5e1;
       box-shadow: 0 1px 2px rgba(0,0,0,0.05);
@@ -46,7 +52,7 @@
       background-color: #2563eb;
       color: #ffffff;
       border-color: #1d4ed8;
-      transform: scale(1.08);
+      transform: scale(1.06);
     }
     .pm-btn-large:active {
       transform: scale(0.92);
@@ -90,10 +96,10 @@
 </head>
 <body class="w-screen h-screen relative select-none text-slate-800">
 
-  <!-- 3D WebGL Canvas -->
+  <!-- 단일 통합 3D WebGL Canvas (메인 3D 뷰 + 우측 3단 직교 뷰포트 Scissor 공용) -->
   <div id="canvas-container" class="absolute inset-0 z-0 cursor-grab active:cursor-grabbing"></div>
 
-  <!-- 상단 네비게이션 헤더 (간결한 1행 구성) -->
+  <!-- 상단 네비게이션 헤더 -->
   <header class="absolute top-0 left-0 right-0 h-14 z-20 flex items-center justify-between px-5 glass-panel-light border-b border-slate-200">
     <div class="flex items-center gap-2.5 flex-shrink-0">
       <div class="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center font-bold text-white shadow-sm shadow-blue-500/30">
@@ -104,14 +110,13 @@
           3D 구조광 Simulator
         </h1>
         <span class="text-[10px] bg-blue-50 text-blue-700 border border-blue-200 px-2 py-0.5 rounded-md font-mono font-bold whitespace-nowrap">
-          V1.0 (Nov.11)
+          V2.0 (3-View Ortho)
         </span>
       </div>
     </div>
 
-    <!-- 중앙 컨트롤: 모델 선택 및 뷰 모드 탭 (텍스트 줄바꿈 없는 1행 버튼) -->
+    <!-- 중앙 컨트롤: 모델 선택 및 뷰 모드 탭 -->
     <div class="flex items-center gap-2 flex-shrink-0">
-      <!-- 모델 선택 -->
       <div class="flex items-center bg-slate-100 p-0.5 rounded-xl border border-slate-200 text-xs">
         <button onclick="switchPartModel('panel')" id="btn-model-panel" class="model-btn active px-2.5 py-1 rounded-lg transition font-semibold whitespace-nowrap flex items-center gap-1">
           <i data-lucide="layers" class="w-3.5 h-3.5"></i> 차체곡면
@@ -121,7 +126,6 @@
         </button>
       </div>
 
-      <!-- 3D 뷰 모드 탭 -->
       <div class="flex items-center bg-slate-100 p-0.5 rounded-xl border border-slate-200 text-xs">
         <button onclick="setRenderMode('cad')" id="tab-cad" class="tab-btn active px-2.5 py-1 rounded-lg transition font-semibold whitespace-nowrap flex items-center gap-1">
           <i data-lucide="box" class="w-3.5 h-3.5"></i> 실물
@@ -138,13 +142,13 @@
       </div>
     </div>
 
-    <!-- 우측 유틸리티 & 큼직한 집 모양 아이콘 단독 홈 복귀 버튼 -->
+    <!-- 우측 유틸리티 -->
     <div class="flex items-center gap-1.5 flex-shrink-0">
       <button onclick="toggleLeftPanel()" class="px-2 py-1.5 text-xs bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 rounded-lg flex items-center gap-1 transition shadow-xs font-semibold whitespace-nowrap">
         <i data-lucide="panel-left-close" class="w-3.5 h-3.5"></i> 좌측창
       </button>
       <button onclick="toggleRightPanel()" class="px-2 py-1.5 text-xs bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 rounded-lg flex items-center gap-1 transition shadow-xs font-semibold whitespace-nowrap">
-        <i data-lucide="panel-right-close" class="w-3.5 h-3.5"></i> 우측창
+        <i data-lucide="columns-3" class="w-3.5 h-3.5"></i> 3면도창
       </button>
       <button onclick="toggleBottomDeck()" class="px-2 py-1.5 text-xs bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 rounded-lg flex items-center gap-1 transition shadow-xs font-semibold whitespace-nowrap">
         <i data-lucide="layout-bottom" class="w-3.5 h-3.5"></i> 조작덱
@@ -152,31 +156,31 @@
       <button onclick="resetCameraView()" class="px-2 py-1.5 text-xs bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 rounded-lg flex items-center gap-1 transition shadow-xs font-semibold whitespace-nowrap" title="시점 리셋">
         <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i>
       </button>
-      <!-- 집 아이콘 단독 홈 복귀 버튼 -->
       <a href="./index.html" class="w-8 h-8 bg-slate-900 hover:bg-blue-600 text-white rounded-lg flex items-center justify-center shadow-sm transition" title="메인 런처(index.html)로 복귀">
         <i data-lucide="home" class="w-4 h-4"></i>
       </a>
     </div>
   </header>
 
-  <!-- 좌측 도킹 패널 (260px) -->
-  <aside id="left-panel" class="absolute top-16 left-4 w-[260px] max-h-[calc(100vh-17rem)] z-10 glass-panel-light rounded-2xl flex flex-col p-3 custom-scrollbar overflow-y-auto transition-all duration-300">
-    <div class="bg-blue-50/70 border border-blue-200 p-2 rounded-xl mb-2.5 text-[10.5px]">
-      <div class="flex items-center justify-between text-blue-900 font-extrabold mb-1">
+  <!-- 좌측 통합 제어 패널 (280px) : 광학사양 + 패턴엔진 + 삼각측량 + 3D FOV 계측범위 + 부품 6-DOF 설정 -->
+  <aside id="left-panel" class="absolute top-16 left-4 w-[280px] max-h-[calc(100vh-5.8rem)] z-10 glass-panel-light rounded-2xl flex flex-col p-3 custom-scrollbar overflow-y-auto transition-all duration-300">
+    
+    <!-- 1. 광학 사양 -->
+    <div class="bg-blue-50/70 border border-blue-200 p-2 rounded-xl mb-2 text-[10px]">
+      <div class="flex items-center justify-between text-blue-900 font-extrabold mb-0.5">
         <span class="flex items-center gap-1"><i data-lucide="camera" class="w-3 h-3 text-blue-600"></i> 광학 사양</span>
         <span class="text-[9px] bg-blue-600 text-white px-1.5 py-0.2 rounded font-mono font-bold">15mm / F4.0</span>
       </div>
-      <div class="space-y-0.5 text-slate-600 font-mono text-[10px]">
-        <div>• 센서 규격: <span class="text-slate-900 font-bold">7.2 × 5.4 mm</span></div>
-        <div>• 픽셀 해상도: <span class="text-slate-900 font-bold">1602 × 1202</span></div>
-        <div>• 수평 화각: <span class="text-emerald-700 font-bold">26.99°</span></div>
-        <div>• 수직 화각: <span class="text-emerald-700 font-bold">20.41°</span></div>
-        <div>• 기준거리: <span class="text-blue-700 font-extrabold">WD 700 mm</span></div>
+      <div class="grid grid-cols-2 gap-x-2 gap-y-0.5 text-slate-600 font-mono text-[9.5px]">
+        <div>• 센서: <span class="text-slate-900 font-bold">7.2×5.4mm</span></div>
+        <div>• 해상도: <span class="text-slate-900 font-bold">1602×1202</span></div>
+        <div>• 화각: <span class="text-emerald-700 font-bold">27.0°×20.4°</span></div>
+        <div>• 기준거리: <span class="text-blue-700 font-extrabold">WD 700mm</span></div>
       </div>
     </div>
 
-    <!-- 패턴 엔진 -->
-    <div class="flex items-center justify-between pb-1 border-b border-slate-200 mb-2">
+    <!-- 2. 패턴 투사 엔진 -->
+    <div class="flex items-center justify-between pb-1 border-b border-slate-200 mb-1.5">
       <span class="text-xs font-bold text-slate-900 flex items-center gap-1">
         <i data-lucide="layers" class="w-3.5 h-3.5 text-blue-600"></i> 패턴 투사 엔진
       </span>
@@ -185,23 +189,23 @@
       </span>
     </div>
 
-    <div class="flex gap-1.5 mb-2">
-      <button onclick="startSinglePass10Scan()" id="btn-scan" class="flex-1 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold flex items-center justify-center gap-1 shadow-xs transition">
+    <div class="flex gap-1.5 mb-1.5">
+      <button onclick="startSinglePass10Scan()" id="btn-scan" class="flex-1 py-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold flex items-center justify-center gap-1 shadow-xs transition">
         <i data-lucide="play" class="w-3 h-3" id="btn-scan-icon"></i>
         <span id="btn-scan-text">10패턴 스캔 (1회)</span>
       </button>
-      <button onclick="nextPatternStep()" class="px-2 py-1.5 bg-white hover:bg-slate-50 text-slate-800 border border-slate-200 rounded-lg text-xs font-semibold flex items-center gap-1 transition shadow-xs">
+      <button onclick="nextPatternStep()" class="px-2 py-1 bg-white hover:bg-slate-50 text-slate-800 border border-slate-200 rounded-lg text-xs font-semibold flex items-center gap-1 transition shadow-xs">
         다음 <i data-lucide="chevron-right" class="w-3 h-3"></i>
       </button>
     </div>
 
-    <div class="bg-slate-50 p-2 rounded-xl border border-slate-200 mb-2">
-      <div class="flex justify-between text-[10px] mb-1">
+    <div class="bg-slate-50 p-1.5 rounded-xl border border-slate-200 mb-1.5">
+      <div class="flex justify-between text-[10px] mb-0.5">
         <span class="text-slate-600 font-medium">패턴 인덱스</span>
         <span class="font-mono text-blue-600 font-extrabold" id="pattern-step-text">Step 1 / 10</span>
       </div>
       <input type="range" id="pattern-slider" min="1" max="10" value="1" step="1" oninput="onPatternSliderChange(this.value)" class="w-full cursor-pointer">
-      <div class="flex justify-between text-[8px] text-slate-500 mt-1 font-mono">
+      <div class="flex justify-between text-[8px] text-slate-500 mt-0.5 font-mono">
         <span>1:그레이</span>
         <span>6:세선</span>
         <span>7:위상(0°)</span>
@@ -209,12 +213,12 @@
       </div>
     </div>
 
-    <div class="bg-slate-50 border border-slate-200 p-2 rounded-xl text-[10px] text-slate-700 leading-snug mb-2">
+    <div class="bg-slate-50 border border-slate-200 p-1.5 rounded-xl text-[9.5px] text-slate-700 leading-snug mb-2">
       <p id="pattern-desc"><strong>[그레이 코드 1단계]</strong> 화면을 좌/우 2개 구역으로 분할하여 1차 번지수를 부여합니다.</p>
     </div>
 
-    <!-- 삼각측량 교점 검사기 -->
-    <div class="border-t border-slate-200 pt-2">
+    <!-- 3. 삼각측량 검사기 -->
+    <div class="border-t border-slate-200 pt-1.5 mb-2">
       <div class="flex items-center justify-between mb-1">
         <span class="text-xs font-bold text-slate-900 flex items-center gap-1">
           <i data-lucide="crosshair" class="w-3.5 h-3.5 text-amber-600"></i> 삼각측량 검사
@@ -222,7 +226,7 @@
         <span class="text-[9px] text-slate-400">부품 클릭</span>
       </div>
       
-      <div class="space-y-1 font-mono text-[10px] bg-slate-50 p-2 rounded-xl border border-slate-200">
+      <div class="space-y-0.5 font-mono text-[9.5px] bg-slate-50 p-1.5 rounded-xl border border-slate-200">
         <div class="flex justify-between text-slate-700">
           <span class="text-slate-500">카메라 픽셀:</span>
           <span id="val-cam-px" class="text-emerald-700 font-bold">(u: 801, v: 601)</span>
@@ -237,34 +241,9 @@
         </div>
       </div>
     </div>
-  </aside>
 
-  <!-- 우측 도킹 패널 (280px) -->
-  <aside id="right-panel" class="absolute top-16 right-4 w-[280px] max-h-[calc(100vh-17rem)] z-10 glass-panel-light rounded-2xl flex flex-col p-3 custom-scrollbar overflow-y-auto transition-all duration-300">
-    
-    <!-- 1. 카메라 뷰파인더 -->
-    <div class="mb-2.5">
-      <div class="flex items-center justify-between mb-1">
-        <span class="text-xs font-bold text-slate-900 flex items-center gap-1">
-          <i data-lucide="video" class="w-3.5 h-3.5 text-emerald-600"></i> 카메라 뷰파인더
-        </span>
-        <span id="viewfinder-status-badge" class="text-[9px] bg-emerald-100 text-emerald-800 border border-emerald-200 px-1.5 py-0.2 rounded font-mono font-bold">LIVE</span>
-      </div>
-      <div class="relative w-full aspect-video bg-slate-950 rounded-xl border border-slate-300 overflow-hidden shadow-inner flex items-center justify-center">
-        <canvas id="viewfinder-canvas" width="320" height="180" class="w-full h-full object-cover"></canvas>
-        <div class="absolute inset-0 pointer-events-none border border-slate-700/50 flex items-center justify-center">
-          <div class="w-7 h-7 border border-white/40 rounded-full"></div>
-          <div class="w-14 h-[1px] bg-white/30 absolute"></div>
-          <div class="h-14 w-[1px] bg-white/30 absolute"></div>
-        </div>
-        <div class="absolute bottom-1 right-1.5 text-[8.5px] font-mono text-emerald-400 font-bold bg-black/60 px-1 rounded">
-          <span id="viewfinder-mode-tag">Fringe 15mm</span>
-        </div>
-      </div>
-    </div>
-
-    <!-- 2. 3D FOV 계측 범위 -->
-    <div class="border-t border-slate-200 pt-2 mb-2.5">
+    <!-- 4. 3D FOV 계측 범위 (우측 패널에서 좌측 하단으로 이동) -->
+    <div class="border-t border-slate-200 pt-1.5 mb-2">
       <div class="flex items-center justify-between mb-1">
         <span class="text-xs font-bold text-slate-900 flex items-center gap-1">
           <i data-lucide="cone" class="w-3.5 h-3.5 text-blue-600"></i> 3D FOV 계측 범위
@@ -272,21 +251,21 @@
         <button onclick="resetFrustumRange()" class="text-[9.5px] text-blue-600 hover:text-blue-800 font-semibold underline">초기화</button>
       </div>
 
-      <div class="space-y-1 bg-slate-50 p-2 rounded-xl border border-slate-200 text-[10px] font-mono">
+      <div class="space-y-1 bg-slate-50 p-1.5 rounded-xl border border-slate-200 text-[9.5px] font-mono">
         <div class="flex items-center justify-between gap-1">
-          <span class="text-emerald-800 font-sans font-bold w-10">Zmin:</span>
+          <span class="text-emerald-800 font-sans font-bold w-9">Zmin:</span>
           <button onclick="stepParam('slider-zmin', -10)" class="pm-btn-large">−</button>
           <input type="range" id="slider-zmin" min="300" max="650" value="500" step="10" oninput="updateFrustumRange()" class="flex-1 cursor-pointer">
           <button onclick="stepParam('slider-zmin', 10)" class="pm-btn-large">+</button>
-          <span id="lbl-zmin" class="text-emerald-700 font-extrabold w-11 text-right">500</span>
+          <span id="lbl-zmin" class="text-emerald-700 font-extrabold w-9 text-right">500</span>
         </div>
 
         <div class="flex items-center justify-between gap-1">
-          <span class="text-rose-800 font-sans font-bold w-10">Zmax:</span>
+          <span class="text-rose-800 font-sans font-bold w-9">Zmax:</span>
           <button onclick="stepParam('slider-zmax', -10)" class="pm-btn-large">−</button>
           <input type="range" id="slider-zmax" min="700" max="1300" value="900" step="10" oninput="updateFrustumRange()" class="flex-1 cursor-pointer">
           <button onclick="stepParam('slider-zmax', 10)" class="pm-btn-large">+</button>
-          <span id="lbl-zmax" class="text-rose-700 font-extrabold w-11 text-right">900</span>
+          <span id="lbl-zmax" class="text-rose-700 font-extrabold w-9 text-right">900</span>
         </div>
 
         <div class="pt-0.5 border-t border-slate-200 flex items-center justify-between text-[9px]">
@@ -296,8 +275,8 @@
       </div>
     </div>
 
-    <!-- 3. 부품 6-DOF 설정 (1행 2열) -->
-    <div class="border-t border-slate-200 pt-2">
+    <!-- 5. 부품 6-DOF 설정 (우측 패널에서 좌측 최하단으로 이동) -->
+    <div class="border-t border-slate-200 pt-1.5">
       <div class="flex items-center justify-between mb-1">
         <span class="text-xs font-bold text-slate-900 flex items-center gap-1">
           <i data-lucide="package" class="w-3.5 h-3.5 text-purple-600"></i> 부품 6-DOF 설정
@@ -305,14 +284,14 @@
         <button onclick="resetPartPose()" class="text-[9.5px] text-purple-600 hover:text-purple-800 font-semibold underline">기준위치</button>
       </div>
 
-      <div class="bg-slate-50 p-2 rounded-xl border border-slate-200 text-[10px] font-mono space-y-1">
+      <div class="bg-slate-50 p-1.5 rounded-xl border border-slate-200 text-[9.5px] font-mono space-y-1">
         <!-- 1행: dX / dRx -->
-        <div class="grid grid-cols-2 gap-1.5">
+        <div class="grid grid-cols-2 gap-1">
           <div class="bg-white p-1 rounded border border-slate-200 flex flex-col gap-0.5">
             <div class="flex justify-between text-purple-900 font-sans font-bold text-[9px]">
               <span>dX(전후)</span><span id="lbl-part-dx" class="font-mono text-purple-700">+0</span>
             </div>
-            <div class="flex items-center gap-1">
+            <div class="flex items-center gap-0.5">
               <button onclick="stepParam('slider-part-dx', -20)" class="pm-btn-large">−</button>
               <input type="range" id="slider-part-dx" min="-500" max="500" value="0" step="10" oninput="updatePartPoseFromSliders()" class="w-full">
               <button onclick="stepParam('slider-part-dx', 20)" class="pm-btn-large">+</button>
@@ -322,7 +301,7 @@
             <div class="flex justify-between text-indigo-900 font-sans font-bold text-[9px]">
               <span>dRx(경사)</span><span id="lbl-part-rx" class="font-mono text-indigo-700">0°</span>
             </div>
-            <div class="flex items-center gap-1">
+            <div class="flex items-center gap-0.5">
               <button onclick="stepParam('slider-part-rx', -2)" class="pm-btn-large">−</button>
               <input type="range" id="slider-part-rx" min="-20" max="20" value="0" step="1" oninput="updatePartPoseFromSliders()" class="w-full">
               <button onclick="stepParam('slider-part-rx', 2)" class="pm-btn-large">+</button>
@@ -331,12 +310,12 @@
         </div>
 
         <!-- 2행: dY / dRy -->
-        <div class="grid grid-cols-2 gap-1.5">
+        <div class="grid grid-cols-2 gap-1">
           <div class="bg-white p-1 rounded border border-slate-200 flex flex-col gap-0.5">
             <div class="flex justify-between text-purple-900 font-sans font-bold text-[9px]">
               <span>dY(좌우)</span><span id="lbl-part-dy" class="font-mono text-purple-700">+0</span>
             </div>
-            <div class="flex items-center gap-1">
+            <div class="flex items-center gap-0.5">
               <button onclick="stepParam('slider-part-dy', -20)" class="pm-btn-large">−</button>
               <input type="range" id="slider-part-dy" min="-500" max="500" value="0" step="10" oninput="updatePartPoseFromSliders()" class="w-full">
               <button onclick="stepParam('slider-part-dy', 20)" class="pm-btn-large">+</button>
@@ -346,7 +325,7 @@
             <div class="flex justify-between text-indigo-900 font-sans font-bold text-[9px]">
               <span>dRy(경사)</span><span id="lbl-part-ry" class="font-mono text-indigo-700">0°</span>
             </div>
-            <div class="flex items-center gap-1">
+            <div class="flex items-center gap-0.5">
               <button onclick="stepParam('slider-part-ry', -2)" class="pm-btn-large">−</button>
               <input type="range" id="slider-part-ry" min="-20" max="20" value="0" step="1" oninput="updatePartPoseFromSliders()" class="w-full">
               <button onclick="stepParam('slider-part-ry', 2)" class="pm-btn-large">+</button>
@@ -355,12 +334,12 @@
         </div>
 
         <!-- 3행: dZ / dRz -->
-        <div class="grid grid-cols-2 gap-1.5">
+        <div class="grid grid-cols-2 gap-1">
           <div class="bg-white p-1 rounded border border-slate-200 flex flex-col gap-0.5">
             <div class="flex justify-between text-purple-900 font-sans font-bold text-[9px]">
               <span>dZ(높이)</span><span id="lbl-part-dz" class="font-mono text-purple-700">+0</span>
             </div>
-            <div class="flex items-center gap-1">
+            <div class="flex items-center gap-0.5">
               <button onclick="stepParam('slider-part-dz', -20)" class="pm-btn-large">−</button>
               <input type="range" id="slider-part-dz" min="0" max="800" value="0" step="10" oninput="updatePartPoseFromSliders()" class="w-full">
               <button onclick="stepParam('slider-part-dz', 20)" class="pm-btn-large">+</button>
@@ -370,7 +349,7 @@
             <div class="flex justify-between text-indigo-900 font-sans font-bold text-[9px]">
               <span>dRz(회전)</span><span id="lbl-part-rz" class="font-mono text-indigo-700">0°</span>
             </div>
-            <div class="flex items-center gap-1">
+            <div class="flex items-center gap-0.5">
               <button onclick="stepParam('slider-part-rz', -3)" class="pm-btn-large">−</button>
               <input type="range" id="slider-part-rz" min="-30" max="30" value="0" step="1" oninput="updatePartPoseFromSliders()" class="w-full">
               <button onclick="stepParam('slider-part-rz', 3)" class="pm-btn-large">+</button>
@@ -381,88 +360,164 @@
     </div>
   </aside>
 
+  <!-- =========================================================================
+       우측 3단 직교 투영 시야 모니터 (300px)
+       단일 WebGLRenderer의 Scissor 뷰포트를 활용하여 GPU 부하 없이 60fps 렌더링
+       - 1. 정면도 (Front View : YZ 평면, 로봇 Base_X 정면에서 응시)
+       - 2. 평면도 (Top View   : ZY/XY 평면, 로봇 Base_Z 수직 상공에서 응시)
+       - 3. 우측면도 (Side View: XZ 평면, 로봇 Base_Y 측면에서 응시)
+       ========================================================================= -->
+  <aside id="right-panel" class="absolute top-16 right-4 w-[300px] bottom-10 z-10 ortho-panel-shell rounded-2xl flex flex-col p-2.5 gap-2 transition-all duration-300 pointer-events-auto">
+    <div class="flex items-center justify-between pb-1 border-b border-slate-200 shrink-0">
+      <span class="text-xs font-black text-slate-900 flex items-center gap-1.5">
+        <i data-lucide="scan-line" class="w-3.5 h-3.5 text-blue-600"></i> 3축 직교 시야 모니터
+      </span>
+      <div class="flex items-center gap-1">
+        <button onclick="adjustOrthoZoom(-0.15)" class="px-1.5 py-0.5 bg-white hover:bg-blue-600 hover:text-white text-slate-700 border border-slate-300 rounded text-[10px] font-bold transition" title="직교 뷰 확대">+</button>
+        <button onclick="adjustOrthoZoom(0.15)" class="px-1.5 py-0.5 bg-white hover:bg-blue-600 hover:text-white text-slate-700 border border-slate-300 rounded text-[10px] font-bold transition" title="직교 뷰 축소">−</button>
+        <button onclick="resetOrthoZoom()" class="px-1.5 py-0.5 bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-300 rounded text-[9.5px] font-bold transition">1:1</button>
+      </div>
+    </div>
+
+    <!-- 1. 정면도 (YZ 평면) -->
+    <div class="flex-1 flex flex-col min-h-0 rounded-xl border border-slate-300 overflow-hidden relative bg-transparent shadow-xs">
+      <div class="absolute top-1.5 left-2 right-2 flex items-center justify-between pointer-events-none z-10">
+        <span class="bg-slate-900/80 text-white px-2 py-0.5 rounded text-[10px] font-extrabold tracking-tight flex items-center gap-1">
+          <span class="w-2 h-2 rounded-full bg-red-500"></span> 정면도 (Front · YZ평면)
+        </span>
+        <span class="bg-white/90 text-slate-700 border border-slate-300 px-1.5 py-0.2 rounded text-[9px] font-mono font-bold">
+          가로:Y / 세로:Z
+        </span>
+      </div>
+      <!-- WebGL Scissor 타깃 영역 -->
+      <div id="ortho-front-viewport" class="w-full h-full relative">
+        <!-- 중앙 십자선 오버레이 -->
+        <div class="absolute inset-0 pointer-events-none flex items-center justify-center opacity-35">
+          <div class="w-full h-[1px] bg-blue-500 border-t border-dashed border-blue-600"></div>
+          <div class="h-full w-[1px] bg-emerald-500 border-l border-dashed border-emerald-600 absolute"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 2. 평면도 (ZY / XY 평면) -->
+    <div class="flex-1 flex flex-col min-h-0 rounded-xl border border-slate-300 overflow-hidden relative bg-transparent shadow-xs">
+      <div class="absolute top-1.5 left-2 right-2 flex items-center justify-between pointer-events-none z-10">
+        <span class="bg-slate-900/80 text-white px-2 py-0.5 rounded text-[10px] font-extrabold tracking-tight flex items-center gap-1">
+          <span class="w-2 h-2 rounded-full bg-blue-500"></span> 평면도 (Top · ZY/XY평면)
+        </span>
+        <span class="bg-white/90 text-slate-700 border border-slate-300 px-1.5 py-0.2 rounded text-[9px] font-mono font-bold">
+          가로:X / 세로:Y
+        </span>
+      </div>
+      <div id="ortho-top-viewport" class="w-full h-full relative">
+        <div class="absolute inset-0 pointer-events-none flex items-center justify-center opacity-35">
+          <div class="w-full h-[1px] bg-emerald-500 border-t border-dashed border-emerald-600"></div>
+          <div class="h-full w-[1px] bg-red-500 border-l border-dashed border-red-600 absolute"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 3. 우측면도 (XZ 평면) -->
+    <div class="flex-1 flex flex-col min-h-0 rounded-xl border border-slate-300 overflow-hidden relative bg-transparent shadow-xs">
+      <div class="absolute top-1.5 left-2 right-2 flex items-center justify-between pointer-events-none z-10">
+        <span class="bg-slate-900/80 text-white px-2 py-0.5 rounded text-[10px] font-extrabold tracking-tight flex items-center gap-1">
+          <span class="w-2 h-2 rounded-full bg-emerald-500"></span> 우측면도 (Right · XZ평면)
+        </span>
+        <span class="bg-white/90 text-slate-700 border border-slate-300 px-1.5 py-0.2 rounded text-[9px] font-mono font-bold">
+          가로:X / 세로:Z
+        </span>
+      </div>
+      <div id="ortho-side-viewport" class="w-full h-full relative">
+        <div class="absolute inset-0 pointer-events-none flex items-center justify-center opacity-35">
+          <div class="w-full h-[1px] bg-blue-500 border-t border-dashed border-blue-600"></div>
+          <div class="h-full w-[1px] bg-red-500 border-l border-dashed border-red-600 absolute"></div>
+        </div>
+      </div>
+    </div>
+  </aside>
+
   <!-- ==========================================================
        하단 중앙 일체형 로봇 조작 덱 & 1행 가로 FK 모니터
-       (모든 라벨과 슬라이더를 1행으로 컴팩트하게 정돈하여 중앙 공간 확보)
+       좌측창(280px)과 우측 3면도창(300px) 사이 중앙 영역에 완벽 정렬
        ========================================================== -->
-  <section id="bottom-deck" class="absolute bottom-9 left-1/2 -translate-x-1/2 w-[860px] max-w-[calc(100vw-36rem)] z-30 glass-panel-light rounded-2xl p-2.5 border border-slate-200 shadow-2xl transition-all duration-300">
+  <section id="bottom-deck" class="absolute bottom-9 left-[304px] right-[324px] z-30 glass-panel-light rounded-2xl p-2.5 border border-slate-200 shadow-2xl transition-all duration-300">
     <div class="flex items-center justify-between pb-1 border-b border-slate-200 mb-1.5">
       <div class="flex items-center gap-2">
         <span class="w-2.5 h-2.5 rounded-full bg-blue-600 animate-pulse"></span>
-        <span class="text-xs font-black text-slate-900 tracking-tight">로봇 관절 조작 덱 & 스캐너 위치 실시간 모니터</span>
+        <span class="text-xs font-black text-slate-900 tracking-tight truncate">로봇 관절 조작 덱 & 스캐너 위치 모니터</span>
       </div>
-      <div class="flex items-center gap-2">
-        <button onclick="setWD700LookAtPose()" class="text-[9.5px] bg-blue-600 hover:bg-blue-700 text-white px-2.5 py-0.5 rounded-md font-bold shadow-2xs whitespace-nowrap" title="부품 상공 WD 700mm 최적 조준 자세로 즉시 이동">WD 700 조준</button>
+      <div class="flex items-center gap-1.5 shrink-0">
+        <button onclick="setWD700LookAtPose()" class="text-[9.5px] bg-blue-600 hover:bg-blue-700 text-white px-2 py-0.5 rounded-md font-bold shadow-2xs whitespace-nowrap" title="부품 상공 WD 700mm 최적 조준 자세로 즉시 이동">WD 700 조준</button>
         <button onclick="resetJogAngles()" class="text-[9.5px] bg-slate-200 hover:bg-slate-300 text-slate-700 px-2 py-0.5 rounded-md font-semibold whitespace-nowrap" title="초기 안전 대기 자세">원점</button>
-        <button onclick="toggleBottomDeck()" class="text-slate-400 hover:text-slate-700 ml-1"><i data-lucide="chevron-down" class="w-4 h-4"></i></button>
+        <button onclick="toggleBottomDeck()" class="text-slate-400 hover:text-slate-700 ml-0.5"><i data-lucide="chevron-down" class="w-4 h-4"></i></button>
       </div>
     </div>
 
     <div class="space-y-1 text-[10px] font-mono">
-      <!-- 1행: J1 | J2 | J3 (1행 인라인 배치) -->
+      <!-- 1행: J1 | J2 | J3 -->
       <div class="grid grid-cols-3 gap-1.5 bg-slate-50 px-2 py-1 rounded-xl border border-slate-200">
         <div class="flex items-center gap-1">
           <span class="w-11 font-sans font-bold text-amber-900 text-[9.5px] whitespace-nowrap">J1(S선회):</span>
           <button onclick="stepParam('slider-j1', -2)" class="pm-btn-large">−</button>
-          <input type="range" id="slider-j1" min="-170" max="170" value="0" step="0.5" oninput="updateRobotJog()" class="flex-1 cursor-pointer">
+          <input type="range" id="slider-j1" min="-170" max="170" value="0" step="0.5" oninput="updateRobotJog()" class="flex-1 cursor-pointer min-w-0">
           <button onclick="stepParam('slider-j1', 2)" class="pm-btn-large">+</button>
-          <span id="lbl-j1" class="w-8 text-right font-bold text-amber-700">0°</span>
+          <span id="lbl-j1" class="w-7 text-right font-bold text-amber-700">0°</span>
         </div>
         <div class="flex items-center gap-1">
           <span class="w-11 font-sans font-bold text-amber-900 text-[9.5px] whitespace-nowrap">J2(L하부):</span>
           <button onclick="stepParam('slider-j2', -2)" class="pm-btn-large">−</button>
-          <input type="range" id="slider-j2" min="-90" max="90" value="18" step="0.5" oninput="updateRobotJog()" class="flex-1 cursor-pointer">
+          <input type="range" id="slider-j2" min="-90" max="90" value="18" step="0.5" oninput="updateRobotJog()" class="flex-1 cursor-pointer min-w-0">
           <button onclick="stepParam('slider-j2', 2)" class="pm-btn-large">+</button>
-          <span id="lbl-j2" class="w-8 text-right font-bold text-amber-700">18°</span>
+          <span id="lbl-j2" class="w-7 text-right font-bold text-amber-700">18°</span>
         </div>
         <div class="flex items-center gap-1">
           <span class="w-11 font-sans font-bold text-amber-900 text-[9.5px] whitespace-nowrap">J3(U상부):</span>
           <button onclick="stepParam('slider-j3', -2)" class="pm-btn-large">−</button>
-          <input type="range" id="slider-j3" min="-120" max="120" value="38" step="0.5" oninput="updateRobotJog()" class="flex-1 cursor-pointer">
+          <input type="range" id="slider-j3" min="-120" max="120" value="38" step="0.5" oninput="updateRobotJog()" class="flex-1 cursor-pointer min-w-0">
           <button onclick="stepParam('slider-j3', 2)" class="pm-btn-large">+</button>
-          <span id="lbl-j3" class="w-8 text-right font-bold text-amber-700">38°</span>
+          <span id="lbl-j3" class="w-7 text-right font-bold text-amber-700">38°</span>
         </div>
       </div>
 
-      <!-- 2행: J4 | J5 | J6 (1행 인라인 배치) -->
+      <!-- 2행: J4 | J5 | J6 -->
       <div class="grid grid-cols-3 gap-1.5 bg-slate-50 px-2 py-1 rounded-xl border border-slate-200">
         <div class="flex items-center gap-1">
           <span class="w-11 font-sans font-bold text-amber-900 text-[9.5px] whitespace-nowrap">J4(R롤):</span>
           <button onclick="stepParam('slider-j4', -2)" class="pm-btn-large">−</button>
-          <input type="range" id="slider-j4" min="-180" max="180" value="0" step="0.5" oninput="updateRobotJog()" class="flex-1 cursor-pointer">
+          <input type="range" id="slider-j4" min="-180" max="180" value="0" step="0.5" oninput="updateRobotJog()" class="flex-1 cursor-pointer min-w-0">
           <button onclick="stepParam('slider-j4', 2)" class="pm-btn-large">+</button>
-          <span id="lbl-j4" class="w-8 text-right font-bold text-amber-700">0°</span>
+          <span id="lbl-j4" class="w-7 text-right font-bold text-amber-700">0°</span>
         </div>
         <div class="flex items-center gap-1">
           <span class="w-11 font-sans font-bold text-amber-900 text-[9.5px] whitespace-nowrap">J5(B손목):</span>
           <button onclick="stepParam('slider-j5', -2)" class="pm-btn-large">−</button>
-          <input type="range" id="slider-j5" min="-120" max="120" value="-56" step="0.5" oninput="updateRobotJog()" class="flex-1 cursor-pointer">
+          <input type="range" id="slider-j5" min="-120" max="120" value="-56" step="0.5" oninput="updateRobotJog()" class="flex-1 cursor-pointer min-w-0">
           <button onclick="stepParam('slider-j5', 2)" class="pm-btn-large">+</button>
-          <span id="lbl-j5" class="w-8 text-right font-bold text-amber-700">-56°</span>
+          <span id="lbl-j5" class="w-7 text-right font-bold text-amber-700">-56°</span>
         </div>
         <div class="flex items-center gap-1">
           <span class="w-11 font-sans font-bold text-amber-900 text-[9.5px] whitespace-nowrap">J6(T플랜지):</span>
           <button onclick="stepParam('slider-j6', -2)" class="pm-btn-large">−</button>
-          <input type="range" id="slider-j6" min="-360" max="360" value="0" step="1" oninput="updateRobotJog()" class="flex-1 cursor-pointer">
+          <input type="range" id="slider-j6" min="-360" max="360" value="0" step="1" oninput="updateRobotJog()" class="flex-1 cursor-pointer min-w-0">
           <button onclick="stepParam('slider-j6', 2)" class="pm-btn-large">+</button>
-          <span id="lbl-j6" class="w-8 text-right font-bold text-amber-700">0°</span>
+          <span id="lbl-j6" class="w-7 text-right font-bold text-amber-700">0°</span>
         </div>
       </div>
 
-      <!-- 3행: [스캐너 FK 모니터] 1개 행 가로 정렬 -->
-      <div class="bg-white px-3 py-1 rounded-xl border border-slate-200 flex items-center justify-between text-slate-700 text-[10px]">
-        <div class="flex items-center gap-2.5">
-          <span class="font-sans font-bold text-slate-500 whitespace-nowrap">[스캐너 Base 위치]:</span>
-          <span class="whitespace-nowrap">X: <b id="deck-cart-x" class="text-blue-700 font-extrabold text-[10.5px]">1160</b> mm</span>
-          <span class="whitespace-nowrap">Y: <b id="deck-cart-y" class="text-blue-700 font-extrabold text-[10.5px]">0</b> mm</span>
-          <span class="whitespace-nowrap">Z: <b id="deck-cart-z" class="text-blue-700 font-extrabold text-[10.5px]">820</b> mm</span>
+      <!-- 3행: [스캐너 FK 모니터] -->
+      <div class="bg-white px-2.5 py-1 rounded-xl border border-slate-200 flex items-center justify-between text-slate-700 text-[9.5px] overflow-hidden">
+        <div class="flex items-center gap-2">
+          <span class="font-sans font-bold text-slate-500 whitespace-nowrap">[위치]:</span>
+          <span class="whitespace-nowrap">X:<b id="deck-cart-x" class="text-blue-700 font-extrabold">1160</b></span>
+          <span class="whitespace-nowrap">Y:<b id="deck-cart-y" class="text-blue-700 font-extrabold">0</b></span>
+          <span class="whitespace-nowrap">Z:<b id="deck-cart-z" class="text-blue-700 font-extrabold">820</b>mm</span>
         </div>
         <div class="h-3 w-[1px] bg-slate-300"></div>
-        <div class="flex items-center gap-2.5">
-          <span class="font-sans font-bold text-slate-500 whitespace-nowrap">[스캐너 자세]:</span>
-          <span class="whitespace-nowrap">Rx: <b id="deck-cart-rx" class="text-red-700 font-extrabold text-[10.5px]">0.0°</b></span>
-          <span class="whitespace-nowrap">Ry: <b id="deck-cart-ry" class="text-red-700 font-extrabold text-[10.5px]">-36.0°</b></span>
-          <span class="whitespace-nowrap">Rz: <b id="deck-cart-rz" class="text-red-700 font-extrabold text-[10.5px]">0.0°</b></span>
+        <div class="flex items-center gap-2">
+          <span class="font-sans font-bold text-slate-500 whitespace-nowrap">[자세]:</span>
+          <span class="whitespace-nowrap">Rx:<b id="deck-cart-rx" class="text-red-700 font-extrabold">0.0°</b></span>
+          <span class="whitespace-nowrap">Ry:<b id="deck-cart-ry" class="text-red-700 font-extrabold">-36.0°</b></span>
+          <span class="whitespace-nowrap">Rz:<b id="deck-cart-rz" class="text-red-700 font-extrabold">0.0°</b></span>
         </div>
       </div>
     </div>
@@ -486,6 +541,11 @@
   <!-- Three.js 3D 로직 스크립트 -->
   <script>
     let scene, camera, renderer, controls;
+    // 우측 3단 직교 투영 카메라 (정면도 YZ, 평면도 ZY/XY, 우측면도 XZ)
+    let orthoFrontCam, orthoTopCam, orthoSideCam;
+    let orthoHalfSize = 480; // 직교 뷰 기본 반경(mm)
+    let isRightPanelOpen = true;
+
     let robotArmGroup;
     let j1Group, j2Group, j3Group, j4Group, j5Group, j6Group;
     let scannerToolGroup;
@@ -548,22 +608,27 @@
       scene.background = new THREE.Color(0xf8fafc);
       scene.fog = null;
 
-      // 카메라 시점 설정: 로봇과 작업대/부품이 한눈에 들어오는 최적 구도
+      // 메인 3D 투시 카메라
       camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 10, 10000);
       camera.position.set(1600, 1100, 1400);
 
-      renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, powerPreference: 'high-performance' });
+      // 우측 3단 직교 투영 카메라 초기화
+      orthoFrontCam = new THREE.OrthographicCamera(-orthoHalfSize, orthoHalfSize, orthoHalfSize, -orthoHalfSize, 10, 8000);
+      orthoTopCam   = new THREE.OrthographicCamera(-orthoHalfSize, orthoHalfSize, orthoHalfSize, -orthoHalfSize, 10, 8000);
+      orthoSideCam  = new THREE.OrthographicCamera(-orthoHalfSize, orthoHalfSize, orthoHalfSize, -orthoHalfSize, 10, 8000);
+
+      renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false, powerPreference: 'high-performance' });
       renderer.setSize(window.innerWidth, window.innerHeight);
       renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
       renderer.shadowMap.enabled = true;
       renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+      renderer.setScissorTest(true);
       container.appendChild(renderer.domElement);
 
       controls = new THREE.OrbitControls(camera, renderer.domElement);
       controls.enableDamping = true;
       controls.dampingFactor = 0.05;
       controls.maxPolarAngle = Math.PI / 2 - 0.01;
-      // 로봇과 부품 사이 중심점을 정확히 응시
       controls.target.set(600, 380, 50);
 
       setupLighting();
@@ -576,9 +641,9 @@
       window.addEventListener('resize', onWindowResize);
       renderer.domElement.addEventListener('pointerdown', onDocumentPointerDown);
 
-      updateViewfinderCanvas();
       applyJointAnglesToRobot();
       updateFrustumAndFilterPoints();
+      updateOrthoCamerasTarget();
 
       animate();
       lucide.createIcons();
@@ -589,7 +654,7 @@
       hemiLight.position.set(0, 2000, 0);
       scene.add(hemiLight);
 
-      const dirLight = new THREE.DirectionalLight(0xffffff, 0.95);
+      const dirLight = new THREE.DirectionalLight(0xffffff, 0.90);
       dirLight.position.set(1200, 2400, 1400);
       dirLight.castShadow = true;
       dirLight.shadow.mapSize.width = 2048;
@@ -604,7 +669,7 @@
 
     function setupCleanFactoryEnvironment() {
       const floorGeo = new THREE.PlaneGeometry(6000, 6000);
-      const floorMat = new THREE.MeshStandardMaterial({ color: 0xe2e8f0, roughness: 0.5, metalness: 0.05 });
+      const floorMat = new THREE.MeshStandardMaterial({ color: 0xe2e8f0, roughness: 0.65, metalness: 0.05 });
       const floor = new THREE.Mesh(floorGeo, floorMat);
       floor.rotation.x = -Math.PI / 2;
       floor.receiveShadow = true;
@@ -828,7 +893,7 @@
       scene.add(robotArmGroup);
     }
 
-    // 정12면체 고밀도 평면 테셀레이션 생성기 (약 2,160개 정점)
+    // 정12면체 고밀도 평면 테셀레이션 생성기
     function buildHighDensityDodecahedronGeometry(radius = 150) {
       const phi = (1 + Math.sqrt(5)) / 2;
       const a = 1, b = 1 / phi;
@@ -941,20 +1006,21 @@
       largeWorktableGroup = new THREE.Group();
       largeWorktableGroup.position.set(partBaseCenter.x, 0, partBaseCenter.z);
 
+      // 중앙 무대(작업대) 명도 대비 강화: 순백색(0xffffff) 조명 반사 소실 방지용 정반 톤(0xe2e8f0) + 명확한 외곽선
       const tableW = 1600, tableD = 1400, tableH = 25;
       const tableGeo = new THREE.BoxGeometry(tableW, tableH, tableD);
-      const tableMat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.2, metalness: 0.1 });
+      const tableMat = new THREE.MeshStandardMaterial({ color: 0xe2e8f0, roughness: 0.45, metalness: 0.15 });
       largeWorktableMesh = new THREE.Mesh(tableGeo, tableMat);
       largeWorktableMesh.position.y = 120;
       largeWorktableMesh.receiveShadow = true;
       largeWorktableMesh.castShadow = true;
       largeWorktableGroup.add(largeWorktableMesh);
 
-      const tableEdge = new THREE.LineSegments(new THREE.EdgesGeometry(tableGeo), new THREE.LineBasicMaterial({ color: 0x94a3b8 }));
+      const tableEdge = new THREE.LineSegments(new THREE.EdgesGeometry(tableGeo), new THREE.LineBasicMaterial({ color: 0x64748b }));
       tableEdge.position.copy(largeWorktableMesh.position);
       largeWorktableGroup.add(tableEdge);
 
-      const legMat = new THREE.MeshStandardMaterial({ color: 0x475569, metalness: 0.6, roughness: 0.3 });
+      const legMat = new THREE.MeshStandardMaterial({ color: 0x334155, metalness: 0.6, roughness: 0.35 });
       [
         [-700, 55, -600], [0, 55, -600], [700, 55, -600],
         [-700, 55,  600], [0, 55,  600], [700, 55,  600]
@@ -970,26 +1036,26 @@
       partJigGroup = new THREE.Group();
       partJigGroup.position.set(partBaseCenter.x, partBaseCenter.y, partBaseCenter.z);
 
+      // [버그 수정] r128에서 transmission>0 사용 시 다중 뷰포트/투명 패스 충돌로 중앙 무대가 사라지는 문제 원천 차단
       const jigBaseGeo = new THREE.BoxGeometry(420, 26, 320);
-      const jigBaseMat = new THREE.MeshPhysicalMaterial({
+      const jigBaseMat = new THREE.MeshStandardMaterial({
         color: 0x38bdf8,
         transparent: true,
-        opacity: 0.16,
-        roughness: 0.1,
-        metalness: 0.1,
-        transmission: 0.6,
+        opacity: 0.28,
+        roughness: 0.25,
+        metalness: 0.15,
         depthWrite: false
       });
       jigBaseMesh = new THREE.Mesh(jigBaseGeo, jigBaseMat);
       jigBaseMesh.position.y = 13;
       partJigGroup.add(jigBaseMesh);
 
-      const jigEdge = new THREE.LineSegments(new THREE.EdgesGeometry(jigBaseGeo), new THREE.LineBasicMaterial({ color: 0x0284c7, transparent: true, opacity: 0.35 }));
+      const jigEdge = new THREE.LineSegments(new THREE.EdgesGeometry(jigBaseGeo), new THREE.LineBasicMaterial({ color: 0x0284c7, transparent: true, opacity: 0.65 }));
       jigEdge.position.copy(jigBaseMesh.position);
       partJigGroup.add(jigEdge);
 
       jigPins = [];
-      const pinMat = new THREE.MeshStandardMaterial({ color: 0x64748b, transparent: true, opacity: 0.3 });
+      const pinMat = new THREE.MeshStandardMaterial({ color: 0x475569, transparent: true, opacity: 0.55 });
       for (let x of [-150, 150]) {
         for (let z of [-110, 110]) {
           const pin = new THREE.Mesh(new THREE.CylinderGeometry(8, 10, 40, 16), pinMat);
@@ -1026,7 +1092,7 @@
       cacheRawPartPositions(partGeo);
 
       const ptsGeo = new THREE.BufferGeometry();
-      const ptsMat = new THREE.PointsMaterial({ color: 0x1d4ed8, size: 4.0, sizeAttenuation: true });
+      const ptsMat = new THREE.PointsMaterial({ color: 0x1d4ed8, size: 4.5, sizeAttenuation: true });
       pointCloudPoints = new THREE.Points(ptsGeo, ptsMat);
       partJigGroup.add(pointCloudPoints);
       pointCloudPoints.visible = false;
@@ -1077,7 +1143,7 @@
       }
 
       updateFrustumAndFilterPoints();
-      updateViewfinderCanvas();
+      updateOrthoCamerasTarget();
     }
 
     function setupOpticalFrustumMesh() {
@@ -1235,6 +1301,43 @@
       }
     }
 
+    // 차체곡면 또는 정12면체 중심 좌표를 계산하여 3개 직교 카메라 시선(LookAt) 동기화
+    function getPartTargetWorldCenter() {
+      const curX = partBaseCenter.x + partOffset.dx;
+      const curY = partBaseCenter.y + partOffset.dz + (currentPartModel === 'dodeca' ? 150 : 88);
+      const curZ = partBaseCenter.z - partOffset.dy;
+      return new THREE.Vector3(curX, curY, curZ);
+    }
+
+    function updateOrthoCamerasTarget() {
+      if (!orthoFrontCam || !orthoTopCam || !orthoSideCam) return;
+      const target = getPartTargetWorldCenter();
+      const camDist = 2200;
+
+      // 1. 정면도 (YZ 평면): 로봇 Base_X 정면에서 -X 방향으로 응시 (수직 상방 = Base_Z = Three.js +Y)
+      orthoFrontCam.position.set(target.x + camDist, target.y, target.z);
+      orthoFrontCam.up.set(0, 1, 0);
+      orthoFrontCam.lookAt(target);
+
+      // 2. 평면도 (ZY/XY 평면): 로봇 Base_Z 수직 상공에서 바닥(-Z) 방향으로 직하 응시 (상방 = Base_Y = Three.js -Z)
+      orthoTopCam.position.set(target.x, target.y + camDist, target.z);
+      orthoTopCam.up.set(0, 0, -1);
+      orthoTopCam.lookAt(target);
+
+      // 3. 우측면도 (XZ 평면): 로봇 Base_Y 측면에서 반대편으로 응시 (수직 상방 = Base_Z = Three.js +Y)
+      orthoSideCam.position.set(target.x, target.y, target.z + camDist);
+      orthoSideCam.up.set(0, 1, 0);
+      orthoSideCam.lookAt(target);
+    }
+
+    function adjustOrthoZoom(deltaRatio) {
+      orthoHalfSize = Math.max(200, Math.min(1100, orthoHalfSize * (1 + deltaRatio)));
+    }
+
+    function resetOrthoZoom() {
+      orthoHalfSize = 480;
+    }
+
     // 순수 순기구학(FK) 로봇 관절 제어 & 실시간 정밀 모니터링 연동
     function applyJointAnglesToRobot() {
       if (!j1Group) return;
@@ -1286,7 +1389,6 @@
       jogAngles.j6 = parseFloat(document.getElementById('slider-j6').value);
 
       applyJointAnglesToRobot();
-      updateViewfinderCanvas();
     }
 
     function setWD700LookAtPose() {
@@ -1306,13 +1408,11 @@
       
       const targetCenter = new THREE.Vector3(curX, partBaseCenter.y + partOffset.dz + (currentPartModel === 'dodeca' ? 150 : 78), curZ);
       updateTriangulationRayAndPlane(targetCenter);
-      updateViewfinderCanvas(targetCenter);
     }
 
     function resetJogAngles() {
       jogAngles = { j1: 0, j2: 14, j3: 36, j4: 0, j5: -85, j6: 0 };
       applyJointAnglesToRobot();
-      updateViewfinderCanvas();
     }
 
     function stepParam(id, delta) {
@@ -1360,6 +1460,7 @@
       const newCenter = new THREE.Vector3(curX, curY + (currentPartModel === 'dodeca' ? 150 : 78), curZ);
       updateTriangulationRayAndPlane(newCenter);
       updateFrustumAndFilterPoints();
+      updateOrthoCamerasTarget();
     }
 
     function resetPartPose() {
@@ -1423,7 +1524,7 @@
     const mouse = new THREE.Vector2();
 
     function onDocumentPointerDown(event) {
-      if (event.clientX < 280 || event.clientX > window.innerWidth - 300 || event.clientY < 65 || event.clientY > window.innerHeight - 170) {
+      if (event.clientX < 300 || event.clientX > window.innerWidth - 320 || event.clientY < 65 || event.clientY > window.innerHeight - 170) {
         return;
       }
       mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
@@ -1436,100 +1537,6 @@
         const hitPoint = intersects[0].point;
         updateTriangulationRayAndPlane(hitPoint);
         updateFrustumAndFilterPoints();
-        updateViewfinderCanvas(hitPoint);
-      }
-    }
-
-    function updateViewfinderCanvas(hitPoint = null) {
-      const cvs = document.getElementById('viewfinder-canvas');
-      const ctx = cvs.getContext('2d');
-      const w = cvs.width, h = cvs.height;
-
-      ctx.fillStyle = '#0f172a';
-      ctx.fillRect(0, 0, w, h);
-
-      if (currentStep <= 6) {
-        const numStripes = Math.pow(2, currentStep);
-        const stripeW = w / numStripes;
-        for (let i = 0; i < numStripes; i++) {
-          if (i % 2 === 1) {
-            ctx.fillStyle = '#f8fafc';
-            ctx.fillRect(i * stripeW, 0, stripeW, h);
-          }
-        }
-      } else {
-        const phaseShiftIndex = currentStep - 7;
-        const phaseAngle = (phaseShiftIndex * Math.PI) / 2;
-        const freq = 12;
-        for (let x = 0; x < w; x++) {
-          const intensity = Math.sin((x / w) * freq * Math.PI * 2 + phaseAngle) * 0.5 + 0.5;
-          const val = Math.floor(intensity * 255);
-          ctx.fillStyle = `rgb(${val},${val},${val})`;
-          ctx.fillRect(x, 0, 1, h);
-        }
-      }
-
-      if (!isSinglePassScanning && currentStep === 10) {
-        ctx.fillStyle = 'rgba(15, 23, 42, 0.40)';
-        ctx.fillRect(0, 0, w, h);
-
-        ctx.fillStyle = 'rgba(56, 189, 248, 0.40)';
-        ctx.strokeStyle = '#38bdf8';
-        ctx.lineWidth = 2.5;
-
-        if (currentPartModel === 'dodeca') {
-          ctx.beginPath();
-          const r = 55, cx = w / 2, cy = h / 2;
-          for (let i = 0; i < 5; i++) {
-            const a = (i * Math.PI * 2 / 5) - Math.PI / 2;
-            const px = cx + r * Math.cos(a), py = cy + r * Math.sin(a);
-            if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
-          }
-          ctx.closePath();
-          ctx.fill();
-          ctx.stroke();
-
-          ctx.strokeStyle = '#0284c7';
-          ctx.lineWidth = 1.5;
-          ctx.beginPath();
-          for (let i = 0; i < 5; i++) {
-            const a = (i * Math.PI * 2 / 5) - Math.PI / 2;
-            ctx.moveTo(cx, cy);
-            ctx.lineTo(cx + r * Math.cos(a), cy + r * Math.sin(a));
-          }
-          ctx.stroke();
-        } else {
-          ctx.beginPath();
-          ctx.roundRect(50, 32, w - 100, h - 64, 14);
-          ctx.fill();
-          ctx.stroke();
-
-          ctx.strokeStyle = '#0284c7';
-          ctx.lineWidth = 1.5;
-          ctx.beginPath();
-          ctx.moveTo(80, 90); ctx.lineTo(w - 80, 90);
-          ctx.arc(w/2, 90, 24, 0, Math.PI * 2);
-          ctx.stroke();
-        }
-
-        document.getElementById('viewfinder-status-badge').innerText = 'SCANNED 2D';
-        document.getElementById('viewfinder-status-badge').className = 'text-[9px] bg-blue-100 text-blue-800 border border-blue-200 px-1.5 py-0.2 rounded font-mono font-bold';
-        document.getElementById('viewfinder-mode-tag').innerText = '2D Image Acquired';
-      } else {
-        document.getElementById('viewfinder-status-badge').innerText = 'LIVE';
-        document.getElementById('viewfinder-status-badge').className = 'text-[9px] bg-red-100 text-red-700 border border-red-200 px-1.5 py-0.2 rounded font-mono font-bold animate-pulse';
-        document.getElementById('viewfinder-mode-tag').innerText = `Step ${currentStep} Pattern`;
-      }
-
-      ctx.strokeStyle = '#10b981';
-      ctx.lineWidth = 1.5;
-      ctx.strokeRect(40, 25, w - 80, h - 50);
-
-      if (hitPoint) {
-        ctx.fillStyle = '#f59e0b';
-        ctx.beginPath();
-        ctx.arc(w / 2, h / 2, 4, 0, Math.PI * 2);
-        ctx.fill();
       }
     }
 
@@ -1540,15 +1547,14 @@
 
       if (currentStep <= 6) {
         document.getElementById('pattern-badge').innerText = `P${currentStep}: Gray #${currentStep}`;
-        document.getElementById('pattern-badge').className = "text-[9.5px] px-1.5 py-0.5 rounded bg-blue-100 text-blue-800 font-mono font-bold border border-blue-200";
+        document.getElementById('pattern-badge').className = "text-[9px] px-1.5 py-0.5 rounded bg-blue-100 text-blue-800 font-mono font-bold border border-blue-200";
       } else {
         const deg = (currentStep - 7) * 90;
         document.getElementById('pattern-badge').innerText = `P${currentStep}: Phase (${deg}°)`;
-        document.getElementById('pattern-badge').className = "text-[9.5px] px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-800 font-mono font-bold border border-emerald-200";
+        document.getElementById('pattern-badge').className = "text-[9px] px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-800 font-mono font-bold border border-emerald-200";
       }
 
       document.getElementById('pattern-desc').innerHTML = patternDescriptions[currentStep - 1];
-      updateViewfinderCanvas();
     }
 
     function nextPatternStep() {
@@ -1585,7 +1591,6 @@
         } else {
           scanTimeoutId = setTimeout(() => {
             stopSinglePassScan();
-            updateViewfinderCanvas();
           }, 500);
         }
       }
@@ -1637,10 +1642,12 @@
     }
 
     function toggleLeftPanel() {
-      document.getElementById('left-panel').classList.toggle('-translate-x-[110%]');
+      document.getElementById('left-panel').classList.toggle('-translate-x-[115%]');
     }
     function toggleRightPanel() {
-      document.getElementById('right-panel').classList.toggle('translate-x-[110%]');
+      const rp = document.getElementById('right-panel');
+      rp.classList.toggle('translate-x-[115%]');
+      isRightPanelOpen = !rp.classList.contains('translate-x-[115%]');
     }
     function toggleBottomDeck() {
       document.getElementById('bottom-deck').classList.toggle('translate-y-[120%]');
@@ -1658,6 +1665,33 @@
       renderer.setSize(window.innerWidth, window.innerHeight);
     }
 
+    // 단일 WebGLRenderer Scissor 뷰포트 렌더링 헬퍼
+    function renderOrthoViewport(domId, orthoCam, bgHex) {
+      const el = document.getElementById(domId);
+      if (!el) return;
+      const rect = el.getBoundingClientRect();
+      if (rect.width <= 4 || rect.height <= 4) return;
+
+      const canvasH = window.innerHeight;
+      const left = Math.round(rect.left);
+      const bottom = Math.round(canvasH - rect.bottom);
+      const width = Math.round(rect.width);
+      const height = Math.round(rect.height);
+
+      const aspect = width / height;
+      orthoCam.left = -orthoHalfSize * aspect;
+      orthoCam.right = orthoHalfSize * aspect;
+      orthoCam.top = orthoHalfSize;
+      orthoCam.bottom = -orthoHalfSize;
+      orthoCam.updateProjectionMatrix();
+
+      renderer.setViewport(left, bottom, width, height);
+      renderer.setScissor(left, bottom, width, height);
+      renderer.setClearColor(bgHex, 1);
+      renderer.clear(true, true, false);
+      renderer.render(scene, orthoCam);
+    }
+
     function animate() {
       requestAnimationFrame(animate);
       controls.update();
@@ -1667,7 +1701,20 @@
         intersectionMarker.scale.set(s, s, s);
       }
 
+      // 1. 메인 3D 전체 뷰 렌더링
+      const w = window.innerWidth, h = window.innerHeight;
+      renderer.setViewport(0, 0, w, h);
+      renderer.setScissor(0, 0, w, h);
+      renderer.setClearColor(0xf8fafc, 1);
+      renderer.clear(true, true, false);
       renderer.render(scene, camera);
+
+      // 2. 우측 3단 직교 투영 뷰포트 Scissor 렌더링 (정면도 YZ, 평면도 ZY/XY, 우측면도 XZ)
+      if (isRightPanelOpen) {
+        renderOrthoViewport('ortho-front-viewport', orthoFrontCam, 0xf1f5f9);
+        renderOrthoViewport('ortho-top-viewport',   orthoTopCam,   0xf8fafc);
+        renderOrthoViewport('ortho-side-viewport',  orthoSideCam,  0xf1f5f9);
+      }
     }
 
     window.onload = init;
