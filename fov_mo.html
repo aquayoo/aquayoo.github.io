@@ -3,14 +3,12 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <title>FOV & WD Optical System</title>
+  <title>FOV & WD Optical System V2.0</title>
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- Three.js CDN -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
-  <!-- Three.js CSS2DRenderer -->
-  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/renderers/CSS2DRenderer.js"></script>
   <style>
     body {
       padding-top: env(safe-area-inset-top);
@@ -23,38 +21,18 @@
     input[type=range] {
       accent-color: #3b82f6;
     }
-    .viewport-label {
-      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-      font-weight: 700;
-      font-size: 11px;
-      padding: 2px 6px;
-      border-radius: 4px;
-      pointer-events: none;
-      white-space: nowrap;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.5);
-    }
-    .label-fov {
-      background: rgba(14, 165, 233, 0.85);
-      color: #ffffff;
-      border: 1px solid #38bdf8;
-    }
-    .label-wd {
-      background: rgba(245, 158, 11, 0.9);
-      color: #0f172a;
-      border: 1px solid #fbbf24;
-    }
   </style>
 </head>
-<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col font-sans overflow-x-hidden">
+<body class="bg-slate-950 text-slate-100 min-h-screen lg:h-screen flex flex-col font-sans overflow-x-hidden lg:overflow-hidden">
 
-  <!-- 1. 헤더: 콤팩트 2행 버전 박스(V1.8) + 중앙 타이틀 + 우측 로고(홈링크) + 2단 프리셋 -->
-  <header class="bg-slate-900/95 backdrop-blur border-b border-slate-800 px-3 py-2 sticky top-0 z-30 space-y-2">
+  <!-- 1. 상단 헤더: V2.0 (Nov.12) + 타이틀 + atm_red.png 홈버튼 + 4x2 대칭 프리셋/컨트롤 -->
+  <header class="bg-slate-900/95 backdrop-blur border-b border-slate-800 px-3 py-2 sticky top-0 z-30 space-y-2 flex-shrink-0">
     <!-- 타이틀 바 -->
     <div class="flex items-center justify-between gap-2">
       <!-- 2행 중앙 정렬 콤팩트 버전 박스 -->
       <div class="flex flex-col items-center justify-center px-1.5 py-0.5 rounded bg-blue-500/20 border border-blue-500/40 font-mono flex-shrink-0 leading-tight">
-        <span class="text-[10px] font-extrabold text-blue-400">V1.8</span>
-        <span class="text-[8px] text-blue-300/80">(Nov.07)</span>
+        <span class="text-[10px] font-extrabold text-blue-400">V2.0</span>
+        <span class="text-[8px] text-blue-300/80">(Nov.12)</span>
       </div>
 
       <!-- 영문 단독 타이틀 -->
@@ -63,317 +41,452 @@
       </h1>
 
       <!-- 우측 회사 로고 (클릭 시 index.html 복귀 홈링크) -->
-      <a href="index.html" class="flex-shrink-0 flex items-center justify-center p-0.5 rounded hover:opacity-80 active:scale-95 transition-all" title="홈(index.html)으로 이동">
-        <img src="atm_red.png" alt="ATM" class="h-6 sm:h-7 object-contain" onerror="this.onerror=null; this.outerHTML='<span class=\'font-black text-rose-500 font-mono text-xs px-1 border border-rose-500/50 rounded\'>ATM</span>'">
+      <a href="index.html" class="flex-shrink-0 flex items-center justify-center p-0.5 rounded bg-slate-950/60 border border-slate-800 hover:border-rose-500/50 active:scale-95 transition-all" title="홈(index.html)으로 이동">
+        <img src="atm_red.png" alt="ATM" class="h-6 sm:h-7 object-contain" onerror="this.onerror=null; this.outerHTML='<span class=\'font-black text-rose-500 font-mono text-xs px-1.5 py-0.5 border border-rose-500/50 rounded\'>ATM</span>'">
       </a>
     </div>
 
-    <!-- 프리셋 버튼 그룹 (2줄 구조) -->
+    <!-- 프리셋 & 피사체 컨트롤 (4 x 2 대칭 그리드) -->
     <div class="space-y-1.5">
-      <!-- 1행: 주력 4종 (3DU, 3DM) -->
+      <!-- 1행: 주력 3D 스캐너 4종 (사각뿔대 공간 FOV 모드) -->
       <div class="grid grid-cols-4 gap-1.5">
-        <button onclick="selectPreset('3DU_16')" id="btn_3DU_16" class="preset-btn py-1.5 text-xs font-bold rounded border bg-blue-600 border-blue-400 text-white shadow-sm transition-all text-center">3DU (16)</button>
-        <button onclick="selectPreset('3DU_12')" id="btn_3DU_12" class="preset-btn py-1.5 text-xs font-bold rounded border bg-slate-800 border-slate-700 text-slate-300 hover:bg-slate-700 transition-all text-center">3DU (12)</button>
-        <button onclick="selectPreset('3DM_16')" id="btn_3DM_16" class="preset-btn py-1.5 text-xs font-bold rounded border bg-slate-800 border-slate-700 text-slate-300 hover:bg-slate-700 transition-all text-center">3DM (16)</button>
-        <button onclick="selectPreset('3DM_12')" id="btn_3DM_12" class="preset-btn py-1.5 text-xs font-bold rounded border bg-slate-800 border-slate-700 text-slate-300 hover:bg-slate-700 transition-all text-center">3DM (12)</button>
+        <button onclick="selectScannerPreset('3DU_16')" id="btn_3DU_16" class="scanner-btn py-1.5 text-xs font-bold rounded border bg-blue-600 border-blue-400 text-white shadow-sm transition-all text-center">3DU (16)</button>
+        <button onclick="selectScannerPreset('3DU_12')" id="btn_3DU_12" class="scanner-btn py-1.5 text-xs font-bold rounded border bg-slate-800 border-slate-700 text-slate-300 hover:bg-slate-700 transition-all text-center">3DU (12)</button>
+        <button onclick="selectScannerPreset('3DM_16')" id="btn_3DM_16" class="scanner-btn py-1.5 text-xs font-bold rounded border bg-slate-800 border-slate-700 text-slate-300 hover:bg-slate-700 transition-all text-center">3DM (16)</button>
+        <button onclick="selectScannerPreset('3DM_12')" id="btn_3DM_12" class="scanner-btn py-1.5 text-xs font-bold rounded border bg-slate-800 border-slate-700 text-slate-300 hover:bg-slate-700 transition-all text-center">3DM (12)</button>
       </div>
 
-      <!-- 2행: 소형기종 2종 + 커스텀 + DOF -->
+      <!-- 2행: 2D 커스텀 + DOF + A4 용지 + 정12면체 -->
       <div class="grid grid-cols-4 gap-1.5">
-        <button onclick="selectPreset('LS')" id="btn_LS" class="preset-btn py-1.5 text-xs font-bold rounded border bg-slate-800 border-slate-700 text-slate-300 hover:bg-slate-700 transition-all text-center">LS</button>
-        <button onclick="selectPreset('LZ')" id="btn_LZ" class="preset-btn py-1.5 text-xs font-bold rounded border bg-slate-800 border-slate-700 text-slate-300 hover:bg-slate-700 transition-all text-center">LZ</button>
-        <button onclick="selectPreset('CUSTOM')" id="btn_CUSTOM" class="preset-btn py-1.5 text-xs font-bold rounded border bg-slate-800 border-slate-700 text-slate-300 hover:bg-slate-700 transition-all text-center">커스텀</button>
+        <button onclick="activate2DCustom()" id="btn_2D_CUSTOM" class="py-1.5 text-xs font-bold rounded border bg-slate-800 border-slate-700 text-slate-300 hover:bg-slate-700 transition-all text-center">2D 커스텀</button>
         <button onclick="toggleDof()" id="btn_DOF" class="py-1.5 text-xs font-bold rounded border bg-slate-800 border-slate-700 text-slate-400 hover:bg-slate-700 transition-all text-center flex items-center justify-center gap-1">
           <span class="w-1.5 h-1.5 rounded-full bg-slate-500" id="dofDot"></span>
           <span>DOF</span>
+        </button>
+        <button onclick="toggleTarget('A4')" id="btn_TARGET_A4" class="py-1.5 text-xs font-bold rounded border bg-amber-500/25 border-amber-400 text-amber-300 shadow-sm transition-all text-center flex items-center justify-center gap-1">
+          <span class="w-2 h-2 rounded-xs bg-amber-400" id="dot_A4"></span>
+          <span>A4 용지</span>
+        </button>
+        <button onclick="toggleTarget('DODECA')" id="btn_TARGET_DODECA" class="py-1.5 text-xs font-bold rounded border bg-emerald-500/25 border-emerald-400 text-emerald-300 shadow-sm transition-all text-center flex items-center justify-center gap-1">
+          <span class="w-2 h-2 rounded-full bg-emerald-400" id="dot_DODECA"></span>
+          <span>정12면체</span>
         </button>
       </div>
     </div>
   </header>
 
-  <!-- 2. 메인 바디 -->
+  <!-- 2. 메인 바디 (모바일: 상하 배치 / PC lg이상: 좌우 50:50 분할) -->
   <main class="flex-1 flex flex-col lg:flex-row min-h-0">
     
-    <!-- 3D 뷰포트 -->
-    <div class="relative w-full h-[36vh] sm:h-[40vh] lg:h-auto lg:flex-1 bg-slate-950 overflow-hidden border-b lg:border-b-0 lg:border-r border-slate-800" id="canvasContainer">
+    <!-- 좌측(상단) 50%: 3D 뷰포트 (텍스트 박스 없이 100% 깨끗한 3D 그래픽 공간) -->
+    <div class="relative w-full h-[36vh] sm:h-[40vh] lg:h-full lg:w-1/2 bg-slate-950 overflow-hidden border-b lg:border-b-0 lg:border-r border-slate-800" id="canvasContainer">
       <canvas id="threeCanvas" class="w-full h-full block"></canvas>
-      <div id="css2dContainer" class="absolute inset-0 pointer-events-none"></div>
 
-      <button onclick="resetCameraView()" class="absolute top-2 right-2 bg-slate-800/85 hover:bg-slate-700 border border-slate-700 rounded px-2 py-1 text-[11px] text-slate-300 shadow pointer-events-auto z-10 font-mono">
-        Reset View
-      </button>
+      <!-- 좌측 상단 모드 배지 & 컬러 범례 -->
+      <div class="absolute top-2 left-2 flex flex-col gap-1 pointer-events-none z-10">
+        <div id="modeBadge" class="px-2 py-0.5 rounded bg-blue-950/90 border border-blue-500/50 text-[10px] font-mono font-bold text-blue-300 shadow">
+          3D SCANNER · 공간 사각뿔대 FOV
+        </div>
+        <div class="flex flex-wrap items-center gap-2 bg-slate-900/85 backdrop-blur px-2 py-1 rounded border border-slate-800 text-[9px] font-mono text-slate-300">
+          <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-cyan-400"></span>사각뿔대(MR)</span>
+          <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-xs bg-amber-400"></span>A4 평면</span>
+          <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-emerald-400"></span>정12면체</span>
+        </div>
+      </div>
 
-      <div class="absolute bottom-2 left-2 bg-slate-900/80 backdrop-blur px-2 py-0.5 rounded text-[10px] text-slate-400 border border-slate-800 pointer-events-none z-10">
-        회전: 1손가락 / 줌: 2손가락
+      <!-- 우측 상단 카메라 뷰 프리셋 (측면 / Reset) -->
+      <div class="absolute top-2 right-2 flex gap-1 pointer-events-auto z-10 font-mono">
+        <button onclick="setCameraPreset('SIDE')" class="bg-slate-800/85 hover:bg-slate-700 border border-slate-700 rounded px-2 py-1 text-[10px] text-slate-300 shadow">
+          측면
+        </button>
+        <button onclick="resetCameraView()" class="bg-slate-800/85 hover:bg-slate-700 border border-slate-700 rounded px-2 py-1 text-[10px] text-slate-300 shadow">
+          Reset
+        </button>
+      </div>
+
+      <div class="absolute bottom-2 left-2 bg-slate-900/75 backdrop-blur px-2 py-0.5 rounded text-[9px] text-slate-400 border border-slate-800/80 pointer-events-none z-10">
+        회전: 드래그 / 확대: 휠·핀치
       </div>
     </div>
 
-    <!-- 하단 조작 패널 (모바일 툴바 여백 pb-12) -->
-    <div class="w-full lg:w-[460px] flex flex-col bg-slate-900 p-3 pb-12 gap-2.5 overflow-y-auto">
+    <!-- 우측(하단) 50%: 컨트롤 및 광학/공간 스펙 패널 -->
+    <div class="w-full lg:w-1/2 lg:h-full flex flex-col bg-slate-900 p-2.5 sm:p-3 pb-12 lg:pb-4 gap-2 overflow-y-auto">
       
-      <!-- [1구역] 2D Sensor View (32%) + 광학 계산기 (68%) -->
-      <div class="flex gap-2">
+      <!-- =================================================================
+           [MODE A] 3D 스캐너 공간 FOV (사각뿔대 Frustum) 전용 패널
+           ================================================================= -->
+      <div id="scanner3DPanel" class="space-y-2">
         
-        <!-- 2D Sensor View -->
-        <div class="w-[32%] bg-slate-950 p-2 rounded-lg border border-slate-800 flex flex-col justify-between">
-          <div class="flex items-center justify-between mb-1">
-            <span class="text-[10px] font-bold text-slate-300 tracking-tight">2D Sensor View</span>
-          </div>
+        <!-- 1) 통합 장비 스펙 + 3단 공간 FOV 컴팩트 카드 (좌측: 모델·광학·MR / 우측: Near·기준WD·Far FOV 3단) -->
+        <div class="bg-slate-950 p-2.5 rounded-lg border border-blue-500/40 space-y-2">
           
-          <div class="relative w-full aspect-[4/3] bg-slate-900 rounded border border-slate-700 overflow-hidden flex items-center justify-center">
-            <div class="absolute inset-0 flex items-center justify-center pointer-events-none opacity-20">
-              <div class="w-full h-[1px] bg-slate-400"></div>
-              <div class="h-full w-[1px] bg-slate-400 absolute"></div>
-            </div>
-            <!-- 타깃 결상 박스 -->
-            <div id="sensorTargetBox" class="bg-amber-500/25 border-2 border-amber-400 rounded-sm transition-all duration-150 flex items-center justify-center shadow-lg" style="width: 70%; height: 70%;">
-              <span id="targetBoxLabel" class="text-[8px] font-bold text-amber-300 tracking-wider">A4</span>
-            </div>
-          </div>
-
-          <div class="mt-1 space-y-0.5 text-center">
-            <div id="targetStatusBadge" class="text-[9px] py-0.5 rounded bg-emerald-950 text-emerald-400 border border-emerald-800 font-medium">
-              화각 내 포함
-            </div>
-            <div class="text-[9px] text-slate-400">
-              <span id="resValue" class="text-blue-300 font-bold font-mono">0.21</span> mm/px
-            </div>
-          </div>
-        </div>
-
-        <!-- 광학 계산기 ( FOV ↔ WD ) -->
-        <div class="w-[68%] bg-slate-950 p-2.5 rounded-lg border border-blue-900/40 flex flex-col justify-between">
-          <div class="flex items-center justify-between mb-1.5 border-b border-slate-800 pb-1">
-            <span class="text-xs font-bold text-blue-400 flex items-center gap-1 font-mono">
-              광학 계산기 ( FOV ↔ WD )
-            </span>
-            <span class="text-[10px] text-slate-400">±5mm 조절</span>
-          </div>
-          
-          <div class="space-y-2">
-            <!-- FOV 가로 -->
-            <div class="flex items-center justify-between gap-1">
-              <span class="text-slate-300 text-xs font-medium w-16">FOV(가로)</span>
-              <div class="flex items-center gap-1 flex-1 justify-end">
-                <button onclick="stepFov('W', -5)" class="w-8 h-8 rounded bg-slate-800 hover:bg-slate-700 active:bg-blue-600 text-white font-black text-lg border border-slate-700 flex items-center justify-center shadow-sm select-none">
-                  -
-                </button>
-                <div class="flex items-center">
-                  <input type="number" id="inputFovW" class="w-16 bg-slate-900 border border-slate-700 text-center font-mono text-blue-400 font-bold py-1 rounded text-xs focus:border-blue-500 outline-none" value="336">
-                  <span class="text-[10px] text-slate-400 ml-1">mm</span>
-                </div>
-                <button onclick="stepFov('W', 5)" class="w-8 h-8 rounded bg-slate-800 hover:bg-slate-700 active:bg-blue-600 text-white font-black text-lg border border-slate-700 flex items-center justify-center shadow-sm select-none">
-                  +
-                </button>
-              </div>
-            </div>
-
-            <!-- FOV 세로 -->
-            <div class="flex items-center justify-between gap-1">
-              <span class="text-slate-300 text-xs font-medium w-16">FOV(세로)</span>
-              <div class="flex items-center gap-1 flex-1 justify-end">
-                <button onclick="stepFov('H', -5)" class="w-8 h-8 rounded bg-slate-800 hover:bg-slate-700 active:bg-blue-600 text-white font-black text-lg border border-slate-700 flex items-center justify-center shadow-sm select-none">
-                  -
-                </button>
-                <div class="flex items-center">
-                  <input type="number" id="inputFovH" class="w-16 bg-slate-900 border border-slate-700 text-center font-mono text-blue-400 font-bold py-1 rounded text-xs focus:border-blue-500 outline-none" value="252">
-                  <span class="text-[10px] text-slate-400 ml-1">mm</span>
-                </div>
-                <button onclick="stepFov('H', 5)" class="w-8 h-8 rounded bg-slate-800 hover:bg-slate-700 active:bg-blue-600 text-white font-black text-lg border border-slate-700 flex items-center justify-center shadow-sm select-none">
-                  +
-                </button>
-              </div>
-            </div>
-
-            <!-- WD 실시간 수치 -->
-            <div class="flex items-center justify-between gap-1 pt-1 border-t border-slate-800/80">
-              <span class="text-amber-400 font-bold text-xs">작업거리 (WD)</span>
-              <div class="flex items-center gap-1">
-                <input type="number" id="inputWdNum" class="w-20 bg-slate-900 border border-amber-500/70 text-right font-mono text-amber-300 font-bold px-1.5 py-0.5 rounded text-xs focus:border-amber-400 outline-none" value="700">
-                <span class="text-[10px] text-amber-400 font-bold">mm</span>
-              </div>
-            </div>
-          </div>
-
-          <div id="dofInfoBox" class="mt-1 text-[10px] text-slate-400 border-t border-slate-800 pt-1 flex justify-between">
-            <span>초점심도(DOF):</span>
-            <span id="dofRangeText" class="font-mono text-emerald-400 font-semibold">652 ~ 755 mm</span>
-          </div>
-        </div>
-
-      </div>
-
-      <!-- [2구역] WD 조절 슬라이더 (100~2200mm) -->
-      <div class="bg-slate-950 p-2.5 rounded-lg border border-slate-800 space-y-2">
-        <div class="flex justify-between items-center text-xs">
-          <span class="font-bold text-slate-200">WD 거리 조절 슬라이더</span>
-          <span class="text-amber-400 font-mono font-bold text-xs"><span id="sliderWdVal">700</span> mm</span>
-        </div>
-        
-        <div class="relative w-full pt-1 pb-4">
-          <input type="range" id="wdRange" min="100" max="2200" step="5" value="700" class="w-full h-2 bg-slate-800 rounded-lg cursor-pointer">
-          
-          <div class="absolute top-5 left-[0%] -translate-x-1 flex flex-col items-center pointer-events-none">
-            <div class="w-[1px] h-1.5 bg-slate-600 mb-0.5"></div>
-            <span class="text-[9px] font-mono text-slate-400">LS</span>
-          </div>
-          <div class="absolute top-5 left-[4.8%] -translate-x-1/2 flex flex-col items-center pointer-events-none">
-            <div class="w-[1px] h-1.5 bg-slate-600 mb-0.5"></div>
-            <span class="text-[9px] font-mono text-slate-400">LZ</span>
-          </div>
-          <div class="absolute top-5 left-[28.6%] -translate-x-1/2 flex flex-col items-center pointer-events-none">
-            <div class="w-[1px] h-1.5 bg-blue-500 mb-0.5"></div>
-            <span class="text-[9px] font-mono text-blue-400 font-bold">3DU</span>
-          </div>
-          <div class="absolute top-5 left-[61.9%] -translate-x-1/2 flex flex-col items-center pointer-events-none">
-            <div class="w-[1px] h-1.5 bg-blue-500 mb-0.5"></div>
-            <span class="text-[9px] font-mono text-blue-400 font-bold">3DM</span>
-          </div>
-          <div class="absolute top-5 right-[0%] translate-x-1 flex flex-col items-center pointer-events-none">
-            <div class="w-[1px] h-1.5 bg-slate-600 mb-0.5"></div>
-            <span class="text-[9px] font-mono text-slate-400">2200</span>
-          </div>
-        </div>
-
-        <div class="text-[10px] text-slate-400 font-mono pt-1 border-t border-slate-800/80 text-center">
-          참고: LS(100) / LZ(200) / 3DU(700) / 3DM(1400)
-        </div>
-      </div>
-
-      <!-- [3구역] 중요 광학 공식 카드 -->
-      <div class="bg-gradient-to-br from-slate-950 to-blue-950/50 p-3 rounded-lg border border-blue-500/40 space-y-2.5 shadow-md">
-        <div class="flex items-center justify-between border-b border-slate-800 pb-1.5">
-          <div class="flex items-center gap-1.5">
-            <span class="px-2 py-0.5 rounded bg-amber-500/25 text-amber-300 border border-amber-500/50 text-[11px] font-black">중요</span>
-            <span class="text-sm font-black text-slate-100 tracking-tight">FOV 기본 광학 공식</span>
-          </div>
-          <span class="text-[11px] text-blue-400 font-mono font-semibold">비례식 닮음비</span>
-        </div>
-
-        <div class="flex items-center justify-center gap-3 py-1.5">
-          <span class="text-base sm:text-lg font-black text-amber-300 font-mono">FOV<sub class="text-xs text-amber-200">(W)</sub> =</span>
-          <div class="flex flex-col items-center">
-            <div class="text-sm sm:text-base font-extrabold text-white font-mono pb-1 px-3 border-b-2 border-blue-400 tracking-wider">
-              WD × 센서크기<sub class="text-[10px] text-slate-300">(W)</sub>
-            </div>
-            <div class="text-sm sm:text-base font-extrabold text-blue-300 font-mono pt-1">
-              초점거리 (f)
-            </div>
-          </div>
-        </div>
-
-        <div class="bg-slate-900/95 rounded-md p-2 text-center font-mono border border-slate-800 shadow-inner">
-          <span class="text-slate-400 text-[10px] block mb-0.5">현재 장비 실시간 수치 대입:</span>
-          <span id="formulaDynamicText" class="text-emerald-400 font-black text-xs sm:text-sm tracking-wide">
-            ( 700 × 7.2 ) ÷ 15 = 336 mm
-          </span>
-        </div>
-      </div>
-
-      <!-- [4구역] 커스텀 전용 패널 (표준 A4 / 대형 A2 프리셋 + 센서 58% 최적 레이아웃) -->
-      <div id="customControlPanel" class="hidden bg-slate-950 p-2.5 rounded-lg border border-blue-900/50 space-y-3">
-        <div class="text-xs font-bold text-blue-400 flex items-center justify-between border-b border-slate-800 pb-1">
-          <span>커스텀 파라미터 세부설정</span>
-          <span class="text-[10px] text-slate-400">자유 변경 모드</span>
-        </div>
-
-        <!-- 1) 측정 부품 (Target) 크기 조정 (A4 및 A2 기준) -->
-        <div class="space-y-1.5 bg-slate-900/70 p-2 rounded border border-slate-800">
-          <div class="flex justify-between items-center text-xs">
-            <div class="flex items-center gap-1.5">
-              <span class="w-2 h-2 rounded bg-amber-400"></span>
-              <span class="font-bold text-slate-200 whitespace-nowrap">측정 부품 (Target) 조정</span>
-            </div>
-            <!-- 소형 / 표준 A4 / 대형 A2 원클릭 프리셋 -->
-            <div class="flex gap-1 text-[9px]">
-              <button onclick="setTargetPreset(50, 35, '소형')" class="px-1 py-0.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded border border-slate-700">소형(50×35)</button>
-              <button onclick="setTargetPreset(297, 210, 'A4')" class="px-1.5 py-0.5 bg-slate-800 hover:bg-slate-700 text-amber-300 font-bold rounded border border-amber-500/50">표준 A4(297×210)</button>
-              <button onclick="setTargetPreset(594, 420, 'A2')" class="px-1.5 py-0.5 bg-slate-800 hover:bg-slate-700 text-blue-300 font-bold rounded border border-blue-500/50">대형 A2(594×420)</button>
-            </div>
-          </div>
-          
-          <div class="flex items-center justify-between text-xs pt-0.5">
-            <div class="flex items-center gap-1">
-              <span class="text-slate-400 text-[11px]">부품 가로(W):</span>
-              <input type="number" id="inputTargetW" class="w-16 bg-slate-950 border border-slate-700 text-right font-mono text-amber-300 font-bold px-1 py-0.5 rounded focus:border-amber-400 outline-none" value="297">
-              <span class="text-[10px] text-slate-400">mm</span>
-            </div>
-            <span class="text-slate-500 font-bold">×</span>
-            <div class="flex items-center gap-1">
-              <span class="text-slate-400 text-[11px]">부품 세로(H):</span>
-              <input type="number" id="inputTargetH" class="w-16 bg-slate-950 border border-slate-700 text-right font-mono text-amber-300 font-bold px-1 py-0.5 rounded focus:border-amber-400 outline-none" value="210">
-              <span class="text-[10px] text-slate-400">mm</span>
-            </div>
-          </div>
-        </div>
-
-        <!-- 2) 초점거리 슬라이더 (4 ~ 35mm) -->
-        <div class="space-y-1">
-          <div class="flex justify-between text-[11px]">
-            <span class="text-slate-400">초점거리 (f):</span>
-            <span class="font-mono text-blue-300 font-bold"><span id="customFocalVal">15</span> mm</span>
-          </div>
-          <input type="range" id="customFocalRange" min="4" max="35" step="1" value="15" class="w-full h-1.5 bg-slate-800 rounded-lg cursor-pointer">
-          <div class="flex justify-between text-[9px] text-slate-400 font-mono">
-            <span>4mm</span>
-            <span>12mm</span>
-            <span>16mm</span>
-            <span>35mm</span>
-          </div>
-        </div>
-
-        <!-- 3) 센서 크기 + 조리개 선택창 (58% : 42% 최적 패치 버전) -->
-        <div class="flex gap-2 pt-1 border-t border-slate-800">
-          
-          <!-- 좌측 58%: 센서 크기 가로/세로 직접입력 + 0.1mm 대형 증감 버튼 -->
-          <div class="w-[58%] space-y-2 pr-2 border-r border-slate-800 flex flex-col justify-center">
-            <span class="text-[11px] font-bold text-slate-300 block">센서 크기 (±0.1mm)</span>
+          <!-- 좌우 2단 분할 레이아웃: 좌(장비/MR 정보) + 우(Near / 기준 WD / Far 3가지 FOV) -->
+          <div class="grid grid-cols-12 gap-2 items-stretch">
             
-            <!-- 센서 가로 (Width) -->
-            <div class="flex items-center justify-between text-xs">
-              <span class="text-slate-300 text-[10px] font-medium leading-tight">가로<br><span class="text-slate-500 text-[9px]">(Width)</span></span>
-              <div class="flex items-center gap-1 flex-shrink-0">
-                <button onclick="stepSensor('W', -0.1)" class="w-7 h-7 rounded bg-slate-800 hover:bg-slate-700 active:bg-blue-600 text-white font-black text-base border border-slate-700 flex items-center justify-center select-none flex-shrink-0">
-                  -
-                </button>
-                <input type="number" id="inputSensorW" step="0.1" class="w-12 bg-slate-900 border border-slate-700 text-center font-mono text-blue-400 font-bold py-1 rounded text-xs focus:border-blue-500 outline-none flex-shrink-0" value="7.2">
-                <button onclick="stepSensor('W', 0.1)" class="w-7 h-7 rounded bg-slate-800 hover:bg-slate-700 active:bg-blue-600 text-white font-black text-base border border-slate-700 flex items-center justify-center select-none flex-shrink-0">
-                  +
-                </button>
+            <!-- 좌측 (5칸): 모델명, 광학 스펙, 유효 측정범위(MR) -->
+            <div class="col-span-5 flex flex-col justify-between pr-2 border-r border-slate-800/90">
+              <div>
+                <div class="flex flex-wrap items-center gap-1">
+                  <span id="scModelTitle" class="text-sm sm:text-base font-black text-white font-mono leading-tight">AITZ 3DU (16)</span>
+                </div>
+                <span class="inline-block mt-1 px-1.5 py-0.5 rounded bg-cyan-500/15 border border-cyan-400/40 text-[9px] font-mono font-bold text-cyan-300">
+                  사각뿔대 공간 FOV
+                </span>
+                <p id="scOpticNote" class="text-[10px] text-slate-400 mt-1.5 font-mono leading-snug">
+                  렌즈 f=15mm (F4.0)<br>센서 7.2×5.4mm
+                </p>
+              </div>
+
+              <div class="mt-2 pt-1.5 border-t border-slate-800/80 font-mono">
+                <span class="text-[9px] text-slate-400 block">유효 측정범위 (MR)</span>
+                <div class="flex items-baseline gap-1">
+                  <span id="scMrBadge" class="text-sm sm:text-base font-black text-cyan-400">400 mm</span>
+                </div>
+                <span id="scMrRangeText" class="text-[10px] text-slate-300 block">(500 ~ 900 mm)</span>
               </div>
             </div>
 
-            <!-- 센서 세로 (Height) -->
-            <div class="flex items-center justify-between text-xs">
-              <span class="text-slate-300 text-[10px] font-medium leading-tight">세로<br><span class="text-slate-500 text-[9px]">(Height)</span></span>
-              <div class="flex items-center gap-1 flex-shrink-0">
-                <button onclick="stepSensor('H', -0.1)" class="w-7 h-7 rounded bg-slate-800 hover:bg-slate-700 active:bg-blue-600 text-white font-black text-base border border-slate-700 flex items-center justify-center select-none flex-shrink-0">
-                  -
-                </button>
-                <input type="number" id="inputSensorH" step="0.1" class="w-12 bg-slate-900 border border-slate-700 text-center font-mono text-blue-400 font-bold py-1 rounded text-xs focus:border-blue-500 outline-none flex-shrink-0" value="5.4">
-                <button onclick="stepSensor('H', 0.1)" class="w-7 h-7 rounded bg-slate-800 hover:bg-slate-700 active:bg-blue-600 text-white font-black text-base border border-slate-700 flex items-center justify-center select-none flex-shrink-0">
-                  +
-                </button>
+            <!-- 우측 (7칸): 3가지 FOV 범위 (Near / 기준위치 WD / Far) 세로 컴팩트 스택 -->
+            <div class="col-span-7 flex flex-col justify-between gap-1 font-mono">
+              <!-- Near FOV -->
+              <div class="bg-cyan-950/35 border border-cyan-500/40 rounded px-2 py-1 flex items-center justify-between">
+                <div>
+                  <span class="text-[9px] font-bold text-cyan-300 block leading-none">Near FOV</span>
+                  <span id="scNearWdLabel" class="text-[9px] text-slate-400">WD=500mm</span>
+                </div>
+                <span id="scNearFovVal" class="text-xs sm:text-sm font-black text-white">240×180 <span class="text-[9px] font-normal text-cyan-300">mm</span></span>
+              </div>
+
+              <!-- 기준위치 WD FOV (중앙 강조) -->
+              <div class="bg-blue-950/60 border border-blue-400/80 rounded px-2 py-1.5 flex items-center justify-between shadow-inner">
+                <div>
+                  <span class="text-[9px] font-extrabold text-amber-300 block leading-none">기준위치 WD</span>
+                  <span id="scCenterWdLabel" class="text-[9px] text-blue-200 font-bold">WD=700mm</span>
+                </div>
+                <span id="scCenterFovVal" class="text-xs sm:text-sm font-black text-amber-300">336×252 <span class="text-[9px] font-normal text-amber-200">mm</span></span>
+              </div>
+
+              <!-- Far FOV -->
+              <div class="bg-violet-950/35 border border-violet-500/40 rounded px-2 py-1 flex items-center justify-between">
+                <div>
+                  <span class="text-[9px] font-bold text-violet-300 block leading-none">Far FOV</span>
+                  <span id="scFarWdLabel" class="text-[9px] text-slate-400">WD=900mm</span>
+                </div>
+                <span id="scFarFovVal" class="text-xs sm:text-sm font-black text-white">432×324 <span class="text-[9px] font-normal text-violet-300">mm</span></span>
               </div>
             </div>
+
           </div>
 
-          <!-- 우측 42%: 조리개 선택창 -->
-          <div class="w-[42%] space-y-1">
-            <span class="text-[11px] font-bold text-slate-300 block">조리개 (F)</span>
-            <div class="grid grid-cols-2 gap-1 text-[10px]">
-              <button onclick="setAperture(1.4)" class="f-btn py-1 rounded bg-slate-800 text-slate-300 border border-slate-700">F1.4</button>
-              <button onclick="setAperture(2.0)" class="f-btn py-1 rounded bg-slate-800 text-slate-300 border border-slate-700">F2.0</button>
-              <button onclick="setAperture(2.8)" class="f-btn py-1 rounded bg-slate-800 text-slate-300 border border-slate-700">F2.8</button>
-              <button onclick="setAperture(4.0)" class="f-btn py-1 rounded bg-blue-600 text-white font-bold border border-blue-500">F4.0</button>
-              <button onclick="setAperture(5.6)" class="f-btn py-1 rounded bg-slate-800 text-slate-300 border border-slate-700">F5.6</button>
-              <button onclick="setAperture(8.0)" class="f-btn py-1 rounded bg-slate-800 text-slate-300 border border-slate-700">F8.0</button>
-              <button onclick="setAperture(11)" class="f-btn py-1 rounded bg-slate-800 text-slate-300 border border-slate-700">F11</button>
-              <button onclick="setAperture(16)" class="f-btn py-1 rounded bg-slate-800 text-slate-300 border border-slate-700">F16</button>
-            </div>
+          <!-- 하단 피사체 수용 상태 판정 바 -->
+          <div id="scTargetStatusBox" class="px-2.5 py-1.5 rounded bg-emerald-950/50 border border-emerald-600/50 flex items-center justify-between text-[11px]">
+            <span class="font-bold text-emerald-300" id="scTargetStatusTitle">✓ 사각뿔대 유효 공간 내 정상 수용</span>
+            <span class="font-mono text-[9px] text-slate-300" id="scTargetDimSummary">A4(297×210) + 정12면체(Ø210)</span>
           </div>
-
         </div>
+
+        <!-- 2) 현장 프로그램 설정 시뮬레이션 (Near / Far 범위 미세 조정 & 피사체 Z 위치) -->
+        <div class="bg-slate-950 p-2.5 rounded-lg border border-slate-800 space-y-2">
+          <div class="flex items-center justify-between border-b border-slate-800 pb-1">
+            <span class="text-xs font-bold text-amber-400">현장 프로그램 MR 범위 미세 조정</span>
+            <button onclick="resetScannerMr()" class="text-[10px] px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 font-mono">
+              출하 기본값 복원
+            </button>
+          </div>
+
+          <!-- Near WD 슬라이더 -->
+          <div class="space-y-0.5">
+            <div class="flex justify-between text-[11px]">
+              <span class="text-cyan-300 font-bold">Near 시작 거리 (상단 컷)</span>
+              <span class="font-mono text-cyan-300 font-bold"><span id="scNearSliderVal">500</span> mm</span>
+            </div>
+            <input type="range" id="scNearRange" min="350" max="1600" step="10" value="500" class="w-full h-1.5 bg-slate-800 rounded-lg cursor-pointer">
+          </div>
+
+          <!-- Far WD 슬라이더 -->
+          <div class="space-y-0.5">
+            <div class="flex justify-between text-[11px]">
+              <span class="text-violet-300 font-bold">Far 종료 거리 (하단 컷)</span>
+              <span class="font-mono text-violet-300 font-bold"><span id="scFarSliderVal">900</span> mm</span>
+            </div>
+            <input type="range" id="scFarRange" min="600" max="2200" step="10" value="900" class="w-full h-1.5 bg-slate-800 rounded-lg cursor-pointer">
+          </div>
+
+          <!-- 피사체(A4 / 정12면체) 배치 거리(Z) 확인 슬라이더 -->
+          <div class="space-y-0.5 pt-1 border-t border-slate-800/80">
+            <div class="flex justify-between text-[11px]">
+              <span class="text-amber-300 font-bold">피사체(A4/정12면체) 테스트 위치 (Z)</span>
+              <div class="flex items-center gap-1.5">
+                <span class="font-mono text-amber-300 font-bold"><span id="scTargetZVal">700</span> mm</span>
+                <button onclick="resetTargetZToCenter()" class="text-[9px] px-1.5 py-0.2 rounded bg-amber-500/20 text-amber-300 border border-amber-500/40">기준WD</button>
+              </div>
+            </div>
+            <input type="range" id="scTargetZRange" min="400" max="2000" step="10" value="700" class="w-full h-1.5 bg-slate-800 rounded-lg cursor-pointer">
+          </div>
+        </div>
+
+        <!-- 3) 3D 스캐너 핵심 교육 포인트 카드 -->
+        <div class="bg-gradient-to-br from-slate-950 to-cyan-950/30 p-2.5 rounded-lg border border-cyan-500/30 space-y-1 text-[11px] text-slate-300 leading-relaxed">
+          <div class="font-bold text-cyan-300 flex items-center gap-1">
+            <span>📌 3D 스캐너 공간 FOV 핵심 원리</span>
+          </div>
+          <p>• <strong class="text-white">사각뿔대(Frustum) 체적:</strong> 스캐너 꼭짓점에서 방사되는 사각뿔 중 <span class="text-cyan-300 font-semibold">Near ~ Far 구간</span>만 유효 측정 공간(MR)으로 사용합니다.</p>
+          <p>• <strong class="text-white">렌즈 & 조리개 특성:</strong> 16mm 모델은 실제 <span class="text-amber-300 font-mono">f=15mm</span> 렌즈가 탑재되며, 조리개 <span class="text-amber-300 font-mono">F4.0</span> 고정 세팅 및 패턴 복원 알고리즘으로 넓은 측정 심도(MR)를 확보합니다.</p>
+        </div>
+
+      </div>
+
+
+      <!-- =================================================================
+           [MODE B] 2D Camera & 커스텀 전용 패널 (기존 V1.8 기능 100% 보존)
+           ================================================================= -->
+      <div id="camera2DPanel" class="hidden space-y-2.5">
+        
+        <!-- 2D 프리셋 퀵 선택 바 (3DU/3DM 2D 환산 및 소형 LS/LZ 참고용) -->
+        <div class="bg-slate-950 p-2 rounded-lg border border-slate-800 flex items-center justify-between gap-1 flex-wrap">
+          <span class="text-[10px] font-bold text-slate-400 px-1">2D 참고 프리셋:</span>
+          <div class="flex gap-1 flex-wrap">
+            <button onclick="apply2DPreset('3DU_16')" class="px-2 py-0.5 text-[10px] font-mono font-bold rounded bg-slate-800 hover:bg-blue-600 text-slate-200 border border-slate-700">3DU(16)</button>
+            <button onclick="apply2DPreset('3DU_12')" class="px-2 py-0.5 text-[10px] font-mono font-bold rounded bg-slate-800 hover:bg-blue-600 text-slate-200 border border-slate-700">3DU(12)</button>
+            <button onclick="apply2DPreset('3DM_16')" class="px-2 py-0.5 text-[10px] font-mono font-bold rounded bg-slate-800 hover:bg-blue-600 text-slate-200 border border-slate-700">3DM(16)</button>
+            <button onclick="apply2DPreset('3DM_12')" class="px-2 py-0.5 text-[10px] font-mono font-bold rounded bg-slate-800 hover:bg-blue-600 text-slate-200 border border-slate-700">3DM(12)</button>
+            <button onclick="apply2DPreset('LS')" class="px-2 py-0.5 text-[10px] font-mono font-bold rounded bg-slate-800 hover:bg-blue-600 text-slate-300 border border-slate-700">LS</button>
+            <button onclick="apply2DPreset('LZ')" class="px-2 py-0.5 text-[10px] font-mono font-bold rounded bg-slate-800 hover:bg-blue-600 text-slate-300 border border-slate-700">LZ</button>
+          </div>
+        </div>
+
+        <!-- [1구역] 2D Sensor View (32%) + 광학 계산기 (68%) -->
+        <div class="flex gap-2">
+          <!-- 2D Sensor View -->
+          <div class="w-[32%] bg-slate-950 p-2 rounded-lg border border-slate-800 flex flex-col justify-between">
+            <div class="flex items-center justify-between mb-1">
+              <span class="text-[10px] font-bold text-slate-300 tracking-tight">2D Sensor View</span>
+            </div>
+            
+            <div class="relative w-full aspect-[4/3] bg-slate-900 rounded border border-slate-700 overflow-hidden flex items-center justify-center">
+              <div class="absolute inset-0 flex items-center justify-center pointer-events-none opacity-20">
+                <div class="w-full h-[1px] bg-slate-400"></div>
+                <div class="h-full w-[1px] bg-slate-400 absolute"></div>
+              </div>
+              <!-- 타깃 결상 박스 -->
+              <div id="sensorTargetBox" class="bg-amber-500/25 border-2 border-amber-400 rounded-sm transition-all duration-150 flex items-center justify-center shadow-lg" style="width: 70%; height: 70%;">
+                <span id="targetBoxLabel" class="text-[8px] font-bold text-amber-300 tracking-wider">A4</span>
+              </div>
+            </div>
+
+            <div class="mt-1 space-y-0.5 text-center">
+              <div id="targetStatusBadge" class="text-[9px] py-0.5 rounded bg-emerald-950 text-emerald-400 border border-emerald-800 font-medium">
+                화각 내 포함
+              </div>
+              <div class="text-[9px] text-slate-400">
+                <span id="resValue" class="text-blue-300 font-bold font-mono">0.21</span> mm/px
+              </div>
+            </div>
+          </div>
+
+          <!-- 광학 계산기 ( FOV ↔ WD ) -->
+          <div class="w-[68%] bg-slate-950 p-2.5 rounded-lg border border-blue-900/40 flex flex-col justify-between">
+            <div class="flex items-center justify-between mb-1.5 border-b border-slate-800 pb-1">
+              <span class="text-xs font-bold text-blue-400 flex items-center gap-1 font-mono">
+                광학 계산기 ( FOV ↔ WD )
+              </span>
+              <span class="text-[10px] text-slate-400">±5mm 조절</span>
+            </div>
+            
+            <div class="space-y-2">
+              <!-- FOV 가로 -->
+              <div class="flex items-center justify-between gap-1">
+                <span class="text-slate-300 text-xs font-medium w-16">FOV(가로)</span>
+                <div class="flex items-center gap-1 flex-1 justify-end">
+                  <button onclick="stepFov('W', -5)" class="w-8 h-8 rounded bg-slate-800 hover:bg-slate-700 active:bg-blue-600 text-white font-black text-lg border border-slate-700 flex items-center justify-center shadow-sm select-none">-</button>
+                  <div class="flex items-center">
+                    <input type="number" id="inputFovW" class="w-16 bg-slate-900 border border-slate-700 text-center font-mono text-blue-400 font-bold py-1 rounded text-xs focus:border-blue-500 outline-none" value="336">
+                    <span class="text-[10px] text-slate-400 ml-1">mm</span>
+                  </div>
+                  <button onclick="stepFov('W', 5)" class="w-8 h-8 rounded bg-slate-800 hover:bg-slate-700 active:bg-blue-600 text-white font-black text-lg border border-slate-700 flex items-center justify-center shadow-sm select-none">+</button>
+                </div>
+              </div>
+
+              <!-- FOV 세로 -->
+              <div class="flex items-center justify-between gap-1">
+                <span class="text-slate-300 text-xs font-medium w-16">FOV(세로)</span>
+                <div class="flex items-center gap-1 flex-1 justify-end">
+                  <button onclick="stepFov('H', -5)" class="w-8 h-8 rounded bg-slate-800 hover:bg-slate-700 active:bg-blue-600 text-white font-black text-lg border border-slate-700 flex items-center justify-center shadow-sm select-none">-</button>
+                  <div class="flex items-center">
+                    <input type="number" id="inputFovH" class="w-16 bg-slate-900 border border-slate-700 text-center font-mono text-blue-400 font-bold py-1 rounded text-xs focus:border-blue-500 outline-none" value="252">
+                    <span class="text-[10px] text-slate-400 ml-1">mm</span>
+                  </div>
+                  <button onclick="stepFov('H', 5)" class="w-8 h-8 rounded bg-slate-800 hover:bg-slate-700 active:bg-blue-600 text-white font-black text-lg border border-slate-700 flex items-center justify-center shadow-sm select-none">+</button>
+                </div>
+              </div>
+
+              <!-- WD 실시간 수치 -->
+              <div class="flex items-center justify-between gap-1 pt-1 border-t border-slate-800/80">
+                <span class="text-amber-400 font-bold text-xs">작업거리 (WD)</span>
+                <div class="flex items-center gap-1">
+                  <input type="number" id="inputWdNum" class="w-20 bg-slate-900 border border-amber-500/70 text-right font-mono text-amber-300 font-bold px-1.5 py-0.5 rounded text-xs focus:border-amber-400 outline-none" value="700">
+                  <span class="text-[10px] text-amber-400 font-bold">mm</span>
+                </div>
+              </div>
+            </div>
+
+            <div id="dofInfoBox" class="mt-1 text-[10px] text-slate-400 border-t border-slate-800 pt-1 flex justify-between">
+              <span>2D 초점심도(DOF):</span>
+              <span id="dofRangeText" class="font-mono text-emerald-400 font-semibold">652 ~ 755 mm</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- [2구역] WD 조절 슬라이더 (100~2200mm) -->
+        <div class="bg-slate-950 p-2.5 rounded-lg border border-slate-800 space-y-2">
+          <div class="flex justify-between items-center text-xs">
+            <span class="font-bold text-slate-200">2D 작업거리 (WD) 조절 슬라이더</span>
+            <span class="text-amber-400 font-mono font-bold text-xs"><span id="sliderWdVal">700</span> mm</span>
+          </div>
+          
+          <div class="relative w-full pt-1 pb-4">
+            <input type="range" id="wdRange" min="100" max="2200" step="5" value="700" class="w-full h-2 bg-slate-800 rounded-lg cursor-pointer">
+            <div class="absolute top-5 left-[0%] -translate-x-1 flex flex-col items-center pointer-events-none">
+              <div class="w-[1px] h-1.5 bg-slate-600 mb-0.5"></div>
+              <span class="text-[9px] font-mono text-slate-400">LS</span>
+            </div>
+            <div class="absolute top-5 left-[4.8%] -translate-x-1/2 flex flex-col items-center pointer-events-none">
+              <div class="w-[1px] h-1.5 bg-slate-600 mb-0.5"></div>
+              <span class="text-[9px] font-mono text-slate-400">LZ</span>
+            </div>
+            <div class="absolute top-5 left-[28.6%] -translate-x-1/2 flex flex-col items-center pointer-events-none">
+              <div class="w-[1px] h-1.5 bg-blue-500 mb-0.5"></div>
+              <span class="text-[9px] font-mono text-blue-400 font-bold">3DU</span>
+            </div>
+            <div class="absolute top-5 left-[61.9%] -translate-x-1/2 flex flex-col items-center pointer-events-none">
+              <div class="w-[1px] h-1.5 bg-blue-500 mb-0.5"></div>
+              <span class="text-[9px] font-mono text-blue-400 font-bold">3DM</span>
+            </div>
+            <div class="absolute top-5 right-[0%] translate-x-1 flex flex-col items-center pointer-events-none">
+              <div class="w-[1px] h-1.5 bg-slate-600 mb-0.5"></div>
+              <span class="text-[9px] font-mono text-slate-400">2200</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- [3구역] 중요 광학 공식 카드 -->
+        <div class="bg-gradient-to-br from-slate-950 to-blue-950/50 p-2.5 rounded-lg border border-blue-500/40 space-y-2 shadow-md">
+          <div class="flex items-center justify-between border-b border-slate-800 pb-1">
+            <div class="flex items-center gap-1.5">
+              <span class="px-1.5 py-0.5 rounded bg-amber-500/25 text-amber-300 border border-amber-500/50 text-[10px] font-black">중요</span>
+              <span class="text-xs font-black text-slate-100 tracking-tight">2D FOV 기본 광학 공식</span>
+            </div>
+            <span class="text-[10px] text-blue-400 font-mono font-semibold">비례식 닮음비</span>
+          </div>
+
+          <div class="flex items-center justify-center gap-3 py-1">
+            <span class="text-sm sm:text-base font-black text-amber-300 font-mono">FOV<sub class="text-xs text-amber-200">(W)</sub> =</span>
+            <div class="flex flex-col items-center">
+              <div class="text-xs sm:text-sm font-extrabold text-white font-mono pb-0.5 px-3 border-b-2 border-blue-400 tracking-wider">
+                WD × 센서크기<sub class="text-[10px] text-slate-300">(W)</sub>
+              </div>
+              <div class="text-xs sm:text-sm font-extrabold text-blue-300 font-mono pt-0.5">
+                초점거리 (f)
+              </div>
+            </div>
+          </div>
+
+          <div class="bg-slate-900/95 rounded-md p-1.5 text-center font-mono border border-slate-800 shadow-inner">
+            <span id="formulaDynamicText" class="text-emerald-400 font-black text-xs tracking-wide">
+              ( 700 × 7.2 ) ÷ 15 = 336 mm
+            </span>
+          </div>
+        </div>
+
+        <!-- [4구역] 커스텀 파라미터 세부설정 (2D 커스텀 기본 통합) -->
+        <div id="customControlPanel" class="bg-slate-950 p-2.5 rounded-lg border border-blue-900/50 space-y-2.5">
+          <div class="text-xs font-bold text-blue-400 flex items-center justify-between border-b border-slate-800 pb-1">
+            <span>2D 커스텀 파라미터 세부설정</span>
+            <span class="text-[10px] text-slate-400">자유 변경 모드</span>
+          </div>
+
+          <!-- 측정 부품 (Target) 크기 조정 -->
+          <div class="space-y-1.5 bg-slate-900/70 p-2 rounded border border-slate-800">
+            <div class="flex justify-between items-center text-xs">
+              <div class="flex items-center gap-1.5">
+                <span class="w-2 h-2 rounded bg-amber-400"></span>
+                <span class="font-bold text-slate-200 whitespace-nowrap">2D 타깃 크기</span>
+              </div>
+              <div class="flex gap-1 text-[9px]">
+                <button onclick="setTargetPreset(50, 35, '소형')" class="px-1.5 py-0.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded border border-slate-700">소형(50×35)</button>
+                <button onclick="setTargetPreset(297, 210, 'A4')" class="px-1.5 py-0.5 bg-slate-800 hover:bg-slate-700 text-amber-300 font-bold rounded border border-amber-500/50">A4(297×210)</button>
+                <button onclick="setTargetPreset(594, 420, 'A2')" class="px-1.5 py-0.5 bg-slate-800 hover:bg-slate-700 text-blue-300 font-bold rounded border border-blue-500/50">A2(594×420)</button>
+              </div>
+            </div>
+            
+            <div class="flex items-center justify-between text-xs pt-0.5">
+              <div class="flex items-center gap-1">
+                <span class="text-slate-400 text-[11px]">가로(W):</span>
+                <input type="number" id="inputTargetW" class="w-16 bg-slate-950 border border-slate-700 text-right font-mono text-amber-300 font-bold px-1 py-0.5 rounded focus:border-amber-400 outline-none" value="297">
+                <span class="text-[10px] text-slate-400">mm</span>
+              </div>
+              <span class="text-slate-500 font-bold">×</span>
+              <div class="flex items-center gap-1">
+                <span class="text-slate-400 text-[11px]">세로(H):</span>
+                <input type="number" id="inputTargetH" class="w-16 bg-slate-950 border border-slate-700 text-right font-mono text-amber-300 font-bold px-1 py-0.5 rounded focus:border-amber-400 outline-none" value="210">
+                <span class="text-[10px] text-slate-400">mm</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- 초점거리 슬라이더 -->
+          <div class="space-y-1">
+            <div class="flex justify-between text-[11px]">
+              <span class="text-slate-400">초점거리 (f):</span>
+              <span class="font-mono text-blue-300 font-bold"><span id="customFocalVal">15</span> mm</span>
+            </div>
+            <input type="range" id="customFocalRange" min="4" max="35" step="1" value="15" class="w-full h-1.5 bg-slate-800 rounded-lg cursor-pointer">
+            <div class="flex justify-between text-[9px] text-slate-400 font-mono">
+              <span>4mm</span>
+              <span>12mm</span>
+              <span>16mm</span>
+              <span>35mm</span>
+            </div>
+          </div>
+
+          <!-- 센서 크기 + 조리개 선택창 -->
+          <div class="flex gap-2 pt-1 border-t border-slate-800">
+            <div class="w-[58%] space-y-2 pr-2 border-r border-slate-800 flex flex-col justify-center">
+              <span class="text-[11px] font-bold text-slate-300 block">센서 크기 (±0.1mm)</span>
+              <div class="flex items-center justify-between text-xs">
+                <span class="text-slate-300 text-[10px] font-medium leading-tight">가로<br><span class="text-slate-500 text-[9px]">(Width)</span></span>
+                <div class="flex items-center gap-1 flex-shrink-0">
+                  <button onclick="stepSensor('W', -0.1)" class="w-7 h-7 rounded bg-slate-800 hover:bg-slate-700 active:bg-blue-600 text-white font-black text-base border border-slate-700 flex items-center justify-center select-none flex-shrink-0">-</button>
+                  <input type="number" id="inputSensorW" step="0.1" class="w-12 bg-slate-900 border border-slate-700 text-center font-mono text-blue-400 font-bold py-1 rounded text-xs focus:border-blue-500 outline-none flex-shrink-0" value="7.2">
+                  <button onclick="stepSensor('W', 0.1)" class="w-7 h-7 rounded bg-slate-800 hover:bg-slate-700 active:bg-blue-600 text-white font-black text-base border border-slate-700 flex items-center justify-center select-none flex-shrink-0">+</button>
+                </div>
+              </div>
+              <div class="flex items-center justify-between text-xs">
+                <span class="text-slate-300 text-[10px] font-medium leading-tight">세로<br><span class="text-slate-500 text-[9px]">(Height)</span></span>
+                <div class="flex items-center gap-1 flex-shrink-0">
+                  <button onclick="stepSensor('H', -0.1)" class="w-7 h-7 rounded bg-slate-800 hover:bg-slate-700 active:bg-blue-600 text-white font-black text-base border border-slate-700 flex items-center justify-center select-none flex-shrink-0">-</button>
+                  <input type="number" id="inputSensorH" step="0.1" class="w-12 bg-slate-900 border border-slate-700 text-center font-mono text-blue-400 font-bold py-1 rounded text-xs focus:border-blue-500 outline-none flex-shrink-0" value="5.4">
+                  <button onclick="stepSensor('H', 0.1)" class="w-7 h-7 rounded bg-slate-800 hover:bg-slate-700 active:bg-blue-600 text-white font-black text-base border border-slate-700 flex items-center justify-center select-none flex-shrink-0">+</button>
+                </div>
+              </div>
+            </div>
+
+            <div class="w-[42%] space-y-1">
+              <span class="text-[11px] font-bold text-slate-300 block">조리개 (F)</span>
+              <div class="grid grid-cols-2 gap-1 text-[10px]">
+                <button onclick="setAperture(1.4)" class="f-btn py-1 rounded bg-slate-800 text-slate-300 border border-slate-700">F1.4</button>
+                <button onclick="setAperture(2.0)" class="f-btn py-1 rounded bg-slate-800 text-slate-300 border border-slate-700">F2.0</button>
+                <button onclick="setAperture(2.8)" class="f-btn py-1 rounded bg-slate-800 text-slate-300 border border-slate-700">F2.8</button>
+                <button onclick="setAperture(4.0)" class="f-btn py-1 rounded bg-blue-600 text-white font-bold border border-blue-500">F4.0</button>
+                <button onclick="setAperture(5.6)" class="f-btn py-1 rounded bg-slate-800 text-slate-300 border border-slate-700">F5.6</button>
+                <button onclick="setAperture(8.0)" class="f-btn py-1 rounded bg-slate-800 text-slate-300 border border-slate-700">F8.0</button>
+                <button onclick="setAperture(11)" class="f-btn py-1 rounded bg-slate-800 text-slate-300 border border-slate-700">F11</button>
+                <button onclick="setAperture(16)" class="f-btn py-1 rounded bg-slate-800 text-slate-300 border border-slate-700">F16</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
       </div>
 
     </div>
@@ -381,76 +494,99 @@
 
   <script>
     /* ============================================================
-       1. 프리셋 데이터 (V1.8)
+       1. 장비 스펙 데이터 (V2.0)
        ============================================================ */
-    const PRESETS = {
+    const SCANNER_SPECS = {
       '3DU_16': {
-        name: '3DU (16)',
+        key: '3DU_16',
+        title: 'AITZ 3DU (16)',
         sensorW: 7.2, sensorH: 5.4,
         pxW: 1602, pxH: 1202,
-        focal: 15.0,
-        aperture: 4.0,
-        defaultWd: 700
+        focal: 15.0,       // 표기 16mm, 실제 탑재 15mm
+        aperture: 4.0,     // F4.0 고정
+        centerWd: 700,
+        defaultNear: 500,
+        defaultFar: 900,
+        minNear: 350, maxNear: 680,
+        minFar: 720, maxFar: 1150,
+        minZ: 400, maxZ: 1050
       },
       '3DU_12': {
-        name: '3DU (12)',
+        key: '3DU_12',
+        title: 'AITZ 3DU (12)',
         sensorW: 7.2, sensorH: 5.4,
         pxW: 1602, pxH: 1202,
-        focal: 12.0,
+        focal: 12.0,       // 실제 탑재 12mm
         aperture: 4.0,
-        defaultWd: 700
+        centerWd: 700,
+        defaultNear: 500,
+        defaultFar: 900,
+        minNear: 350, maxNear: 680,
+        minFar: 720, maxFar: 1150,
+        minZ: 400, maxZ: 1050
       },
       '3DM_16': {
-        name: '3DM (16)',
+        key: '3DM_16',
+        title: 'AITZ 3DM (16)',
         sensorW: 7.2, sensorH: 5.4,
         pxW: 1602, pxH: 1202,
-        focal: 15.0,
+        focal: 15.0,       // 표기 16mm, 실제 탑재 15mm
         aperture: 4.0,
-        defaultWd: 1400
+        centerWd: 1400,
+        defaultNear: 1200,
+        defaultFar: 1800,
+        minNear: 900, maxNear: 1380,
+        minFar: 1420, maxFar: 2100,
+        minZ: 1000, maxZ: 1950
       },
       '3DM_12': {
-        name: '3DM (12)',
+        key: '3DM_12',
+        title: 'AITZ 3DM (12)',
         sensorW: 7.2, sensorH: 5.4,
         pxW: 1602, pxH: 1202,
-        focal: 12.0,
+        focal: 12.0,       // 실제 탑재 12mm
         aperture: 4.0,
-        defaultWd: 1400
-      },
-      'LS': {
-        name: 'LS',
-        sensorW: 3.07, sensorH: 2.3,
-        pxW: 642, pxH: 482,
-        focal: 12.0,
-        aperture: 8.0,
-        defaultWd: 100
-      },
-      'LZ': {
-        name: 'LZ',
-        sensorW: 3.07, sensorH: 2.3,
-        pxW: 642, pxH: 482,
-        focal: 12.0,
-        aperture: 8.0,
-        defaultWd: 200
-      },
-      'CUSTOM': {
-        name: '커스텀',
-        sensorW: 7.2, sensorH: 5.4,
-        pxW: 1602, pxH: 1202,
-        focal: 15.0,
-        aperture: 4.0,
-        defaultWd: 700
+        centerWd: 1400,
+        defaultNear: 1200,
+        defaultFar: 1800,
+        minNear: 900, maxNear: 1380,
+        minFar: 1420, maxFar: 2100,
+        minZ: 1000, maxZ: 1950
       }
     };
 
-    let currentKey = '3DU_16';
-    let currentParams = { ...PRESETS['3DU_16'], wd: 700 };
+    const PRESETS_2D = {
+      '3DU_16': { sensorW: 7.2, sensorH: 5.4, pxW: 1602, pxH: 1202, focal: 15.0, aperture: 4.0, defaultWd: 700 },
+      '3DU_12': { sensorW: 7.2, sensorH: 5.4, pxW: 1602, pxH: 1202, focal: 12.0, aperture: 4.0, defaultWd: 700 },
+      '3DM_16': { sensorW: 7.2, sensorH: 5.4, pxW: 1602, pxH: 1202, focal: 15.0, aperture: 4.0, defaultWd: 1400 },
+      '3DM_12': { sensorW: 7.2, sensorH: 5.4, pxW: 1602, pxH: 1202, focal: 12.0, aperture: 4.0, defaultWd: 1400 },
+      'LS':     { sensorW: 3.07, sensorH: 2.3, pxW: 642, pxH: 482, focal: 12.0, aperture: 8.0, defaultWd: 100 },
+      'LZ':     { sensorW: 3.07, sensorH: 2.3, pxW: 642, pxH: 482, focal: 12.0, aperture: 8.0, defaultWd: 200 }
+    };
+
+    // 전역 상태
+    let activeMode = '3D_SCANNER';
+    let currentScannerKey = '3DU_16';
+    let scannerState = {
+      nearWd: 500,
+      farWd: 900,
+      targetZ: 700
+    };
+
+    let showA4 = true;
+    let showDodeca = true;
     let showDof = false;
 
-    // [V1.8 핵심] 기본 타깃 크기: A4 용지 규격 (297 x 210 mm)
-    let targetSpec = { w: 297, h: 210, label: 'A4' };
+    // 2D 모드 상태
+    let params2D = { ...PRESETS_2D['3DU_16'], wd: 700 };
+    let target2DSpec = { w: 297, h: 210, label: 'A4' };
+
+    // 정12면체 규격 (A4 세로폭 210mm와 동일한 외접 직경 210mm -> 반지름 105mm)
+    const DODECA_DIAMETER = 210;
+    const DODECA_RADIUS = 105;
 
     /* ============================================================
-       2. Three.js & CSS2DRenderer
+       2. Three.js 초기화
        ============================================================ */
     const container = document.getElementById('canvasContainer');
     const canvas = document.getElementById('threeCanvas');
@@ -458,98 +594,306 @@
     const scene = new THREE.Scene();
     scene.background = new THREE.Color(0x020617);
 
-    const camera = new THREE.PerspectiveCamera(45, container.clientWidth / container.clientHeight, 10, 10000);
-    camera.position.set(1200, 900, 1500);
+    const camera = new THREE.PerspectiveCamera(44, container.clientWidth / container.clientHeight, 10, 12000);
+    camera.position.set(1350, 880, 1450);
 
     const renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true });
     renderer.setSize(container.clientWidth, container.clientHeight);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 
-    const labelRenderer = new THREE.CSS2DRenderer();
-    labelRenderer.setSize(container.clientWidth, container.clientHeight);
-    labelRenderer.domElement.style.position = 'absolute';
-    labelRenderer.domElement.style.top = '0px';
-    labelRenderer.domElement.style.pointerEvents = 'none';
-    container.appendChild(labelRenderer.domElement);
-
     const controls = new THREE.OrbitControls(camera, renderer.domElement);
     controls.enableDamping = true;
     controls.dampingFactor = 0.05;
-    controls.maxDistance = 6000;
+    controls.maxDistance = 7000;
     controls.minDistance = 150;
 
-    scene.add(new THREE.AmbientLight(0xffffff, 0.7));
-    const dirLight = new THREE.DirectionalLight(0xffffff, 0.8);
-    dirLight.position.set(1000, 1500, 1000);
-    scene.add(dirLight);
+    // 조명 세팅
+    scene.add(new THREE.AmbientLight(0xffffff, 0.75));
+    const dirLight1 = new THREE.DirectionalLight(0xffffff, 0.9);
+    dirLight1.position.set(1000, 1600, 1200);
+    scene.add(dirLight1);
+    const dirLight2 = new THREE.DirectionalLight(0x93c5fd, 0.45);
+    dirLight2.position.set(-1000, -800, -600);
+    scene.add(dirLight2);
 
-    const grid = new THREE.GridHelper(3000, 30, 0x1e293b, 0x0f172a);
-    grid.position.y = -350;
+    const grid = new THREE.GridHelper(3200, 32, 0x1e293b, 0x0f172a);
+    grid.position.y = -450;
     scene.add(grid);
 
-    // 카메라 바디
+    // 스캐너 / 카메라 헤드 바디 (원점 Z=0)
     const camGroup = new THREE.Group();
     const camBody = new THREE.Mesh(
-      new THREE.BoxGeometry(60, 60, 90),
-      new THREE.MeshStandardMaterial({ color: 0x334155, roughness: 0.4 })
+      new THREE.BoxGeometry(110, 52, 75),
+      new THREE.MeshStandardMaterial({ color: 0x334155, roughness: 0.35, metalness: 0.4 })
     );
-    camBody.position.z = -45;
+    camBody.position.z = -38;
     camGroup.add(camBody);
 
-    const lens = new THREE.Mesh(
-      new THREE.CylinderGeometry(22, 22, 35, 24),
-      new THREE.MeshStandardMaterial({ color: 0x0f172a, metalness: 0.6 })
+    const lensMat = new THREE.MeshStandardMaterial({ color: 0x0f172a, metalness: 0.7, roughness: 0.2 });
+    const leftLens = new THREE.Mesh(new THREE.CylinderGeometry(14, 14, 18, 20), lensMat);
+    leftLens.rotation.x = Math.PI / 2;
+    leftLens.position.set(-32, 0, 8);
+    camGroup.add(leftLens);
+
+    const rightLens = new THREE.Mesh(new THREE.CylinderGeometry(14, 14, 18, 20), lensMat);
+    rightLens.rotation.x = Math.PI / 2;
+    rightLens.position.set(32, 0, 8);
+    camGroup.add(rightLens);
+
+    const projLens = new THREE.Mesh(
+      new THREE.CylinderGeometry(11, 11, 16, 20),
+      new THREE.MeshStandardMaterial({ color: 0x1d4ed8, emissive: 0x1e3a8a, metalness: 0.5 })
     );
-    lens.rotation.x = Math.PI / 2;
-    lens.position.z = 17;
-    camGroup.add(lens);
+    projLens.rotation.x = Math.PI / 2;
+    projLens.position.set(0, 0, 7);
+    camGroup.add(projLens);
     scene.add(camGroup);
 
-    // 타깃 메쉬 (A4 기본 생성)
-    let targetMesh = null;
-    function buildTargetMesh() {
-      if (targetMesh) scene.remove(targetMesh);
+    const dynamicGroup = new THREE.Group();
+    scene.add(dynamicGroup);
 
-      const targetGeo = new THREE.PlaneGeometry(targetSpec.w, targetSpec.h);
-      const targetMat = new THREE.MeshStandardMaterial({ 
-        color: 0xf59e0b, 
+    // 피사체 1: A4 용지 (앰버 골드 평면 + 크림 테두리)
+    function buildA4Mesh(w, h) {
+      const group = new THREE.Group();
+      const geo = new THREE.PlaneGeometry(w, h);
+      const mat = new THREE.MeshStandardMaterial({
+        color: 0xf59e0b,
+        emissive: 0x78350f,
+        emissiveIntensity: 0.25,
         side: THREE.DoubleSide,
-        roughness: 0.5,
+        roughness: 0.45,
         transparent: true,
-        opacity: 0.85
+        opacity: 0.68
       });
-      targetMesh = new THREE.Mesh(targetGeo, targetMat);
-
-      const targetWire = new THREE.LineSegments(
-        new THREE.EdgesGeometry(targetGeo), 
-        new THREE.LineBasicMaterial({ color: 0xffedd5, linewidth: 2 })
+      const mesh = new THREE.Mesh(geo, mat);
+      const wire = new THREE.LineSegments(
+        new THREE.EdgesGeometry(geo),
+        new THREE.LineBasicMaterial({ color: 0xfef3c7 })
       );
-      targetMesh.add(targetWire);
-      scene.add(targetMesh);
+      group.add(mesh);
+      group.add(wire);
+      return group;
     }
-    buildTargetMesh();
 
-    let frustumLines = null;
-    let frustumMesh = null;
-    let wdCenterLine = null;
-    let dofMesh = null;
+    // 피사체 2: 정12면체 (에메랄드 그린 입체 + 민트 와이어프레임)
+    function buildDodecaMesh(radius) {
+      const group = new THREE.Group();
+      const geo = new THREE.DodecahedronGeometry(radius, 0);
+      const mat = new THREE.MeshStandardMaterial({
+        color: 0x10b981,
+        emissive: 0x064e3b,
+        emissiveIntensity: 0.35,
+        roughness: 0.3,
+        metalness: 0.15,
+        transparent: true,
+        opacity: 0.82
+      });
+      const mesh = new THREE.Mesh(geo, mat);
+      const wire = new THREE.LineSegments(
+        new THREE.EdgesGeometry(geo),
+        new THREE.LineBasicMaterial({ color: 0xa7f3d0 })
+      );
+      group.add(mesh);
+      group.add(wire);
+      return group;
+    }
 
-    const fovLabelDiv = document.createElement('div');
-    fovLabelDiv.className = 'viewport-label label-fov';
-    fovLabelDiv.innerText = 'FOV (시야)';
-    const fovLabelObject = new THREE.CSS2DObject(fovLabelDiv);
-
-    const wdLabelDiv = document.createElement('div');
-    wdLabelDiv.className = 'viewport-label label-wd';
-    wdLabelDiv.innerText = 'WD (작업거리)';
-    const wdLabelObject = new THREE.CSS2DObject(wdLabelDiv);
+    function clearDynamicScene() {
+      while (dynamicGroup.children.length > 0) {
+        dynamicGroup.remove(dynamicGroup.children[0]);
+      }
+    }
 
     /* ============================================================
-       3. 연산 및 동기화
+       3. 3D 스캐너 (사각뿔대 Frustum) 렌더링 및 계산
        ============================================================ */
-    function calculateOptics() {
-      const { sensorW, sensorH, focal, wd, pxW, pxH, aperture } = currentParams;
+    function render3DScannerMode() {
+      clearDynamicScene();
+      const spec = SCANNER_SPECS[currentScannerKey];
+      const { sensorW, sensorH, focal, centerWd } = spec;
+      const { nearWd, farWd, targetZ } = scannerState;
 
+      const calcPlane = (z) => ({
+        w: (sensorW * z) / focal,
+        h: (sensorH * z) / focal
+      });
+
+      const nearDim = calcPlane(nearWd);
+      const centerDim = calcPlane(centerWd);
+      const farDim = calcPlane(farWd);
+      const targetPlaneDim = calcPlane(targetZ);
+
+      const getCorners = (dim, z) => {
+        const hw = dim.w / 2;
+        const hh = dim.h / 2;
+        return [
+          new THREE.Vector3(-hw,  hh, z),
+          new THREE.Vector3( hw,  hh, z),
+          new THREE.Vector3( hw, -hh, z),
+          new THREE.Vector3(-hw, -hh, z)
+        ];
+      };
+
+      const pOrigin = new THREE.Vector3(0, 0, 0);
+      const cNear = getCorners(nearDim, nearWd);
+      const cCenter = getCorners(centerDim, centerWd);
+      const cFar = getCorners(farDim, farWd);
+
+      // 1) 상단 비측정 구간 (원점 -> Near 평면) 점선 가이드
+      const deadPts = [];
+      for (let i = 0; i < 4; i++) {
+        deadPts.push(pOrigin, cNear[i]);
+      }
+      const deadGeo = new THREE.BufferGeometry().setFromPoints(deadPts);
+      const deadLine = new THREE.LineSegments(
+        deadGeo,
+        new THREE.LineDashedMaterial({ color: 0x475569, dashSize: 18, gapSize: 12 })
+      );
+      deadLine.computeLineDistances();
+      dynamicGroup.add(deadLine);
+
+      // 2) 사각뿔대(Frustum: Near -> Far) 반투명 입체 메쉬
+      const frustumVerts = [];
+      const addQuad = (a, b, c, d) => {
+        frustumVerts.push(a.x,a.y,a.z, b.x,b.y,b.z, c.x,c.y,c.z);
+        frustumVerts.push(a.x,a.y,a.z, c.x,c.y,c.z, d.x,d.y,d.z);
+      };
+      for (let i = 0; i < 4; i++) {
+        const next = (i + 1) % 4;
+        addQuad(cNear[i], cNear[next], cFar[next], cFar[i]);
+      }
+      addQuad(cNear[0], cNear[1], cNear[2], cNear[3]);
+      addQuad(cFar[0], cFar[1], cFar[2], cFar[3]);
+
+      const frustumGeo = new THREE.BufferGeometry();
+      frustumGeo.setAttribute('position', new THREE.Float32BufferAttribute(frustumVerts, 3));
+      frustumGeo.computeVertexNormals();
+      dynamicGroup.add(new THREE.Mesh(
+        frustumGeo,
+        new THREE.MeshBasicMaterial({
+          color: 0x0284c7,
+          transparent: true,
+          opacity: 0.14,
+          side: THREE.DoubleSide,
+          depthWrite: false
+        })
+      ));
+
+      // 3) 사각뿔대 엣지 라인
+      const makeLoopLines = (corners, colorHex) => {
+        const pts = [
+          corners[0], corners[1],
+          corners[1], corners[2],
+          corners[2], corners[3],
+          corners[3], corners[0]
+        ];
+        const g = new THREE.BufferGeometry().setFromPoints(pts);
+        return new THREE.LineSegments(g, new THREE.LineBasicMaterial({ color: colorHex }));
+      };
+
+      const sideEdgePts = [];
+      for (let i = 0; i < 4; i++) {
+        sideEdgePts.push(cNear[i], cFar[i]);
+      }
+      dynamicGroup.add(new THREE.LineSegments(
+        new THREE.BufferGeometry().setFromPoints(sideEdgePts),
+        new THREE.LineBasicMaterial({ color: 0x38bdf8 })
+      ));
+
+      dynamicGroup.add(makeLoopLines(cNear, 0x22d3ee));
+      dynamicGroup.add(makeLoopLines(cCenter, 0x60a5fa));
+      dynamicGroup.add(makeLoopLines(cFar, 0xa78bfa));
+
+      // 4) 중심 광축선
+      const axisGeo = new THREE.BufferGeometry().setFromPoints([
+        new THREE.Vector3(0, 0, 0),
+        new THREE.Vector3(0, 0, farWd)
+      ]);
+      const axisLine = new THREE.Line(
+        axisGeo,
+        new THREE.LineDashedMaterial({ color: 0xf59e0b, dashSize: 20, gapSize: 10 })
+      );
+      axisLine.computeLineDistances();
+      dynamicGroup.add(axisLine);
+
+      // 5) 피사체 배치
+      if (showA4) {
+        const a4Mesh = buildA4Mesh(297, 210);
+        a4Mesh.position.set(0, 0, targetZ);
+        dynamicGroup.add(a4Mesh);
+      }
+      if (showDodeca) {
+        const dodecaMesh = buildDodecaMesh(DODECA_RADIUS);
+        dodecaMesh.position.set(0, 0, targetZ);
+        dynamicGroup.add(dodecaMesh);
+      }
+
+      // 6) 통합 카드 수치 업데이트 (좌측: 장비/MR + 우측: 3단 FOV 범위)
+      const mr = farWd - nearWd;
+      document.getElementById('scModelTitle').innerText = spec.title;
+      document.getElementById('scOpticNote').innerHTML = `렌즈 f=${focal}mm (F${spec.aperture.toFixed(1)})<br>센서 ${sensorW}×${sensorH}mm`;
+      document.getElementById('scMrBadge').innerText = `${mr} mm`;
+      document.getElementById('scMrRangeText').innerText = `(${nearWd} ~ ${farWd} mm)`;
+
+      document.getElementById('scNearWdLabel').innerText = `WD=${nearWd}mm`;
+      document.getElementById('scNearFovVal').innerHTML = `${Math.round(nearDim.w)}×${Math.round(nearDim.h)} <span class="text-[9px] font-normal text-cyan-300">mm</span>`;
+
+      document.getElementById('scCenterWdLabel').innerText = `WD=${centerWd}mm`;
+      document.getElementById('scCenterFovVal').innerHTML = `${Math.round(centerDim.w)}×${Math.round(centerDim.h)} <span class="text-[9px] font-normal text-amber-200">mm</span>`;
+
+      document.getElementById('scFarWdLabel').innerText = `WD=${farWd}mm`;
+      document.getElementById('scFarFovVal').innerHTML = `${Math.round(farDim.w)}×${Math.round(farDim.h)} <span class="text-[9px] font-normal text-violet-300">mm</span>`;
+
+      document.getElementById('scNearSliderVal').innerText = nearWd;
+      document.getElementById('scFarSliderVal').innerText = farWd;
+      document.getElementById('scTargetZVal').innerText = targetZ;
+
+      evaluate3DTargetFit(nearWd, farWd, targetZ, targetPlaneDim);
+    }
+
+    function evaluate3DTargetFit(nearWd, farWd, targetZ, planeDim) {
+      const statusBox = document.getElementById('scTargetStatusBox');
+      const statusTitle = document.getElementById('scTargetStatusTitle');
+      const dimSummary = document.getElementById('scTargetDimSummary');
+
+      let activeItems = [];
+      if (showA4) activeItems.push('A4(297×210)');
+      if (showDodeca) activeItems.push('정12면체(Ø210)');
+      dimSummary.innerText = activeItems.length > 0 ? activeItems.join(' + ') : '피사체 미선택';
+
+      if (!showA4 && !showDodeca) {
+        statusBox.className = "px-2.5 py-1.5 rounded bg-slate-900 border border-slate-700 flex items-center justify-between text-[11px]";
+        statusTitle.className = "font-bold text-slate-400";
+        statusTitle.innerText = "상단에서 A4 용지 또는 정12면체를 선택하세요";
+        return;
+      }
+
+      const zHalfDepth = showDodeca ? DODECA_RADIUS : 0;
+      const zOut = (targetZ - zHalfDepth < nearWd) || (targetZ + zHalfDepth > farWd);
+
+      const reqW = showA4 ? 297 : DODECA_DIAMETER;
+      const reqH = 210;
+      const xyOut = (reqW > planeDim.w) || (reqH > planeDim.h);
+
+      if (zOut || xyOut) {
+        let reasons = [];
+        if (zOut) reasons.push('MR 깊이(Near~Far) 이탈');
+        if (xyOut) reasons.push(`단면 화각(${Math.round(planeDim.w)}×${Math.round(planeDim.h)}) 초과`);
+        statusBox.className = "px-2.5 py-1.5 rounded bg-rose-950/60 border border-rose-500/60 flex items-center justify-between text-[11px]";
+        statusTitle.className = "font-bold text-rose-300";
+        statusTitle.innerText = `⚠ 영역 이탈: ${reasons.join(' / ')}`;
+      } else {
+        statusBox.className = "px-2.5 py-1.5 rounded bg-emerald-950/50 border border-emerald-600/50 flex items-center justify-between text-[11px]";
+        statusTitle.className = "font-bold text-emerald-300";
+        statusTitle.innerText = "✓ 사각뿔대 유효 공간 내 정상 수용";
+      }
+    }
+
+    /* ============================================================
+       4. 2D Camera & 커스텀 모드 렌더링 및 계산
+       ============================================================ */
+    function calculate2DOptics() {
+      const { sensorW, sensorH, focal, wd, pxW, aperture } = params2D;
       const fovW = (sensorW * wd) / focal;
       const fovH = (sensorH * wd) / focal;
       const res = fovW / pxW;
@@ -564,16 +908,11 @@
       return { fovW, fovH, res, Dn, Df, totalDof };
     }
 
-    function update3DGraphics(optics) {
-      const { wd } = currentParams;
-      const { fovW, fovH, Dn, Df } = optics;
-
-      if (targetMesh) targetMesh.position.set(0, 0, wd);
-
-      if (frustumLines) scene.remove(frustumLines);
-      if (frustumMesh) scene.remove(frustumMesh);
-      if (wdCenterLine) scene.remove(wdCenterLine);
-      if (dofMesh) scene.remove(dofMesh);
+    function render2DCameraMode() {
+      clearDynamicScene();
+      const optics = calculate2DOptics();
+      const { wd } = params2D;
+      const { fovW, fovH, res, Dn, Df, totalDof } = optics;
 
       const halfW = fovW / 2;
       const halfH = fovH / 2;
@@ -595,8 +934,7 @@
       ];
       const lineGeo = new THREE.BufferGeometry();
       lineGeo.setAttribute('position', new THREE.Float32BufferAttribute(linePositions, 3));
-      frustumLines = new THREE.LineSegments(lineGeo, new THREE.LineBasicMaterial({ color: 0x38bdf8, transparent: true, opacity: 0.8 }));
-      scene.add(frustumLines);
+      dynamicGroup.add(new THREE.LineSegments(lineGeo, new THREE.LineBasicMaterial({ color: 0x38bdf8, transparent: true, opacity: 0.85 })));
 
       const pyrPositions = [
         pCam.x, pCam.y, pCam.z, pTR.x, pTR.y, pTR.z, pTL.x, pTL.y, pTL.z,
@@ -604,60 +942,55 @@
         pCam.x, pCam.y, pCam.z, pBL.x, pBL.y, pBL.z, pBR.x, pBR.y, pBR.z,
         pCam.x, pCam.y, pCam.z, pTL.x, pTL.y, pTL.z, pBL.x, pBL.y, pBL.z
       ];
-      pyrGeo = new THREE.BufferGeometry();
+      const pyrGeo = new THREE.BufferGeometry();
       pyrGeo.setAttribute('position', new THREE.Float32BufferAttribute(pyrPositions, 3));
-      pyrGeo.computeVertexNormals();
-      frustumMesh = new THREE.Mesh(pyrGeo, new THREE.MeshBasicMaterial({ 
-        color: 0x0284c7, 
-        transparent: true, 
-        opacity: 0.12, 
+      dynamicGroup.add(new THREE.Mesh(pyrGeo, new THREE.MeshBasicMaterial({
+        color: 0x0284c7,
+        transparent: true,
+        opacity: 0.12,
         side: THREE.DoubleSide,
         depthWrite: false
-      }));
-      scene.add(frustumMesh);
+      })));
 
       const centerLineGeo = new THREE.BufferGeometry().setFromPoints([
         new THREE.Vector3(0, 0, 0),
         new THREE.Vector3(0, 0, wd)
       ]);
-      wdCenterLine = new THREE.Line(
-        centerLineGeo, 
-        new THREE.LineDashedMaterial({ color: 0xf59e0b, dashSize: 20, gapSize: 10, linewidth: 2 })
+      const wdCenterLine = new THREE.Line(
+        centerLineGeo,
+        new THREE.LineDashedMaterial({ color: 0xf59e0b, dashSize: 20, gapSize: 10 })
       );
       wdCenterLine.computeLineDistances();
-      scene.add(wdCenterLine);
+      dynamicGroup.add(wdCenterLine);
 
-      fovLabelObject.position.set(0, halfH + 25, wd);
-      scene.add(fovLabelObject);
-
-      wdLabelObject.position.set(0, 20, wd * 0.5);
-      scene.add(wdLabelObject);
+      if (showA4) {
+        const mesh2D = buildA4Mesh(target2DSpec.w, target2DSpec.h);
+        mesh2D.position.set(0, 0, wd);
+        dynamicGroup.add(mesh2D);
+      }
+      if (showDodeca) {
+        const dodeca2D = buildDodecaMesh(DODECA_RADIUS);
+        dodeca2D.position.set(0, 0, wd);
+        dynamicGroup.add(dodeca2D);
+      }
 
       if (showDof && Dn < Df) {
         const farZ = Math.min(Df, wd * 1.6);
-        const wNear = (currentParams.sensorW * Dn) / currentParams.focal;
-        const hNear = (currentParams.sensorH * Dn) / currentParams.focal;
-        const wFar  = (currentParams.sensorW * farZ) / currentParams.focal;
-        const hFar  = (currentParams.sensorH * farZ) / currentParams.focal;
+        const wNear = (params2D.sensorW * Dn) / params2D.focal;
+        const hNear = (params2D.sensorH * Dn) / params2D.focal;
+        const wFar  = (params2D.sensorW * farZ) / params2D.focal;
+        const hFar  = (params2D.sensorH * farZ) / params2D.focal;
 
-        const dofGeo = new THREE.BoxGeometry(1, 1, 1);
-        const dofMat = new THREE.MeshBasicMaterial({
-          color: 0x10b981,
-          transparent: true,
-          opacity: 0.22,
-          depthWrite: false
-        });
-        dofMesh = new THREE.Mesh(dofGeo, dofMat);
+        const dofMesh = new THREE.Mesh(
+          new THREE.BoxGeometry(1, 1, 1),
+          new THREE.MeshBasicMaterial({ color: 0xa855f7, transparent: true, opacity: 0.22, depthWrite: false })
+        );
         dofMesh.position.z = (Dn + farZ) / 2;
         dofMesh.scale.set((wNear + wFar) / 2, (hNear + hFar) / 2, (farZ - Dn));
-        scene.add(dofMesh);
+        dynamicGroup.add(dofMesh);
       }
-    }
 
-    function updateUI(optics) {
-      const { wd, sensorW, sensorH, focal } = currentParams;
-      const { fovW, fovH, res, Dn, Df, totalDof } = optics;
-
+      // UI 동기화
       if (document.activeElement !== document.getElementById('inputFovW')) {
         document.getElementById('inputFovW').value = Math.round(fovW);
       }
@@ -667,43 +1000,34 @@
       if (document.activeElement !== document.getElementById('inputWdNum')) {
         document.getElementById('inputWdNum').value = Math.round(wd);
       }
-
       document.getElementById('wdRange').value = wd;
       document.getElementById('sliderWdVal').innerText = Math.round(wd);
 
       if (document.activeElement !== document.getElementById('inputSensorW')) {
-        document.getElementById('inputSensorW').value = sensorW.toFixed(1);
+        document.getElementById('inputSensorW').value = params2D.sensorW.toFixed(1);
       }
       if (document.activeElement !== document.getElementById('inputSensorH')) {
-        document.getElementById('inputSensorH').value = sensorH.toFixed(1);
+        document.getElementById('inputSensorH').value = params2D.sensorH.toFixed(1);
       }
 
       document.getElementById('resValue').innerText = res.toFixed(2);
+      document.getElementById('dofRangeText').innerText = Df >= 99999
+        ? `${Math.round(Dn)} mm ~ ∞`
+        : `${Math.round(Dn)} ~ ${Math.round(Df)} mm (${Math.round(totalDof)}mm)`;
 
-      if (Df >= 99999) {
-        document.getElementById('dofRangeText').innerText = `${Math.round(Dn)} mm ~ ∞`;
-      } else {
-        document.getElementById('dofRangeText').innerText = `${Math.round(Dn)} ~ ${Math.round(Df)} mm (${Math.round(totalDof)}mm)`;
-      }
+      document.getElementById('formulaDynamicText').innerText =
+        `( ${Math.round(wd)} × ${params2D.sensorW.toFixed(1)} ) ÷ ${params2D.focal.toFixed(0)} = ${Math.round(fovW)} mm`;
 
-      const formulaEl = document.getElementById('formulaDynamicText');
-      if (formulaEl) {
-        formulaEl.innerText = `( ${Math.round(wd)} × ${sensorW.toFixed(1)} ) ÷ ${focal.toFixed(0)} = ${Math.round(fovW)} mm`;
-      }
-
-      // 2D Sensor View
       const targetBox = document.getElementById('sensorTargetBox');
       const badge = document.getElementById('targetStatusBadge');
-      const boxLabel = document.getElementById('targetBoxLabel');
+      document.getElementById('targetBoxLabel').innerText = target2DSpec.label || 'TARGET';
 
-      boxLabel.innerText = targetSpec.label || 'TARGET';
-
-      const pctW = Math.min(96, Math.max(8, (targetSpec.w / fovW) * 85));
-      const pctH = Math.min(96, Math.max(8, (targetSpec.h / fovH) * 85));
+      const pctW = Math.min(96, Math.max(8, (target2DSpec.w / fovW) * 85));
+      const pctH = Math.min(96, Math.max(8, (target2DSpec.h / fovH) * 85));
       targetBox.style.width = `${pctW}%`;
       targetBox.style.height = `${pctH}%`;
 
-      if (targetSpec.w > fovW || targetSpec.h > fovH) {
+      if (target2DSpec.w > fovW || target2DSpec.h > fovH) {
         badge.innerText = "화각 초과 (잘림)";
         badge.className = "text-[9px] py-0.5 rounded bg-rose-950 text-rose-400 border border-rose-800 font-medium";
         targetBox.className = "bg-rose-500/30 border-2 border-rose-400 rounded-sm transition-all duration-150 flex items-center justify-center shadow-lg";
@@ -715,67 +1039,193 @@
     }
 
     function syncAll() {
-      const optics = calculateOptics();
-      update3DGraphics(optics);
-      updateUI(optics);
+      if (activeMode === '3D_SCANNER') {
+        render3DScannerMode();
+      } else {
+        render2DCameraMode();
+      }
     }
 
     /* ============================================================
-       4. 이벤트 핸들러
+       5. 버튼 및 인터랙션 핸들러
        ============================================================ */
-    window.selectPreset = function(key) {
-      currentKey = key;
-      const preset = PRESETS[key];
-      currentParams = { 
-        ...preset, 
-        wd: preset.defaultWd 
-      };
-
-      document.querySelectorAll('.preset-btn').forEach(b => {
-        b.className = "preset-btn py-1.5 text-xs font-bold rounded border bg-slate-800 border-slate-700 text-slate-300 hover:bg-slate-700 transition-all text-center";
+    function updateHeaderButtonsUI() {
+      document.querySelectorAll('.scanner-btn').forEach(btn => {
+        if (activeMode === '3D_SCANNER' && btn.id === `btn_${currentScannerKey}`) {
+          btn.className = "scanner-btn py-1.5 text-xs font-bold rounded border bg-blue-600 border-blue-400 text-white shadow-sm transition-all text-center";
+        } else {
+          btn.className = "scanner-btn py-1.5 text-xs font-bold rounded border bg-slate-800 border-slate-700 text-slate-300 hover:bg-slate-700 transition-all text-center";
+        }
       });
-      document.getElementById(`btn_${key}`).className = "preset-btn py-1.5 text-xs font-bold rounded border bg-blue-600 border-blue-400 text-white shadow-sm transition-all text-center";
 
-      const customPanel = document.getElementById('customControlPanel');
-      if (key === 'CUSTOM') {
-        customPanel.classList.remove('hidden');
-        document.getElementById('customFocalVal').innerText = currentParams.focal;
-        document.getElementById('customFocalRange').value = currentParams.focal;
-        document.getElementById('inputSensorW').value = currentParams.sensorW.toFixed(1);
-        document.getElementById('inputSensorH').value = currentParams.sensorH.toFixed(1);
-        document.getElementById('inputTargetW').value = targetSpec.w;
-        document.getElementById('inputTargetH').value = targetSpec.h;
-        updateApertureButtonUI(currentParams.aperture);
+      const btn2D = document.getElementById('btn_2D_CUSTOM');
+      if (activeMode === '2D_CAMERA') {
+        btn2D.className = "py-1.5 text-xs font-bold rounded border bg-indigo-600 border-indigo-400 text-white shadow-sm transition-all text-center";
       } else {
-        customPanel.classList.add('hidden');
+        btn2D.className = "py-1.5 text-xs font-bold rounded border bg-slate-800 border-slate-700 text-slate-300 hover:bg-slate-700 transition-all text-center";
       }
 
-      controls.target.set(0, 0, currentParams.wd * 0.5);
+      const btnDof = document.getElementById('btn_DOF');
+      const dofDot = document.getElementById('dofDot');
+      if (showDof) {
+        btnDof.className = "py-1.5 text-xs font-bold rounded border bg-purple-600/30 border-purple-400 text-purple-200 transition-all text-center flex items-center justify-center gap-1 shadow-sm";
+        dofDot.className = "w-1.5 h-1.5 rounded-full bg-purple-400 animate-pulse";
+      } else {
+        btnDof.className = "py-1.5 text-xs font-bold rounded border bg-slate-800 border-slate-700 text-slate-400 hover:bg-slate-700 transition-all text-center flex items-center justify-center gap-1";
+        dofDot.className = "w-1.5 h-1.5 rounded-full bg-slate-500";
+      }
+
+      const btnA4 = document.getElementById('btn_TARGET_A4');
+      const dotA4 = document.getElementById('dot_A4');
+      if (showA4) {
+        btnA4.className = "py-1.5 text-xs font-bold rounded border bg-amber-500/25 border-amber-400 text-amber-300 shadow-sm transition-all text-center flex items-center justify-center gap-1";
+        dotA4.className = "w-2 h-2 rounded-xs bg-amber-400";
+      } else {
+        btnA4.className = "py-1.5 text-xs font-bold rounded border bg-slate-800 border-slate-700 text-slate-400 hover:bg-slate-700 transition-all text-center flex items-center justify-center gap-1";
+        dotA4.className = "w-2 h-2 rounded-xs bg-slate-600";
+      }
+
+      const btnDodeca = document.getElementById('btn_TARGET_DODECA');
+      const dotDodeca = document.getElementById('dot_DODECA');
+      if (showDodeca) {
+        btnDodeca.className = "py-1.5 text-xs font-bold rounded border bg-emerald-500/25 border-emerald-400 text-emerald-300 shadow-sm transition-all text-center flex items-center justify-center gap-1";
+        dotDodeca.className = "w-2 h-2 rounded-full bg-emerald-400";
+      } else {
+        btnDodeca.className = "py-1.5 text-xs font-bold rounded border bg-slate-800 border-slate-700 text-slate-400 hover:bg-slate-700 transition-all text-center flex items-center justify-center gap-1";
+        dotDodeca.className = "w-2 h-2 rounded-full bg-slate-600";
+      }
+
+      const panel3D = document.getElementById('scanner3DPanel');
+      const panel2D = document.getElementById('camera2DPanel');
+      const modeBadge = document.getElementById('modeBadge');
+
+      if (activeMode === '3D_SCANNER') {
+        panel3D.classList.remove('hidden');
+        panel2D.classList.add('hidden');
+        modeBadge.innerText = "3D SCANNER · 공간 사각뿔대 FOV";
+        modeBadge.className = "px-2 py-0.5 rounded bg-blue-950/90 border border-blue-500/50 text-[10px] font-mono font-bold text-blue-300 shadow";
+      } else {
+        panel3D.classList.add('hidden');
+        panel2D.classList.remove('hidden');
+        modeBadge.innerText = "2D CAMERA · 평면 FOV & 커스텀";
+        modeBadge.className = "px-2 py-0.5 rounded bg-indigo-950/90 border border-indigo-500/50 text-[10px] font-mono font-bold text-indigo-300 shadow";
+      }
+    }
+
+    window.selectScannerPreset = function(key) {
+      activeMode = '3D_SCANNER';
+      currentScannerKey = key;
+      const spec = SCANNER_SPECS[key];
+
+      scannerState.nearWd = spec.defaultNear;
+      scannerState.farWd = spec.defaultFar;
+      scannerState.targetZ = spec.centerWd;
+
+      const nearSlider = document.getElementById('scNearRange');
+      nearSlider.min = spec.minNear;
+      nearSlider.max = spec.maxNear;
+      nearSlider.value = spec.defaultNear;
+
+      const farSlider = document.getElementById('scFarRange');
+      farSlider.min = spec.minFar;
+      farSlider.max = spec.maxFar;
+      farSlider.value = spec.defaultFar;
+
+      const zSlider = document.getElementById('scTargetZRange');
+      zSlider.min = spec.minZ;
+      zSlider.max = spec.maxZ;
+      zSlider.value = spec.centerWd;
+
+      controls.target.set(0, 0, spec.centerWd);
+      updateHeaderButtonsUI();
+      syncAll();
+    };
+
+    window.activate2DCustom = function() {
+      activeMode = '2D_CAMERA';
+      document.getElementById('customFocalVal').innerText = params2D.focal;
+      document.getElementById('customFocalRange').value = params2D.focal;
+      document.getElementById('inputSensorW').value = params2D.sensorW.toFixed(1);
+      document.getElementById('inputSensorH').value = params2D.sensorH.toFixed(1);
+      document.getElementById('inputTargetW').value = target2DSpec.w;
+      document.getElementById('inputTargetH').value = target2DSpec.h;
+      updateApertureButtonUI(params2D.aperture);
+
+      controls.target.set(0, 0, params2D.wd * 0.5);
+      updateHeaderButtonsUI();
       syncAll();
     };
 
     window.toggleDof = function() {
       showDof = !showDof;
-      const btn = document.getElementById('btn_DOF');
-      const dot = document.getElementById('dofDot');
-      if (showDof) {
-        btn.className = "py-1.5 text-xs font-bold rounded border bg-emerald-600/30 border-emerald-500 text-emerald-300 transition-all text-center flex items-center justify-center gap-1 shadow-sm";
-        dot.className = "w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse";
-      } else {
-        btn.className = "py-1.5 text-xs font-bold rounded border bg-slate-800 border-slate-700 text-slate-400 hover:bg-slate-700 transition-all text-center flex items-center justify-center gap-1";
-        dot.className = "w-1.5 h-1.5 rounded-full bg-slate-500";
+      if (showDof && activeMode === '3D_SCANNER') {
+        activate2DCustom();
+        return;
       }
+      updateHeaderButtonsUI();
+      syncAll();
+    };
+
+    window.toggleTarget = function(type) {
+      if (type === 'A4') showA4 = !showA4;
+      if (type === 'DODECA') showDodeca = !showDodeca;
+      updateHeaderButtonsUI();
+      syncAll();
+    };
+
+    document.getElementById('scNearRange').addEventListener('input', (e) => {
+      const val = parseInt(e.target.value, 10);
+      scannerState.nearWd = Math.min(val, scannerState.farWd - 50);
+      e.target.value = scannerState.nearWd;
+      syncAll();
+    });
+
+    document.getElementById('scFarRange').addEventListener('input', (e) => {
+      const val = parseInt(e.target.value, 10);
+      scannerState.farWd = Math.max(val, scannerState.nearWd + 50);
+      e.target.value = scannerState.farWd;
+      syncAll();
+    });
+
+    document.getElementById('scTargetZRange').addEventListener('input', (e) => {
+      scannerState.targetZ = parseInt(e.target.value, 10);
+      syncAll();
+    });
+
+    window.resetScannerMr = function() {
+      const spec = SCANNER_SPECS[currentScannerKey];
+      scannerState.nearWd = spec.defaultNear;
+      scannerState.farWd = spec.defaultFar;
+      document.getElementById('scNearRange').value = spec.defaultNear;
+      document.getElementById('scFarRange').value = spec.defaultFar;
+      syncAll();
+    };
+
+    window.resetTargetZToCenter = function() {
+      const spec = SCANNER_SPECS[currentScannerKey];
+      scannerState.targetZ = spec.centerWd;
+      document.getElementById('scTargetZRange').value = spec.centerWd;
+      syncAll();
+    };
+
+    window.apply2DPreset = function(key) {
+      const p = PRESETS_2D[key];
+      params2D = { ...p, wd: p.defaultWd };
+      document.getElementById('customFocalVal').innerText = params2D.focal;
+      document.getElementById('customFocalRange').value = params2D.focal;
+      updateApertureButtonUI(params2D.aperture);
+      controls.target.set(0, 0, params2D.wd * 0.5);
       syncAll();
     };
 
     window.stepFov = function(axis, step) {
-      const optics = calculateOptics();
+      const optics = calculate2DOptics();
       if (axis === 'W') {
         const nextW = Math.max(20, Math.round(optics.fovW) + step);
-        currentParams.wd = Math.max(50, Math.min(3000, (nextW * currentParams.focal) / currentParams.sensorW));
+        params2D.wd = Math.max(50, Math.min(3000, (nextW * params2D.focal) / params2D.sensorW));
       } else {
         const nextH = Math.max(20, Math.round(optics.fovH) + step);
-        currentParams.wd = Math.max(50, Math.min(3000, (nextH * currentParams.focal) / currentParams.sensorH));
+        params2D.wd = Math.max(50, Math.min(3000, (nextH * params2D.focal) / params2D.sensorH));
       }
       syncAll();
     };
@@ -783,7 +1233,7 @@
     document.getElementById('inputFovW').addEventListener('input', (e) => {
       const reqW = parseFloat(e.target.value);
       if (!isNaN(reqW) && reqW > 0) {
-        currentParams.wd = Math.max(50, Math.min(3000, (reqW * currentParams.focal) / currentParams.sensorW));
+        params2D.wd = Math.max(50, Math.min(3000, (reqW * params2D.focal) / params2D.sensorW));
         syncAll();
       }
     });
@@ -791,82 +1241,60 @@
     document.getElementById('inputFovH').addEventListener('input', (e) => {
       const reqH = parseFloat(e.target.value);
       if (!isNaN(reqH) && reqH > 0) {
-        currentParams.wd = Math.max(50, Math.min(3000, (reqH * currentParams.focal) / currentParams.sensorH));
+        params2D.wd = Math.max(50, Math.min(3000, (reqH * params2D.focal) / params2D.sensorH));
         syncAll();
       }
     });
 
     window.stepSensor = function(axis, step) {
       if (axis === 'W') {
-        currentParams.sensorW = Math.max(1.0, Math.min(50.0, +(currentParams.sensorW + step).toFixed(1)));
+        params2D.sensorW = Math.max(1.0, Math.min(50.0, +(params2D.sensorW + step).toFixed(1)));
       } else {
-        currentParams.sensorH = Math.max(1.0, Math.min(50.0, +(currentParams.sensorH + step).toFixed(1)));
+        params2D.sensorH = Math.max(1.0, Math.min(50.0, +(params2D.sensorH + step).toFixed(1)));
       }
       syncAll();
     };
 
     document.getElementById('inputSensorW').addEventListener('input', (e) => {
       const val = parseFloat(e.target.value);
-      if (!isNaN(val) && val > 0) {
-        currentParams.sensorW = val;
-        syncAll();
-      }
+      if (!isNaN(val) && val > 0) { params2D.sensorW = val; syncAll(); }
     });
 
     document.getElementById('inputSensorH').addEventListener('input', (e) => {
       const val = parseFloat(e.target.value);
-      if (!isNaN(val) && val > 0) {
-        currentParams.sensorH = val;
-        syncAll();
-      }
+      if (!isNaN(val) && val > 0) { params2D.sensorH = val; syncAll(); }
     });
 
     document.getElementById('wdRange').addEventListener('input', (e) => {
-      currentParams.wd = parseFloat(e.target.value);
+      params2D.wd = parseFloat(e.target.value);
       syncAll();
     });
 
     document.getElementById('inputWdNum').addEventListener('input', (e) => {
       const val = parseFloat(e.target.value);
-      if (!isNaN(val) && val > 0) {
-        currentParams.wd = val;
-        syncAll();
-      }
+      if (!isNaN(val) && val > 0) { params2D.wd = val; syncAll(); }
     });
 
     document.getElementById('inputTargetW').addEventListener('input', (e) => {
       const val = parseFloat(e.target.value);
-      if (!isNaN(val) && val > 0) {
-        targetSpec.w = val;
-        targetSpec.label = 'CUSTOM';
-        buildTargetMesh();
-        syncAll();
-      }
-    });
-    document.getElementById('inputTargetH').addEventListener('input', (e) => {
-      const val = parseFloat(e.target.value);
-      if (!isNaN(val) && val > 0) {
-        targetSpec.h = val;
-        targetSpec.label = 'CUSTOM';
-        buildTargetMesh();
-        syncAll();
-      }
+      if (!isNaN(val) && val > 0) { target2DSpec.w = val; target2DSpec.label = 'CUSTOM'; syncAll(); }
     });
 
-    // 타깃 프리셋 설정 (소형 / 표준 A4 / 대형 A2)
+    document.getElementById('inputTargetH').addEventListener('input', (e) => {
+      const val = parseFloat(e.target.value);
+      if (!isNaN(val) && val > 0) { target2DSpec.h = val; target2DSpec.label = 'CUSTOM'; syncAll(); }
+    });
+
     window.setTargetPreset = function(w, h, label) {
-      targetSpec.w = w;
-      targetSpec.h = h;
-      targetSpec.label = label;
+      target2DSpec = { w, h, label };
       document.getElementById('inputTargetW').value = w;
       document.getElementById('inputTargetH').value = h;
-      buildTargetMesh();
       syncAll();
     };
 
     document.getElementById('customFocalRange').addEventListener('input', (e) => {
       const f = parseFloat(e.target.value);
-      currentParams.focal = f;
+      params2D.focal = f;
       document.getElementById('customFocalVal').innerText = f;
       syncAll();
     });
@@ -883,15 +1311,24 @@
     }
 
     window.setAperture = function(n) {
-      currentParams.aperture = n;
+      params2D.aperture = n;
       updateApertureButtonUI(n);
       syncAll();
     };
 
-    window.resetCameraView = function() {
-      camera.position.set(1200, 900, 1500);
-      controls.target.set(0, 0, currentParams.wd * 0.5);
+    window.setCameraPreset = function(view) {
+      const focusZ = activeMode === '3D_SCANNER' ? SCANNER_SPECS[currentScannerKey].centerWd : params2D.wd * 0.5;
+      if (view === 'SIDE') {
+        camera.position.set(1950, 0, focusZ);
+      } else {
+        camera.position.set(1350, 880, focusZ + 750);
+      }
+      controls.target.set(0, 0, focusZ);
       controls.update();
+    };
+
+    window.resetCameraView = function() {
+      setCameraPreset('ISO');
     };
 
     window.addEventListener('resize', () => {
@@ -900,17 +1337,16 @@
       camera.aspect = w / h;
       camera.updateProjectionMatrix();
       renderer.setSize(w, h);
-      labelRenderer.setSize(w, h);
     });
 
     function animate() {
       requestAnimationFrame(animate);
       controls.update();
       renderer.render(scene, camera);
-      labelRenderer.render(scene, camera);
     }
 
-    selectPreset('3DU_16');
+    // 초기 실행
+    selectScannerPreset('3DU_16');
     animate();
   </script>
 </body>

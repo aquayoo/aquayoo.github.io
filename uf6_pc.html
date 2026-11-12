@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <!-- 
     ========================================================================
-    [ATM / Robot 위치보정 3D Simulator V9.0 (PC Version) - Release Notes]
+    [ATM / Robot 위치보정 3D Simulator V9.2 (PC Version) - Release Notes]
     Release Date: November 12, 2026
     Author: 교육관 유재광 (jaekwang.yoo@atmc.co.kr)
     Assistant / Architecture Partner: Helper (도우미)
@@ -26,7 +26,7 @@
        - Hi6 WORK.JOB 프로그램 내 P_C, P_C_UP 및 MOVE L 보정 구문 추가.
     ========================================================================
   -->
-  <meta name="application-version" content="9.0">
+  <meta name="application-version" content="9.2">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>ATM / Robot 위치보정 3D Simulator</title>
   <script src="https://cdn.tailwindcss.com"></script>
@@ -99,7 +99,7 @@
   <header class="w-full bg-white rounded-xl shadow-xs border border-slate-200 px-4 py-1.5 flex items-center justify-between shrink-0 mb-1.5">
     <div class="flex items-center gap-2.5">
       <div class="bg-blue-600 text-white px-2.5 py-1 rounded-md shadow-xs flex items-center justify-center leading-none">
-        <span class="text-xs font-black tracking-tight" title="[ATM / Robot 위치보정 3D Simulator">V9.0 (Nov.12)</span>
+        <span class="text-xs font-black tracking-tight" title="[ATM / Robot 위치보정 3D Simulator">V9.2 (Nov.12)</span>
       </div>
       <h1 class="text-sm md:text-base font-extrabold text-slate-900 tracking-tight whitespace-nowrap">
         ATM / Robot 위치보정 3D Simulator
@@ -111,9 +111,9 @@
       <div class="hidden lg:flex items-center gap-3 text-xs font-mono bg-slate-50 px-3.5 py-1 rounded-lg border border-slate-200">
         <div><span class="text-slate-500 font-bold">TCP:</span> <span id="toolCoord" class="font-extrabold text-slate-900">대기 중</span></div>
         <div class="border-l border-slate-300 pl-2.5"><span class="text-slate-500 font-bold">STATE:</span> <span id="targetCoord" class="font-extrabold text-blue-600">대기 위치</span></div>
-        <div class="border-l border-slate-300 pl-2.5"><span class="text-slate-500 font-bold">PT A:</span> <span id="pointA_UF" class="font-extrabold text-amber-600">미지정</span></div>
-        <div class="border-l border-slate-300 pl-2.5"><span class="text-slate-500 font-bold">PT B:</span> <span id="pointB_UF" class="font-extrabold text-teal-600">미지정</span></div>
-        <div class="border-l border-slate-300 pl-2.5"><span class="text-slate-500 font-bold">PT C:</span> <span id="pointC_UF" class="font-extrabold text-indigo-600">미지정</span></div>
+        <div class="border-l border-slate-300 pl-2.5"><span id="lbl_pointA" class="text-slate-500 font-bold">A(U5):</span> <span id="pointA_UF" class="font-extrabold text-amber-600">미지정</span></div>
+        <div class="border-l border-slate-300 pl-2.5"><span id="lbl_pointB" class="text-slate-500 font-bold">B(U5):</span> <span id="pointB_UF" class="font-extrabold text-teal-600">미지정</span></div>
+        <div class="border-l border-slate-300 pl-2.5"><span id="lbl_pointC" class="text-slate-500 font-bold">C(U5):</span> <span id="pointC_UF" class="font-extrabold text-indigo-600">미지정</span></div>
       </div>
 
       <!-- 메인 런처 복귀용 홈(🏠) 버튼 -->
@@ -160,7 +160,7 @@
       </div>
 
       <!-- 작업 완료/실패 배지 -->
-      <div id="cycleCompleteBanner" class="pointer-events-none absolute top-2.5 right-[326px] w-[276px] z-30 opacity-0 -translate-y-2 scale-95 flex flex-col items-stretch">
+      <div id="cycleCompleteBanner" class="pointer-events-none absolute bottom-[160px] right-[326px] w-[276px] z-30 opacity-0 translate-y-2 scale-95 flex flex-col items-stretch">
         <div id="cycleBannerBox" class="w-full bg-white/95 backdrop-blur-md px-3.5 py-2.5 rounded-2xl border-2 border-blue-500 shadow-xl flex items-center gap-2.5">
           <span id="cycleBannerIcon" class="w-6 h-6 rounded-full bg-emerald-500 text-white flex items-center justify-center text-xs font-black shadow-xs shrink-0">✓</span>
           <div class="flex flex-col min-w-0">
@@ -202,11 +202,11 @@
 
           <div id="stepListContent" class="flex flex-col gap-1 pt-1 border-t border-slate-200 text-[11px] font-semibold tracking-tight">
             <button onclick="goToStep(0)" class="step-btn active text-left px-2 py-1 rounded-md border border-slate-200 bg-slate-50 hover:bg-slate-100 transition flex items-center justify-between"><span>01. Base 좌표계</span><span class="step-subtag text-[9.5px] text-slate-500">시스템 준비</span></button>
-            <button onclick="goToStep(1)" class="step-btn text-left px-2 py-1 rounded-md border border-slate-200 bg-slate-50 hover:bg-slate-100 transition flex items-center justify-between"><span>02. UF5 마스터 기준</span><span class="step-subtag text-[9.5px] text-slate-500">UF5 생성</span></button>
-            <button onclick="goToStep(2)" class="step-btn text-left px-2 py-1 rounded-md border border-slate-200 bg-slate-50 hover:bg-slate-100 transition flex items-center justify-between"><span>03. UF6 시트 중첩</span><span class="step-subtag text-[9.5px] text-slate-500">UF6 생성</span></button>
-            <button onclick="goToStep(3)" class="step-btn text-left px-2 py-1 rounded-md border border-slate-200 bg-slate-50 hover:bg-slate-100 transition flex items-center justify-between"><span>04. Point A/B/C 지정</span><span class="step-subtag text-[9.5px] text-slate-500">3점 정의</span></button>
-            <button onclick="goToStep(4)" class="step-btn text-left px-2 py-1 rounded-md border border-slate-200 bg-slate-50 hover:bg-slate-100 transition flex items-center justify-between"><span>05. A-B-C 3점 티칭</span><span class="step-subtag text-[9.5px] text-slate-500">3구간 티칭</span></button>
-            <button onclick="goToStep(5)" class="step-btn text-left px-2 py-1 rounded-md border border-slate-200 bg-slate-50 hover:bg-slate-100 transition flex items-center justify-between"><span>06. A-B-C 선형 검증</span><span class="step-subtag text-[9.5px] text-slate-500">입체 궤적 검증</span></button>
+            <button onclick="goToStep(1)" class="step-btn text-left px-2 py-1 rounded-md border border-slate-200 bg-slate-50 hover:bg-slate-100 transition flex items-center justify-between"><span>02. U5 마스터 기준</span><span class="step-subtag text-[9.5px] text-slate-500">Org(U5) 생성</span></button>
+            <button onclick="goToStep(2)" class="step-btn text-left px-2 py-1 rounded-md border border-slate-200 bg-slate-50 hover:bg-slate-100 transition flex items-center justify-between"><span>03. U6 시트 중첩</span><span class="step-subtag text-[9.5px] text-slate-500">Org'(U6) 생성</span></button>
+            <button onclick="goToStep(3)" class="step-btn text-left px-2 py-1 rounded-md border border-slate-200 bg-slate-50 hover:bg-slate-100 transition flex items-center justify-between"><span>04. A/B/C(U5) 지정</span><span class="step-subtag text-[9.5px] text-slate-500">3점 정의</span></button>
+            <button onclick="goToStep(4)" class="step-btn text-left px-2 py-1 rounded-md border border-slate-200 bg-slate-50 hover:bg-slate-100 transition flex items-center justify-between"><span>05. A-B-C(U5) 티칭</span><span class="step-subtag text-[9.5px] text-slate-500">3구간 티칭</span></button>
+            <button onclick="goToStep(5)" class="step-btn text-left px-2 py-1 rounded-md border border-slate-200 bg-slate-50 hover:bg-slate-100 transition flex items-center justify-between"><span>06. A-B-C(U5) 검증</span><span class="step-subtag text-[9.5px] text-slate-500">사선 궤적 검증</span></button>
             <button onclick="goToStep(6)" class="step-btn text-left px-2 py-1 rounded-md border border-slate-200 bg-slate-50 hover:bg-slate-100 transition flex items-center justify-between"><span>07. 부품 변위 인입</span><span class="step-subtag text-[9.5px] text-slate-500">3점 변위 화살표</span></button>
             <button onclick="goToStep(7)" class="step-btn text-left px-2 py-1 rounded-md border border-slate-200 bg-slate-50 hover:bg-slate-100 transition flex items-center justify-between"><span>08. 구조광 위상천이 스캔</span><span class="step-subtag text-[9.5px] text-slate-500">0.3s 교대 점멸</span></button>
             <button onclick="goToStep(8)" class="step-btn text-left px-2 py-1 rounded-md border border-slate-200 bg-slate-50 hover:bg-slate-100 transition flex items-center justify-between"><span>09. UF6 연산 확정</span><span class="step-subtag text-[9.5px] text-slate-500">[R:T] 생성</span></button>
@@ -278,28 +278,29 @@
 
             <div class="bg-amber-50/80 p-2 rounded-lg border border-amber-200">
               <div class="flex justify-between items-center mb-1 font-bold text-amber-900 text-xs">
-                <span>🎯 Point A, B, C (3D)</span>
+                <span>🎯 A(U5), B(U5), C(U5) 설정</span>
                 <span id="ptAValBadge" class="text-[11px] font-mono font-bold text-amber-950 bg-white px-2 py-0.2 rounded border border-amber-300">0.8, 0.4, 0.0</span>
               </div>
               <div class="space-y-1 border-b border-amber-200 pb-1.5 mb-1.5">
-                <div class="text-[11px] text-amber-900 font-extrabold flex justify-between"><span>[시작점 A (3D)]</span><span id="txt_pt_a_coord" class="font-mono text-slate-900 font-bold">0.8, 0.4, 0.0</span></div>
+                <div class="text-[11px] text-amber-900 font-extrabold flex justify-between"><span>[시작점 A(U5)]</span><span id="txt_pt_a_coord" class="font-mono text-slate-900 font-bold">0.8, 0.4, 0.0</span></div>
                 <div class="flex items-center gap-1"><span class="w-5 font-mono text-red-600 font-extrabold text-[11px]">Ax:</span><button type="button" onclick="stepParam('pta_x',-0.1,true)" class="pm-btn">−</button><input type="range" id="pta_x" min="0.0" max="2.2" step="0.1" value="0.8" oninput="onVectorChange()" class="flex-1 h-1.5 bg-amber-200 rounded cursor-pointer"><button type="button" onclick="stepParam('pta_x',0.1,true)" class="pm-btn">+</button><span id="txt_pta_x" class="w-7 font-mono text-right text-slate-900 font-bold text-[11px]">0.8</span></div>
                 <div class="flex items-center gap-1"><span class="w-5 font-mono text-green-600 font-extrabold text-[11px]">Ay:</span><button type="button" onclick="stepParam('pta_y',-0.1,true)" class="pm-btn">−</button><input type="range" id="pta_y" min="0.0" max="1.6" step="0.1" value="0.4" oninput="onVectorChange()" class="flex-1 h-1.5 bg-amber-200 rounded cursor-pointer"><button type="button" onclick="stepParam('pta_y',0.1,true)" class="pm-btn">+</button><span id="txt_pta_y" class="w-7 font-mono text-right text-slate-900 font-bold text-[11px]">0.4</span></div>
                 <div class="flex items-center gap-1"><span class="w-5 font-mono text-blue-600 font-extrabold text-[11px]">Az:</span><button type="button" onclick="stepParam('pta_z',-0.1)" class="pm-btn">−</button><input type="range" id="pta_z" min="-0.5" max="1.5" step="0.1" value="0.0" oninput="onParamChange()" class="flex-1 h-1.5 bg-amber-200 rounded cursor-pointer"><button type="button" onclick="stepParam('pta_z',0.1)" class="pm-btn">+</button><span id="txt_pta_z" class="w-7 font-mono text-right text-slate-900 font-bold text-[11px]">0.0</span></div>
               </div>
               <div class="space-y-1 border-b border-amber-200 pb-1.5 mb-1.5">
-                <div class="text-[11px] text-teal-900 font-extrabold flex justify-between"><span>[중간점 B (벡터 L, θ, Bz)]</span><span id="ptBValBadge" class="font-mono text-teal-950 bg-white px-1.5 rounded border border-teal-200">2.2, 1.2, 0.0</span></div>
+                <div class="text-[11px] text-teal-900 font-extrabold flex justify-between"><span>[중간점 B(U5) (벡터 L, θ, Bz)]</span><span id="ptBValBadge" class="font-mono text-teal-950 bg-white px-1.5 rounded border border-teal-200">2.2, 1.2, 0.0</span></div>
                 <div class="flex items-center gap-1"><span class="w-5 font-mono text-teal-800 font-extrabold text-[11px]">L:</span><button type="button" onclick="stepParam('pt_len',-0.1,true)" class="pm-btn">−</button><input type="range" id="pt_len" min="0.4" max="2.4" step="0.1" value="1.6" oninput="onVectorChange()" class="flex-1 h-1.5 bg-teal-200 rounded cursor-pointer"><button type="button" onclick="stepParam('pt_len',0.1,true)" class="pm-btn">+</button><span id="txt_pt_len" class="w-8 font-mono text-right text-teal-950 font-bold text-[11px]">1.6m</span></div>
                 <div class="flex items-center gap-1"><span class="w-5 font-mono text-teal-800 font-extrabold text-[11px]">θ:</span><button type="button" onclick="stepParam('pt_ang',-5,true)" class="pm-btn">−</button><input type="range" id="pt_ang" min="-90" max="90" step="5" value="30" oninput="onVectorChange()" class="flex-1 h-1.5 bg-teal-200 rounded cursor-pointer"><button type="button" onclick="stepParam('pt_ang',5,true)" class="pm-btn">+</button><span id="txt_pt_ang" class="w-8 font-mono text-right text-teal-950 font-bold text-[11px]">30°</span></div>
                 <div class="flex items-center gap-1"><span class="w-5 font-mono text-blue-600 font-extrabold text-[11px]">Bz:</span><button type="button" onclick="stepParam('ptb_z',-0.1)" class="pm-btn">−</button><input type="range" id="ptb_z" min="-1.0" max="2.0" step="0.1" value="0.0" oninput="onParamChange()" class="flex-1 h-1.5 bg-teal-200 rounded cursor-pointer"><button type="button" onclick="stepParam('ptb_z',0.1)" class="pm-btn">+</button><span id="txt_ptb_z" class="w-8 font-mono text-right text-slate-900 font-bold text-[11px]">0.0</span></div>
               </div>
               <div class="space-y-1">
-                <div class="text-[11px] text-indigo-900 font-extrabold flex justify-between">
-                  <span>[끝점 C (B 기준 +Z 0.40m 수직상승)]</span>
-                  <span id="ptCValBadge" class="font-mono text-indigo-950 bg-white px-1.5 rounded border border-indigo-200">2.2, 1.2, +0.4</span>
+                <div class="text-[11px] text-indigo-900 font-extrabold flex justify-between items-center whitespace-nowrap">
+                  <span>[끝점 C(U5) (B: X+0.3m, Z+0.4m)]</span>
+                  <span id="ptCValBadge" class="font-mono text-indigo-950 bg-white px-1.5 rounded border border-indigo-200">2.5, 1.2, +0.4</span>
                 </div>
-                <div class="text-[10px] text-slate-500 font-mono px-1">
-                  P_C = (Bx, By, Bz + 0.40m) 수직 단차 극복 경로
+                <div class="text-[10px] text-indigo-700 font-mono flex justify-between items-center px-1 bg-indigo-50/70 rounded py-0.5 border border-indigo-100">
+                  <span>U5/U6 로컬 오프셋</span>
+                  <span class="font-extrabold">선분 |BC| = |B'C'| = 0.50m</span>
                 </div>
               </div>
             </div>
@@ -343,21 +344,21 @@
                 <div class="job-line" id="lineWORK_2"><span class="cmd-part text-blue-700">0002 TOOL 1</span><span class="cmt-part">' 실링 건 TCP 설정</span></div>
                 <div class="job-line" id="lineWORK_3"><span class="cmd-part text-blue-700">0003 UFRAME 5</span><span class="cmt-part">' 마스터(UF5) 선택</span></div>
                 <div class="job-line" id="lineWORK_4"><span class="cmd-part text-blue-700">0004 MOVE P, P_READY</span><span class="cmt-part">' [P] 준비 위치 진입</span></div>
-                <div class="job-line" id="lineWORK_5"><span class="cmd-part text-blue-700">0005 MOVE P, P_A_UP</span><span class="cmt-part">' [P] A 상공(Z+1m) 진입</span></div>
-                <div class="job-line" id="lineWORK_6"><span class="cmd-part text-blue-700">0006 MOVE L, P_A</span><span class="cmt-part">' [L] A 수직하강 티칭</span></div>
-                <div class="job-line" id="lineWORK_7"><span class="cmd-part text-blue-700">0007 MOVE P, P_B_UP</span><span class="cmt-part">' [P] A→B 상공 점프</span></div>
-                <div class="job-line" id="lineWORK_8"><span class="cmd-part text-blue-700">0008 MOVE L, P_B</span><span class="cmt-part">' [L] B 수직하강 티칭</span></div>
-                <div class="job-line" id="lineWORK_9"><span class="cmd-part text-blue-700">0009 MOVE P, P_C_UP</span><span class="cmt-part">' [P] B→C 상공 점프</span></div>
-                <div class="job-line" id="lineWORK_10"><span class="cmd-part text-blue-700">0010 MOVE L, P_C</span><span class="cmt-part">' [L] C (+Z 40cm) 티칭</span></div>
-                <div class="job-line" id="lineWORK_11"><span class="cmd-part text-blue-700">0011 MOVE L, P_A</span><span class="cmt-part">' [L] 검증: A점 진입</span></div>
-                <div class="job-line" id="lineWORK_12"><span class="cmd-part text-blue-700">0012 MOVE L, P_B</span><span class="cmt-part">' [L] 검증: A→B 선형주행</span></div>
-                <div class="job-line" id="lineWORK_13"><span class="cmd-part text-blue-700">0013 MOVE L, P_C</span><span class="cmt-part">' [L] 검증: B→C 수직상승</span></div>
+                <div class="job-line" id="lineWORK_5"><span class="cmd-part text-blue-700">0005 MOVE P, P_A_UP</span><span class="cmt-part">' [P] A(U5) 상공 진입</span></div>
+                <div class="job-line" id="lineWORK_6"><span class="cmd-part text-blue-700">0006 MOVE L, P_A</span><span class="cmt-part">' [L] A(U5) 수직하강 티칭</span></div>
+                <div class="job-line" id="lineWORK_7"><span class="cmd-part text-blue-700">0007 MOVE P, P_B_UP</span><span class="cmt-part">' [P] B(U5) 상공 점프</span></div>
+                <div class="job-line" id="lineWORK_8"><span class="cmd-part text-blue-700">0008 MOVE L, P_B</span><span class="cmt-part">' [L] B(U5) 수직하강 티칭</span></div>
+                <div class="job-line" id="lineWORK_9"><span class="cmd-part text-blue-700">0009 MOVE P, P_C_UP</span><span class="cmt-part">' [P] C(U5) 상공 점프</span></div>
+                <div class="job-line" id="lineWORK_10"><span class="cmd-part text-blue-700">0010 MOVE L, P_C</span><span class="cmt-part">' [L] C(U5) 사선 위치 티칭</span></div>
+                <div class="job-line" id="lineWORK_11"><span class="cmd-part text-blue-700">0011 MOVE L, P_A</span><span class="cmt-part">' [L] 검증: A(U5) 진입</span></div>
+                <div class="job-line" id="lineWORK_12"><span class="cmd-part text-blue-700">0012 MOVE L, P_B</span><span class="cmt-part">' [L] 검증: A→B(U5) 주행</span></div>
+                <div class="job-line" id="lineWORK_13"><span class="cmd-part text-blue-700">0013 MOVE L, P_C</span><span class="cmt-part">' [L] 검증: B→C(U5) 50cm</span></div>
                 <div class="job-line" id="lineWORK_14"><span class="cmd-part text-blue-700">0014 MOVE P, P_READY</span><span class="cmt-part">' [P] 검증 완료 대기 복귀</span></div>
                 <div class="job-line" id="lineWORK_15"><span class="cmd-part text-purple-700">0015 CALL UF6.JOB</span><span class="cmt-part">' 📷 구조광 스캔 호출</span></div>
-                <div class="job-line" id="lineWORK_16"><span class="cmd-part text-blue-700">0016 UFRAME 6</span><span class="cmt-part">' 🔄 UF6(Work) 전환</span></div>
-                <div class="job-line" id="lineWORK_17"><span class="cmd-part text-orange-700">0017 MOVE L, P_A</span><span class="cmt-part">' [L] 변위된 A' 안착</span></div>
-                <div class="job-line" id="lineWORK_18"><span class="cmd-part text-orange-700">0018 MOVE L, P_B</span><span class="cmt-part">' [L] A'→B' 실링 도포</span></div>
-                <div class="job-line" id="lineWORK_19"><span class="cmd-part text-indigo-700">0019 MOVE L, P_C</span><span class="cmt-part">' [L] B'→C' 입체 실링 도포</span></div>
+                <div class="job-line" id="lineWORK_16"><span class="cmd-part text-blue-700">0016 UFRAME 6</span><span class="cmt-part">' 🔄 U6(Work) 전환</span></div>
+                <div class="job-line" id="lineWORK_17"><span class="cmd-part text-orange-700">0017 MOVE L, P_A</span><span class="cmt-part">' [L] A'(U6) 안착</span></div>
+                <div class="job-line" id="lineWORK_18"><span class="cmd-part text-orange-700">0018 MOVE L, P_B</span><span class="cmt-part">' [L] A'→B'(U6) 실링</span></div>
+                <div class="job-line" id="lineWORK_19"><span class="cmd-part text-indigo-700">0019 MOVE L, P_C</span><span class="cmt-part">' [L] B'→C'(U6) 50cm 실링</span></div>
                 <div class="job-line" id="lineWORK_20"><span class="cmd-part text-blue-700">0020 MOVE P, P_HOME</span><span class="cmt-part">' [P] 홈 복귀 완료</span></div>
               </div>
               <div id="codeUF6" class="space-y-0.5 hidden">
@@ -463,14 +464,14 @@
       <!-- 하단 플로팅 바: TCP/IP 로그 터미널 + 6-DOF 대시보드 -->
       <div class="absolute bottom-[14px] left-[222px] right-[326px] z-20 flex items-stretch gap-2 pointer-events-none">
         <div id="packetTerminal" class="pointer-events-auto flex-1 min-w-0 h-[136px] bg-white/95 backdrop-blur-md rounded-xl border border-slate-300 shadow-xl flex flex-col overflow-hidden text-xs">
-          <div class="bg-slate-100 px-3 py-1.5 border-b border-slate-200 flex items-center justify-between shrink-0">
+          <div class="bg-slate-800 px-3 py-1.5 border-b border-slate-700 flex items-center justify-between shrink-0">
             <div class="flex items-center gap-2">
-              <span class="w-2.5 h-2.5 rounded-full bg-emerald-600" id="termStatusDot"></span>
-              <span class="font-mono font-extrabold text-[11px] text-slate-800 tracking-tight">TCP/IP PACKET LOG <span class="text-slate-500 font-normal">(Hi6 ⇄ AITZ 3DU)</span></span>
+              <span class="w-2.5 h-2.5 rounded-full bg-emerald-400" id="termStatusDot"></span>
+              <span class="font-mono font-extrabold text-[11px] text-white tracking-tight">TCP/IP PACKET LOG <span class="text-slate-300 font-normal">(Hi6 ⇄ AITZ 3DU)</span></span>
             </div>
             <div class="flex items-center gap-2">
-              <span id="tolStatusBadge" class="px-2 py-0.5 bg-emerald-100 text-emerald-800 border border-emerald-300 rounded text-[10px] font-mono font-bold">TOL: OK</span>
-              <button onclick="clearPacketLogs()" class="px-2 py-0.5 bg-white hover:bg-slate-50 text-slate-700 rounded text-[10px] font-mono font-bold border border-slate-300 shadow-2xs transition">CLEAR</button>
+              <span id="tolStatusBadge" class="px-2 py-0.5 bg-emerald-950/90 text-emerald-300 border border-emerald-500/60 rounded text-[10px] font-mono font-bold">TOL: OK</span>
+              <button onclick="clearPacketLogs()" class="px-2 py-0.5 bg-slate-700 hover:bg-slate-600 text-slate-100 rounded text-[10px] font-mono font-bold border border-slate-600 shadow-2xs transition">CLEAR</button>
             </div>
           </div>
           <div id="packetLogList" class="flex-1 overflow-y-auto overflow-x-auto px-3 py-1.5 font-mono text-[9.5px] space-y-0.5 select-text bg-slate-50/90">
@@ -518,7 +519,7 @@
       </a>
 
       <!-- 하단 설명 카드 -->
-      <div id="descCard" class="flex-1 max-w-4xl bg-white px-4 py-1 rounded-lg border border-slate-300 shadow-2xs flex items-center gap-3 overflow-hidden relative">
+      <div id="descCard" class="flex-1 max-w-4xl bg-white px-4 py-1 rounded-lg border border-slate-300 border-l-4 border-l-blue-600 shadow-2xs flex items-center gap-3 overflow-hidden relative">
         <div id="descIcon" class="p-1 bg-blue-50 text-blue-600 rounded text-base shrink-0 font-bold">🏭</div>
         <div class="overflow-hidden flex-1">
           <div class="flex items-center gap-2">
@@ -551,15 +552,15 @@
   <script>
     const stepData = [
       { badge: "STEP 1", icon: "🏭", heading: "1. Base 좌표계 (원점 & 6축 로봇/구조광 스캐너 시스템 준비)", body: "정반의 설치 원점(Base Org)에 은은하게 투과되는 Base 축과 6축 로봇, AITZ 3DU[3DM] 구조광 스캐너가 배치됩니다." },
-      { badge: "STEP 2", icon: "📐", heading: "2. 부품 마스터 기준점(UF5 Ref) 정의 및 지그 형성", body: "작업 테이블 위에 마스터 지그가 세워지고, 기준 원점 Org(UF5 Ref)와 직교 3축이 형성됩니다." },
-      { badge: "STEP 3", icon: "🗂️", heading: "3. UF6 시트 중첩 및 로봇 작업 준비 위치(Ready) 진입", body: "UF6 프레임을 중첩함과 동시에, 로봇이 광학계 시야 간섭 없는 대기 위치(Ready Position)로 진입합니다." },
-      { badge: "STEP 4", icon: "🎯", heading: "4. 시작점 A, 끝점 B 및 단차 끝점 C 3D 좌표 지정", body: "시작점 A, 끝점 B와 더불어 B 기준 상공 +0.40m 수직 단차를 지닌 Point C가 정의됩니다." },
-      { badge: "STEP 5", icon: "📍", heading: "5. Point A → B → C 3점 정밀 티칭 (Move P / Move L)", body: "A 상공 진입 후 하강 티칭 ➔ B 상공 점프 및 하강 티칭 ➔ C (+Z 40cm) 상공 수직 티칭을 연속 수행합니다." },
-      { badge: "STEP 6", icon: "🤖", heading: "6. 티칭된 A → B → C 3차원 선형 보간(Move L) 검증 및 복귀", body: "A점 진입 후 B점까지 선형 주행 ➔ C점까지 +Z 40cm 수직 상승 주행 검증 후 안전 대기 위치로 복귀합니다." },
-      { badge: "STEP 7", icon: "📦", heading: "7. 투명 시트 틀어짐 인입 (실시간 3점 변위 점선 화살표 연장)", body: "부품이 3D 변위로 인입되며, 마스터 A, B, C에서 변위된 A', B', C'까지의 3D 점선 화살표가 실시간 연장됩니다." },
+      { badge: "STEP 2", icon: "📐", heading: "2. 부품 마스터 기준점 Org(U5) 정의 및 지그 형성", body: "작업 테이블 위에 마스터 지그가 세워지고, 기준 원점 Org(U5)와 직교 3축 XX(U5), XY(U5), Z(U5)가 형성됩니다." },
+      { badge: "STEP 3", icon: "🗂️", heading: "3. U6 시트 중첩 Org'(U6) 및 로봇 준비 위치(Ready) 진입", body: "Org'(U6) 프레임을 중첩함과 동시에, 로봇이 광학계 시야 간섭 없는 대기 위치(Ready Position)로 진입합니다." },
+      { badge: "STEP 4", icon: "🎯", heading: "4. A(U5), B(U5) 및 끝점 C(U5) (B: X+0.3m, Z+0.4m) 3D 지정", body: "A(U5), B(U5)와 더불어 U5 기준 B에서 XX(U5)+0.3m, Z(U5)+0.4m(선분 길이 0.50m) 떨어진 C(U5)가 정의됩니다." },
+      { badge: "STEP 5", icon: "📍", heading: "5. A(U5) → B(U5) → C(U5) 3점 정밀 티칭 (Move P / Move L)", body: "A(U5) 하강 티칭 ➔ B(U5) 하강 티칭 ➔ C(U5) (B: X+0.3m, Z+0.4m) 사선 공간 티칭을 연속 수행합니다." },
+      { badge: "STEP 6", icon: "🤖", heading: "6. 티칭된 A(U5) → B(U5) → C(U5) 3차원 선형 보간(Move L) 검증", body: "A(U5) 진입 후 B(U5) 선형 주행 ➔ C(U5)까지 50cm 사선 상승 검증 주행 후 안전 대기 위치로 복귀합니다." },
+      { badge: "STEP 7", icon: "📦", heading: "7. 투명 시트 틀어짐 인입 (A/B/C(U5) → A'/B'/C'(U6) 변위 화살표)", body: "부품이 3D 변위로 인입되며, A/B/C(U5)에서 U6 로컬 기준 변위된 A'/B'/C'(U6)까지의 3D 점선 화살표가 연장됩니다." },
       { badge: "STEP 8", icon: "📸", heading: "8. AITZ 3DU[3DM] 구조광 0.3초 교대 점멸 위상 천이(Phase Shifting) 캡처", body: "프로젝터 사각뿔 패턴 투사와 에어리어 카메라 사각뿔대 셔터가 0.3s 주기로 교대 점멸(총 10회)하며 3D 점군을 수집합니다." },
-      { badge: "STEP 9", icon: "✨", heading: "9. 3DU 알고리즘 ICP 정합 수렴 & 선분 A'B'C' 확정", body: "측정 점군이 ICP 정합 수렴하며 6자유도 동차변환 행렬 [R:T] 및 보정된 3차원 경로 A'B'C'가 확정됩니다." },
-      { badge: "STEP 10", icon: "🔄", heading: "10. 계측된 UF6 기반 6자유도 보정 주행 (3차원 입체 실링 도포)", body: "로봇이 UF6 프레임에서 A'➔B' 평면 도포 후 B'➔C' 수직 상승 입체 실링 비드를 도포하고 C'에서 정지 검사합니다." },
+      { badge: "STEP 9", icon: "✨", heading: "9. 3DU 알고리즘 ICP 정합 수렴 & A'(U6)-B'(U6)-C'(U6) 확정", body: "측정 점군이 ICP 정합 수렴하며 6자유도 동차변환 행렬 [R:T] 및 U6 기준 보정 경로 A'(U6)-B'(U6)-C'(U6)가 확정됩니다." },
+      { badge: "STEP 10", icon: "🔄", heading: "10. 계측된 U6 기반 6자유도 보정 주행 (3차원 입체 실링 도포)", body: "로봇이 U6 프레임에서 A'(U6)➔B'(U6) 도포 후 B'(U6)➔C'(U6)(50cm 사선) 입체 실링 비드를 도포하고 정지 검사합니다." },
       { badge: "STEP 11", icon: "🏁", heading: "11. 작업 완료 및 안전 홈 위치 복귀 (입체 실링 비드 보존)", body: "로봇이 홈 위치로 복귀하며 도포된 꺾인 3차원 보라색 실링 비드는 완제품으로 온전히 보존됩니다." }
     ];
 
@@ -596,7 +597,8 @@
     const ufParams = {
       uf5_x: 4.0, uf5_y: 2.5, uf5_z: 1.5, uf5_rz: 0,
       pta_x: 0.8, pta_y: 0.4, pta_z: 0.0, pt_len: 1.6, pt_ang: 30, ptb_x: 2.19, ptb_y: 1.20, ptb_z: 0.0,
-      // Point C: Point B 기준 동일 XY 평면, Z축 +0.40m 수직 상공
+      // C(U5): B(U5) 기준 XX(U5) +0.30m, Z(U5) +0.40m (선분 길이 0.50m)
+      ptc_x_offset: 0.30,
       ptc_z_offset: 0.40,
       dx: 0.00, dy: 0.00, dz: 0.00, rx: 0, ry: 0, rz: 0
     };
@@ -671,8 +673,8 @@
       if (isOver) {
         if (badge && dot) {
           badge.innerText = "TOL: NG (OVER)";
-          badge.className = "px-2 py-0.5 bg-rose-100 text-rose-800 border border-rose-400 rounded text-[10px] font-mono font-black animate-pulse";
-          dot.className = "w-2.5 h-2.5 rounded-full bg-rose-600 animate-ping";
+          badge.className = "px-2 py-0.5 bg-rose-950/90 text-rose-300 border border-rose-500 rounded text-[10px] font-mono font-black animate-pulse";
+          dot.className = "w-2.5 h-2.5 rounded-full bg-rose-500 animate-ping";
         }
         if (summaryEl) { summaryEl.innerText = "ALARM NG"; summaryEl.className = "text-rose-600 font-extrabold animate-pulse"; }
         
@@ -691,8 +693,8 @@
       } else {
         if (badge && dot) {
           badge.innerText = "TOL: OK";
-          badge.className = "px-2 py-0.5 bg-emerald-100 text-emerald-800 border border-emerald-300 rounded text-[10px] font-mono font-bold";
-          dot.className = "w-2.5 h-2.5 rounded-full bg-emerald-600";
+          badge.className = "px-2 py-0.5 bg-emerald-950/90 text-emerald-300 border border-emerald-500/60 rounded text-[10px] font-mono font-bold";
+          dot.className = "w-2.5 h-2.5 rounded-full bg-emerald-400";
         }
         if (summaryEl) { summaryEl.innerText = "ALL OK"; summaryEl.className = "text-emerald-600 font-extrabold"; }
         if (diagMsgEl) {
@@ -1081,7 +1083,7 @@
     function getPointALocalVector() { return new THREE.Vector3(ufParams.pta_x, ufParams.pta_z, -ufParams.pta_y); }
     function getPointBLocalVector() { return new THREE.Vector3(ufParams.ptb_x, ufParams.ptb_z, -ufParams.ptb_y); }
     // Point C: Point B 위치 기준 동일 XY 평면, Z축 방향 수직 +0.40m 상공 (+Z 40cm)
-    function getPointCLocalVector() { return new THREE.Vector3(ufParams.ptb_x, ufParams.ptb_z + ufParams.ptc_z_offset, -ufParams.ptb_y); }
+    function getPointCLocalVector() { return new THREE.Vector3(ufParams.ptb_x + ufParams.ptc_x_offset, ufParams.ptb_z + ufParams.ptc_z_offset, -ufParams.ptb_y); }
 
     function onVectorChange() {
       ufParams.pta_x = parseFloat(document.getElementById('pta_x').value);
@@ -1343,24 +1345,24 @@
       standEdge = new THREE.LineSegments(new THREE.EdgesGeometry(boxGeo), new THREE.LineDashedMaterial({ color: 0x64748b, dashSize: 0.25, gapSize: 0.15, transparent: true, opacity: 0.45 }));
       standEdge.computeLineDistances(); masterGroup.add(standEdge);
       updateMasterStandHeight();
-      uf5AxesGroup = createCustom3DAxes(1.4, 0.024, { x: "UF5_X", y: "UF5_Y", z: "UF5_Z" }, 1.1, false, false, 1.0); masterGroup.add(uf5AxesGroup);
+      uf5AxesGroup = createCustom3DAxes(1.4, 0.024, { x: "XX(U5)", y: "XY(U5)", z: "Z(U5)" }, 1.1, false, false, 1.0); masterGroup.add(uf5AxesGroup);
       uf5OrgMesh = new THREE.Mesh(new THREE.SphereGeometry(0.10, 16, 16), new THREE.MeshBasicMaterial({ color: 0x2563eb, transparent: true, opacity: 1.0 })); masterGroup.add(uf5OrgMesh);
-      uf5OrgLabel = createTextSprite("Org (UF5 Ref)", "#1d4ed8", 28, "#ffffff"); uf5OrgLabel.position.set(0, 0.45, 0); masterGroup.add(uf5OrgLabel);
+      uf5OrgLabel = createTextSprite("Org(U5)", "#1d4ed8", 28, "#ffffff"); uf5OrgLabel.position.set(-0.22, 0.36, 0.12); masterGroup.add(uf5OrgLabel);
 
-      // Point A
+      // A(U5) - 좌측 오프셋 배치로 U6 라벨과 겹침 방지
       masterPointA = new THREE.Group(); masterPointA.position.copy(getPointALocalVector());
       masterPointA.add(new THREE.Mesh(new THREE.CylinderGeometry(0.10, 0.10, 0.03, 16), new THREE.MeshBasicMaterial({ color: 0x64748b, transparent: true, opacity: 1.0 })));
-      const pLabelA = createTextSprite("Point A (마스터)", "#475569", 22, "#ffffff"); pLabelA.position.set(0, 0.35, 0); masterPointA.add(pLabelA); masterGroup.add(masterPointA);
+      const pLabelA = createTextSprite("A(U5)", "#475569", 24, "#ffffff"); pLabelA.position.set(-0.26, 0.24, 0.10); masterPointA.add(pLabelA); masterGroup.add(masterPointA);
 
-      // Point B
+      // B(U5)
       masterPointB = new THREE.Group(); masterPointB.position.copy(getPointBLocalVector());
       masterPointB.add(new THREE.Mesh(new THREE.CylinderGeometry(0.10, 0.10, 0.03, 16), new THREE.MeshBasicMaterial({ color: 0x0f766e, transparent: true, opacity: 1.0 })));
-      const pLabelB = createTextSprite("Point B (마스터)", "#0f766e", 22, "#ffffff"); pLabelB.position.set(0, 0.35, 0); masterPointB.add(pLabelB); masterGroup.add(masterPointB);
+      const pLabelB = createTextSprite("B(U5)", "#0f766e", 24, "#ffffff"); pLabelB.position.set(-0.26, 0.24, 0.10); masterPointB.add(pLabelB); masterGroup.add(masterPointB);
 
-      // [V9.0 신설] Point C (Point B 기준 +Z 0.40m 수직 단차)
+      // C(U5) (B(U5) 기준 XX(U5) +0.30m, Z(U5) +0.40m)
       masterPointC = new THREE.Group(); masterPointC.position.copy(getPointCLocalVector());
       masterPointC.add(new THREE.Mesh(new THREE.CylinderGeometry(0.10, 0.10, 0.03, 16), new THREE.MeshBasicMaterial({ color: 0x4338ca, transparent: true, opacity: 1.0 })));
-      const pLabelC = createTextSprite("Point C (+Z 40cm)", "#3730a3", 22, "#ffffff"); pLabelC.position.set(0, 0.35, 0); masterPointC.add(pLabelC); masterGroup.add(masterPointC);
+      const pLabelC = createTextSprite("C(U5)", "#3730a3", 24, "#ffffff"); pLabelC.position.set(-0.26, 0.24, 0.10); masterPointC.add(pLabelC); masterGroup.add(masterPointC);
 
       // A-B-C 3차원 실링 선
       masterSealingLine = create3DSealingTubeMesh(0x64748b, 0.022);
@@ -1492,30 +1494,30 @@
       sheetBadgeSprite.position.set(1.2, 0.24, -2.1); 
       sheetGroup.add(sheetBadgeSprite);
 
-      const uf6Labels = { x: "UF6_X'", y: "UF6_Y'", z: "UF6_Z'" };
+      const uf6Labels = { x: "XX'(U6)", y: "XY'(U6)", z: "Z'(U6)" };
       uf6DashedAxesGroup = createCustom3DDashedAxes(1.35, uf6Labels, 1.45, true); sheetGroup.add(uf6DashedAxesGroup);
       uf6SolidAxesGroup = createCustom3DAxes(1.65, 0.025, uf6Labels, 1.05, true, false, 1.0); sheetGroup.add(uf6SolidAxesGroup);
-      orgPrimeSprite = createTextSprite("Org' (UF6)", "#ea580c", 28, "#ffffff"); orgPrimeSprite.position.set(0, 0.45, 0); sheetGroup.add(orgPrimeSprite);
+      orgPrimeSprite = createTextSprite("Org'(U6)", "#ea580c", 28, "#ffffff"); orgPrimeSprite.position.set(0.24, 0.52, -0.10); sheetGroup.add(orgPrimeSprite);
 
-      // Point A'
+      // A'(U6) - 우측 상단 오프셋 배치로 A(U5)와 겹침 원천 차단
       sheetPointA = new THREE.Group(); sheetPointA.position.copy(getPointALocalVector());
       const tmA = new THREE.Mesh(new THREE.TorusGeometry(0.14, 0.030, 16, 32), new THREE.MeshBasicMaterial({ color: 0xf59e0b, transparent: true, opacity: 1.0 }));
       tmA.rotation.x = Math.PI / 2; sheetPointA.add(tmA);
-      sheetPointASprite = createTextSprite("Point A (UF6)", "#b45309", 28, "#ffffff"); sheetPointASprite.position.set(0, 0.48, 0); sheetPointA.add(sheetPointASprite);
+      sheetPointASprite = createTextSprite("A'(U6)", "#b45309", 26, "#ffffff"); sheetPointASprite.position.set(0.26, 0.44, -0.10); sheetPointA.add(sheetPointASprite);
       sheetGroup.add(sheetPointA);
 
-      // Point B'
+      // B'(U6)
       sheetPointB = new THREE.Group(); sheetPointB.position.copy(getPointBLocalVector());
       const tmB = new THREE.Mesh(new THREE.TorusGeometry(0.14, 0.030, 16, 32), new THREE.MeshBasicMaterial({ color: 0x0d9488, transparent: true, opacity: 1.0 }));
       tmB.rotation.x = Math.PI / 2; sheetPointB.add(tmB);
-      sheetPointBSprite = createTextSprite("Point B (UF6)", "#0f766e", 28, "#ffffff"); sheetPointBSprite.position.set(0, 0.48, 0); sheetPointB.add(sheetPointBSprite);
+      sheetPointBSprite = createTextSprite("B'(U6)", "#0f766e", 26, "#ffffff"); sheetPointBSprite.position.set(0.26, 0.44, -0.10); sheetPointB.add(sheetPointBSprite);
       sheetGroup.add(sheetPointB);
 
-      // [V9.0 신설] Point C' (UF6 변위 동반 연동)
+      // C'(U6) (B'(U6) 기준 U6 로컬 XX'(U6) +0.30m, Z'(U6) +0.40m)
       sheetPointC = new THREE.Group(); sheetPointC.position.copy(getPointCLocalVector());
       const tmC = new THREE.Mesh(new THREE.TorusGeometry(0.14, 0.030, 16, 32), new THREE.MeshBasicMaterial({ color: 0x4f46e5, transparent: true, opacity: 1.0 }));
       tmC.rotation.x = Math.PI / 2; sheetPointC.add(tmC);
-      sheetPointCSprite = createTextSprite("Point C' (+Z 40cm)", "#3730a3", 28, "#ffffff"); sheetPointCSprite.position.set(0, 0.48, 0); sheetPointC.add(sheetPointCSprite);
+      sheetPointCSprite = createTextSprite("C'(U6)", "#3730a3", 26, "#ffffff"); sheetPointCSprite.position.set(0.26, 0.44, -0.10); sheetPointC.add(sheetPointCSprite);
       sheetGroup.add(sheetPointC);
 
       // 3차원 실링 선
@@ -1712,7 +1714,7 @@
       document.getElementById('txt_pt_a_coord').innerText = coordAStr;
       document.getElementById('txt_ptb_z').innerText = ufParams.ptb_z.toFixed(1);
       document.getElementById('ptBValBadge').innerText = `${ufParams.ptb_x.toFixed(1)}, ${ufParams.ptb_y.toFixed(1)}, ${ufParams.ptb_z.toFixed(1)}`;
-      document.getElementById('ptCValBadge').innerText = `${ufParams.ptb_x.toFixed(1)}, ${ufParams.ptb_y.toFixed(1)}, ${(ufParams.ptb_z + ufParams.ptc_z_offset).toFixed(1)}`;
+      document.getElementById('ptCValBadge').innerText = `${(ufParams.ptb_x + ufParams.ptc_x_offset).toFixed(1)}, ${ufParams.ptb_y.toFixed(1)}, ${(ufParams.ptb_z + ufParams.ptc_z_offset).toFixed(1)}`;
 
       document.getElementById('txt_uf6_dx').innerText = (ufParams.dx >= 0 ? '+' : '') + ufParams.dx.toFixed(2);
       document.getElementById('txt_uf6_dy').innerText = (ufParams.dy >= 0 ? '+' : '') + ufParams.dy.toFixed(2);
@@ -2083,7 +2085,7 @@
       if (currentStep === 4) {
         if (t >= 0.20 && !stepSubLogFlags.step4_A) { stepSubLogFlags.step4_A = true; appendPacketLog('RX', `REC_POINT_A :: UF5_Local(${ufParams.pta_x.toFixed(2)}, ${ufParams.pta_y.toFixed(2)}, ${ufParams.pta_z.toFixed(2)}) Locked`); }
         if (t >= 0.55 && !stepSubLogFlags.step4_B) { stepSubLogFlags.step4_B = true; appendPacketLog('RX', `REC_POINT_B :: UF5_Local(${ufParams.ptb_x.toFixed(2)}, ${ufParams.ptb_y.toFixed(2)}, ${ufParams.ptb_z.toFixed(2)}) Locked`); }
-        if (t >= 0.88 && !stepSubLogFlags.step4_C) { stepSubLogFlags.step4_C = true; appendPacketLog('RX', `REC_POINT_C :: UF5_Local(${ufParams.ptb_x.toFixed(2)}, ${ufParams.ptb_y.toFixed(2)}, ${(ufParams.ptb_z + ufParams.ptc_z_offset).toFixed(2)}) Height Locked (+Z 40cm)`); }
+        if (t >= 0.88 && !stepSubLogFlags.step4_C) { stepSubLogFlags.step4_C = true; appendPacketLog('RX', `REC_C(U5) :: U5_Local(${(ufParams.ptb_x + ufParams.ptc_x_offset).toFixed(2)}, ${ufParams.ptb_y.toFixed(2)}, ${(ufParams.ptb_z + ufParams.ptc_z_offset).toFixed(2)}) Locked (Len=0.50m)`); }
       }
       if (currentStep === 7 && t >= 0.18 && !stepSubLogFlags.step7_flash) {
         stepSubLogFlags.step7_flash = true;
@@ -2142,6 +2144,15 @@
       }
 
       /* [V9.0 핵심 구현 4] Point C 포함 A ➔ B ➔ C 3점 기구학 타임라인 */
+      const lblA = document.getElementById('lbl_pointA'), lblB = document.getElementById('lbl_pointB'), lblC = document.getElementById('lbl_pointC');
+      if (lblA && lblB && lblC) {
+        if (currentStep >= 6 && currentStep <= 9) {
+          lblA.innerText = "A'(U6):"; lblB.innerText = "B'(U6):"; lblC.innerText = "C'(U6):";
+        } else {
+          lblA.innerText = "A(U5):"; lblB.innerText = "B(U5):"; lblC.innerText = "C(U5):";
+        }
+      }
+
       if (currentStep <= 1) {
         targetPos.copy(homePos); targetQuat.copy(qMasterRadY);
         if (lockOnBeam) lockOnBeam.material.opacity = 0.0;
@@ -2155,62 +2166,62 @@
       } else if (currentStep === 3) {
         targetPos.copy(readyPos); targetQuat.copy(qMasterRadY);
         if (lockOnBeam) lockOnBeam.material.opacity = 0.0;
-        document.getElementById('targetCoord').innerText = "Point A/B/C 설정 대기";
+        document.getElementById('targetCoord').innerText = "A/B/C(U5) 설정 대기";
         document.getElementById('pointA_UF').innerText = `(${ufParams.pta_x.toFixed(1)}, ${ufParams.pta_y.toFixed(1)}, ${ufParams.pta_z.toFixed(1)})`;
         document.getElementById('pointB_UF').innerText = `(${ufParams.ptb_x.toFixed(1)}, ${ufParams.ptb_y.toFixed(1)}, ${ufParams.ptb_z.toFixed(1)})`;
-        document.getElementById('pointC_UF').innerText = `(${ufParams.ptb_x.toFixed(1)}, ${ufParams.ptb_y.toFixed(1)}, ${(ufParams.ptb_z + ufParams.ptc_z_offset).toFixed(1)})`;
+        document.getElementById('pointC_UF').innerText = `(${(ufParams.ptb_x + ufParams.ptc_x_offset).toFixed(1)}, ${ufParams.ptb_y.toFixed(1)}, ${(ufParams.ptb_z + ufParams.ptc_z_offset).toFixed(1)})`;
       } else if (currentStep === 4) {
         // [Step 5 티칭] A ➔ B ➔ C 3구간 티칭 타임라인
         targetQuat.copy(qMasterRadY);
         if (t <= 0.10) {
           interpolateMove(readyPos, aboveA_1m, t / 0.10, { mode: 'P_HOP', hopHeight: 0.35 }, targetPos);
-          lockOnBeam.material.opacity = 0; document.getElementById('targetCoord').innerText = "Point A 상공(Z+1m) 점프 (MOVE P)"; recordMoveMotionTrails(targetPos, 'P');
+          lockOnBeam.material.opacity = 0; document.getElementById('targetCoord').innerText = "A(U5) 상공(Z+1m) 점프 (MOVE P)"; recordMoveMotionTrails(targetPos, 'P');
         } else if (t <= 0.22) {
           const st = (t - 0.10) / 0.12;
           interpolateMove(aboveA_1m, masterPointAWorld, st, { mode: 'L' }, targetPos);
-          lockOnBeam.material.opacity = 0.6 * st; document.getElementById('targetCoord').innerText = "Point A 수직 하강 티칭 (MOVE L)"; recordMoveMotionTrails(targetPos, 'L');
+          lockOnBeam.material.opacity = 0.6 * st; document.getElementById('targetCoord').innerText = "A(U5) 수직 하강 티칭 (MOVE L)"; recordMoveMotionTrails(targetPos, 'L');
         } else if (t <= 0.32) {
-          targetPos.copy(masterPointAWorld); lockOnBeam.material.opacity = 1.0; document.getElementById('targetCoord').innerText = "📍 Point A 정밀 티칭 기록 완료";
+          targetPos.copy(masterPointAWorld); lockOnBeam.material.opacity = 1.0; document.getElementById('targetCoord').innerText = "📍 A(U5) 정밀 티칭 기록 완료";
         } else if (t <= 0.42) {
           interpolateMove(masterPointAWorld, aboveB_1m, (t - 0.32) / 0.10, { mode: 'P_HOP', hopHeight: 0.35 }, targetPos);
-          lockOnBeam.material.opacity = 0; document.getElementById('targetCoord').innerText = "Point B 상공 점프 이동 (MOVE P)"; recordMoveMotionTrails(targetPos, 'P');
+          lockOnBeam.material.opacity = 0; document.getElementById('targetCoord').innerText = "B(U5) 상공 점프 이동 (MOVE P)"; recordMoveMotionTrails(targetPos, 'P');
         } else if (t <= 0.54) {
           const st = (t - 0.42) / 0.12;
           interpolateMove(aboveB_1m, masterPointBWorld, st, { mode: 'L' }, targetPos);
-          lockOnBeam.material.opacity = 0.6 * st; document.getElementById('targetCoord').innerText = "Point B 수직 하강 티칭 (MOVE L)"; recordMoveMotionTrails(targetPos, 'L');
+          lockOnBeam.material.opacity = 0.6 * st; document.getElementById('targetCoord').innerText = "B(U5) 수직 하강 티칭 (MOVE L)"; recordMoveMotionTrails(targetPos, 'L');
         } else if (t <= 0.64) {
-          targetPos.copy(masterPointBWorld); lockOnBeam.material.opacity = 1.0; document.getElementById('targetCoord').innerText = "📍 Point B 정밀 티칭 기록 완료";
+          targetPos.copy(masterPointBWorld); lockOnBeam.material.opacity = 1.0; document.getElementById('targetCoord').innerText = "📍 B(U5) 정밀 티칭 기록 완료";
         } else if (t <= 0.74) {
           interpolateMove(masterPointBWorld, aboveC_1m, (t - 0.64) / 0.10, { mode: 'P_HOP', hopHeight: 0.35 }, targetPos);
-          lockOnBeam.material.opacity = 0; document.getElementById('targetCoord').innerText = "Point C (+Z 40cm) 상공 점프 (MOVE P)"; recordMoveMotionTrails(targetPos, 'P');
+          lockOnBeam.material.opacity = 0; document.getElementById('targetCoord').innerText = "C(U5) (B: X+0.3m, Z+0.4m) 상공 점프"; recordMoveMotionTrails(targetPos, 'P');
         } else if (t <= 0.86) {
           const st = (t - 0.74) / 0.12;
           interpolateMove(aboveC_1m, masterPointCWorld, st, { mode: 'L' }, targetPos);
-          lockOnBeam.material.opacity = 0.7 * st; document.getElementById('targetCoord').innerText = "Point C 수직 하강 티칭 (MOVE L)"; recordMoveMotionTrails(targetPos, 'L');
+          lockOnBeam.material.opacity = 0.7 * st; document.getElementById('targetCoord').innerText = "C(U5) 수직 하강 티칭 (MOVE L)"; recordMoveMotionTrails(targetPos, 'L');
         } else if (t <= 0.94) {
-          targetPos.copy(masterPointCWorld); lockOnBeam.material.opacity = 1.0; document.getElementById('targetCoord').innerText = "📍 Point C (+Z 40cm) 티칭 기록 완료";
+          targetPos.copy(masterPointCWorld); lockOnBeam.material.opacity = 1.0; document.getElementById('targetCoord').innerText = "📍 C(U5) 정밀 티칭 기록 완료";
         } else {
           interpolateMove(masterPointCWorld, aboveC_1m, (t - 0.94) / 0.06, { mode: 'L' }, targetPos);
-          lockOnBeam.material.opacity = 0; document.getElementById('targetCoord').innerText = "3점 티칭 완료 (C 상공 대기)"; recordMoveMotionTrails(targetPos, 'L');
+          lockOnBeam.material.opacity = 0; document.getElementById('targetCoord').innerText = "3점 티칭 완료 (C(U5) 상공 대기)"; recordMoveMotionTrails(targetPos, 'L');
         }
       } else if (currentStep === 5) {
         // [Step 6 선형 검증] A 진입 ➔ A ➔ B 선형 주행 ➔ B ➔ C 수직 상승 주행 ➔ 대기 복귀
         targetQuat.copy(qMasterRadY);
         if (t <= 0.10) {
           interpolateMove(aboveC_1m, aboveA_1m, t / 0.10, { mode: 'P_HOP', hopHeight: 0.35 }, targetPos);
-          lockOnBeam.material.opacity = 0; document.getElementById('targetCoord').innerText = "시작점 A 상공 점프 (MOVE P)"; recordMoveMotionTrails(targetPos, 'P');
+          lockOnBeam.material.opacity = 0; document.getElementById('targetCoord').innerText = "시작점 A(U5) 상공 점프 (MOVE P)"; recordMoveMotionTrails(targetPos, 'P');
         } else if (t <= 0.25) {
           const st = (t - 0.10) / 0.15;
           interpolateMove(aboveA_1m, masterPointAWorld, st, { mode: 'L' }, targetPos);
-          lockOnBeam.material.opacity = 0.8 * st; document.getElementById('targetCoord').innerText = "Point A 수직 진입 (MOVE L)"; recordMoveMotionTrails(targetPos, 'L');
+          lockOnBeam.material.opacity = 0.8 * st; document.getElementById('targetCoord').innerText = "A(U5) 수직 진입 (MOVE L)"; recordMoveMotionTrails(targetPos, 'L');
         } else if (t <= 0.55) {
           const st = (t - 0.25) / 0.30;
           interpolateMove(masterPointAWorld, masterPointBWorld, st, { mode: 'L' }, targetPos);
-          lockOnBeam.material.opacity = 0.95; document.getElementById('targetCoord').innerText = "✅ 1구간: A → B 선형 검증 주행 중"; recordMoveMotionTrails(targetPos, 'L');
+          lockOnBeam.material.opacity = 0.95; document.getElementById('targetCoord').innerText = "✅ 1구간: A(U5) → B(U5) 선형 검증 중"; recordMoveMotionTrails(targetPos, 'L');
         } else if (t <= 0.82) {
           const st = (t - 0.55) / 0.27;
           interpolateMove(masterPointBWorld, masterPointCWorld, st, { mode: 'L' }, targetPos);
-          lockOnBeam.material.opacity = 0.95; document.getElementById('targetCoord').innerText = "✅ 2구간: B → C (+Z 40cm) 수직상승 검증 주행"; recordMoveMotionTrails(targetPos, 'L');
+          lockOnBeam.material.opacity = 0.95; document.getElementById('targetCoord').innerText = "✅ 2구간: B(U5) → C(U5) (50cm 사선) 검증"; recordMoveMotionTrails(targetPos, 'L');
         } else if (t <= 0.90) {
           interpolateMove(masterPointCWorld, aboveC_1m, (t - 0.82) / 0.08, { mode: 'L' }, targetPos);
           lockOnBeam.material.opacity = 0; document.getElementById('targetCoord').innerText = "검증 완료 후 상공 상승 (MOVE L)"; recordMoveMotionTrails(targetPos, 'L');
@@ -2222,16 +2233,16 @@
         targetPos.copy(readyPos); targetQuat.copy(qMasterRadY); lockOnBeam.material.opacity = 0;
         if (currentStep === 6) {
           document.getElementById('targetCoord').innerText = "부품 인입 (A/B/C 3점 입체 변위 점선 연장)";
-          document.getElementById('pointA_UF').innerText = "A' 변위"; document.getElementById('pointB_UF').innerText = "B' 변위"; document.getElementById('pointC_UF').innerText = "C' 변위";
+          document.getElementById('pointA_UF').innerText = "A'(U6) 변위"; document.getElementById('pointB_UF').innerText = "B'(U6) 변위"; document.getElementById('pointC_UF').innerText = "C'(U6) 변위";
         } else if (currentStep === 7) {
           const cycleNum = Math.min(10, Math.floor(t * 10) + 1);
           document.getElementById('targetCoord').innerText = `📸 구조광 위상천이 교대점멸 스캔 중 (${cycleNum}/10 회)`;
           document.getElementById('pointA_UF').innerText = "위상 천이 측정"; document.getElementById('pointB_UF').innerText = "위상 천이 측정"; document.getElementById('pointC_UF').innerText = "심도 캡처";
         } else {
           document.getElementById('targetCoord').innerText = isToleranceError ? "⚠️ 오차 초과 감지 -> 즉시 비상 복귀!" : "ICP 정합 및 A/B/C ➔ A'/B'/C' 변위 확정";
-          document.getElementById('pointA_UF').innerText = isToleranceError ? "허용오차 초과" : "A' 3D화살표";
-          document.getElementById('pointB_UF').innerText = isToleranceError ? "Step 9~10 스킵" : "B' 3D화살표";
-          document.getElementById('pointC_UF').innerText = isToleranceError ? "안전 인터락" : "C' 3D화살표";
+          document.getElementById('pointA_UF').innerText = isToleranceError ? "허용오차 초과" : "A'(U6) 완료";
+          document.getElementById('pointB_UF').innerText = isToleranceError ? "Step 9~10 스킵" : "B'(U6) 완료";
+          document.getElementById('pointC_UF').innerText = isToleranceError ? "안전 인터락" : "C'(U6) 완료";
         }
       } else if (currentStep === 9) {
         // [Step 10 6자유도 보정 실링 주행] A' 안착 ➔ A'➔B' 1차 도포 ➔ B'➔C' 2차 입체 실링 비드 도포
@@ -2242,38 +2253,38 @@
           resetTrajectoryTrail();
           interpolateMove(readyPos, aboveA_Prime, t / 0.18, { mode: 'P_HOP', hopHeight: 0.35 }, targetPos);
           targetQuat.copy(qMasterRadY).slerp(qSheetFull, t / 0.18);
-          document.getElementById('targetCoord').innerText = "보정 위치 A' 상공 접근 중...";
+          document.getElementById('targetCoord').innerText = "보정 위치 A'(U6) 상공 접근 중...";
           lockOnBeam.material.opacity = 0;
         } else if (t <= 0.35) {
           resetTrajectoryTrail();
           interpolateMove(aboveA_Prime, sheetPointAWorld, (t - 0.18) / 0.17, { mode: 'L' }, targetPos);
           targetQuat.copy(qSheetFull);
-          document.getElementById('targetCoord').innerText = "Point A' 법선 수직 하강 안착...";
+          document.getElementById('targetCoord').innerText = "A'(U6) 법선 수직 하강 안착...";
           lockOnBeam.material.opacity = (t - 0.18) / 0.17 * 0.95;
         } else if (t <= 0.68) {
           const st = (t - 0.35) / 0.33;
           interpolateMove(sheetPointAWorld, sheetPointBWorld, st, { mode: 'L' }, targetPos);
           targetQuat.copy(qSheetFull);
-          document.getElementById('targetCoord').innerText = `🟣 1구간: A' → B' 보라색 실링 도포 중 ${(st * 100).toFixed(0)}%`;
+          document.getElementById('targetCoord').innerText = `🟣 1구간: A'(U6) → B'(U6) 실링 도포 중 ${(st * 100).toFixed(0)}%`;
           lockOnBeam.material.opacity = 0.95;
           recordTrajectoryPoint(targetPos);
         } else if (t <= 0.92) {
           const st = (t - 0.68) / 0.24;
           interpolateMove(sheetPointBWorld, sheetPointCWorld, st, { mode: 'L' }, targetPos);
           targetQuat.copy(qSheetFull);
-          document.getElementById('targetCoord').innerText = `🟣 2구간: B' → C' (+Z 40cm) 3D 입체 실링 비드 도포 중 ${(st * 100).toFixed(0)}%`;
+          document.getElementById('targetCoord').innerText = `🟣 2구간: B'(U6) → C'(U6) (50cm 사선) 실링 중 ${(st * 100).toFixed(0)}%`;
           lockOnBeam.material.opacity = 0.95;
           recordTrajectoryPoint(targetPos);
         } else {
           targetPos.copy(sheetPointCWorld);
           targetQuat.copy(qSheetFull);
-          document.getElementById('targetCoord').innerText = "✅ 3차원 입체 도포 완료: C' 끝점 검사 및 쿨링 대기...";
+          document.getElementById('targetCoord').innerText = "✅ 3D 입체 도포 완료: C'(U6) 끝점 검사 대기...";
           lockOnBeam.material.opacity = 0.95;
           recordTrajectoryPoint(targetPos);
         }
-        document.getElementById('pointA_UF').innerText = "A' 정밀일치";
-        document.getElementById('pointB_UF').innerText = "B' 정밀일치";
-        document.getElementById('pointC_UF').innerText = "C' 정밀일치";
+        document.getElementById('pointA_UF').innerText = "A'(U6) 일치";
+        document.getElementById('pointB_UF').innerText = "B'(U6) 일치";
+        document.getElementById('pointC_UF').innerText = "C'(U6) 일치";
       } else if (currentStep === 10) {
         const startPos = !isAnimating ? homePos : (isToleranceError ? readyPos : sheetPointCWorld);
         const qSheetFull = sheetGroup.quaternion.clone();
@@ -2326,12 +2337,14 @@
       if (activeStepAnimationId !== null) { cancelAnimationFrame(activeStepAnimationId); activeStepAnimationId = null; }
       animProgress = 0; isAnimating = true; const startTime = performance.now();
       let duration = 1000;
-      if (currentStep === 4) duration = 7200; 
+      if (currentStep === 0 || currentStep === 1) duration = 500;
+      else if (currentStep === 2) duration = 1200;
+      else if (currentStep === 4) duration = 7200; 
       else if (currentStep === 5) duration = 6000; 
       else if (currentStep === 9) duration = 5600; 
       else if (currentStep === 7) duration = 6000; 
       else if (currentStep === 8) duration = 1800; 
-      else if (currentStep === 2 || currentStep === 10) duration = 2400;
+      else if (currentStep === 10) duration = 2400;
       
       function stepAnim(now) {
         const linearT = Math.min(1, (now - startTime) / duration);
@@ -2496,7 +2509,8 @@
       if (!isAutoPlaying) return;
       if (autoPlayTimeoutId !== null) clearTimeout(autoPlayTimeoutId);
       let waitTime = 4200;
-      if (currentStep === 4) waitTime = 8000;
+      if (currentStep === 0 || currentStep === 1 || currentStep === 2) waitTime = 2100;
+      else if (currentStep === 4) waitTime = 8000;
       else if (currentStep === 5) waitTime = 6800;
       else if (currentStep === 7) waitTime = 6800;
       else if (currentStep === 9) waitTime = 6400;
