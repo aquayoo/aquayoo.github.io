@@ -1,0 +1,1252 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>3D 공통좌표계(CC) 설정 Simulator | V0.2 (Nov.15)</title>
+  <style>
+    :root {
+      --bg-dark: #0a1117;
+      --panel-bg: #142330;
+      --panel-border: #233c4f;
+      --accent-cyan: #00adb5;
+      --accent-blue: #0066cc;
+      --text-main: #dce7ee;
+      --text-muted: #829aa8;
+      --danger-red: #ff4757;
+      --success-green: #2ed573;
+      --yellow-warn: #f1c40f;
+      --font-mono: 'Consolas', 'Monaco', 'Courier New', monospace;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+      font-family: 'Segoe UI', Tahoma, "Noto Sans KR", sans-serif;
+    }
+
+    body {
+      background-color: var(--bg-dark);
+      color: var(--text-main);
+      width: 100vw;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      font-size: 12px;
+    }
+
+    /* 상단 헤더: 좌측 [버전 배지 + 타이틀] → 중앙 [장비 상태 배지] → 우측 끝 [회사 로고 홈 링크] */
+    header {
+      background: #080d12;
+      border-bottom: 1px solid var(--panel-border);
+      height: 40px;
+      padding: 0 14px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-shrink: 0;
+      gap: 12px;
+    }
+
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-shrink: 0;
+    }
+
+    .ver-badge {
+      background-color: #0066cc;
+      color: #ffffff;
+      border: 1px solid #3399ff;
+      font-family: var(--font-mono);
+      font-weight: 800;
+      padding: 3px 9px;
+      border-radius: 3px;
+      font-size: 11px;
+      letter-spacing: 0.4px;
+      white-space: nowrap;
+      box-shadow: 0 0 8px rgba(0, 102, 204, 0.45);
+    }
+
+    .title {
+      font-size: 14px;
+      font-weight: bold;
+      color: #ffffff;
+      letter-spacing: 0.3px;
+      white-space: nowrap;
+    }
+
+    .header-center {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: nowrap;
+      overflow: hidden;
+    }
+
+    .hw-badge {
+      background: #0c161e;
+      border: 1px solid var(--panel-border);
+      padding: 3px 8px;
+      border-radius: 3px;
+      font-family: var(--font-mono);
+      font-size: 10px;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      white-space: nowrap;
+    }
+
+    .led-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--success-green);
+      box-shadow: 0 0 6px var(--success-green);
+    }
+    .led-dot.warn {
+      background: var(--yellow-warn);
+      box-shadow: 0 0 6px var(--yellow-warn);
+    }
+    .led-dot.err {
+      background: var(--danger-red);
+      box-shadow: 0 0 6px var(--danger-red);
+      animation: pulse 0.9s infinite;
+    }
+
+    @keyframes pulse {
+      50% { opacity: 0.25; }
+    }
+
+    .header-right {
+      display: flex;
+      align-items: center;
+      flex-shrink: 0;
+    }
+
+    .logo-link {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 3px 8px;
+      border-radius: 4px;
+      background: #101c26;
+      border: 1px solid #2a465c;
+      transition: all 0.2s;
+      cursor: pointer;
+      text-decoration: none;
+      height: 28px;
+    }
+    .logo-link:hover {
+      border-color: var(--danger-red);
+      background: rgba(255, 71, 87, 0.16);
+    }
+    .logo-link img {
+      height: 20px;
+      width: auto;
+      display: block;
+    }
+    .logo-fallback {
+      color: #e60012;
+      font-weight: 900;
+      font-size: 14px;
+      letter-spacing: 1px;
+    }
+
+    /* 서브 내비게이션: 교육 단계 탭 및 제어 버튼 */
+    .sub-nav {
+      background: #0e1923;
+      border-bottom: 1px solid var(--panel-border);
+      height: 34px;
+      padding: 0 14px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-shrink: 0;
+    }
+
+    .step-tabs {
+      display: flex;
+      gap: 4px;
+      height: 100%;
+    }
+
+    .step-tab {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      padding: 0 12px;
+      font-size: 11px;
+      font-weight: bold;
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .step-tab:hover { color: #ffffff; }
+    .step-tab.active {
+      color: var(--accent-cyan);
+      border-bottom-color: var(--accent-cyan);
+      background: rgba(0, 173, 181, 0.08);
+    }
+
+    .sim-controls {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    button {
+      background: #1a3347;
+      border: 1px solid var(--panel-border);
+      color: #fff;
+      padding: 4px 10px;
+      font-size: 11px;
+      cursor: pointer;
+      border-radius: 3px;
+      transition: background 0.15s;
+    }
+    button:hover:not(:disabled) { background: #254964; }
+    button.primary {
+      background: #007799;
+      border-color: var(--accent-cyan);
+      font-weight: bold;
+    }
+    button.primary:hover:not(:disabled) { background: #0099bb; }
+    button.success {
+      background: #1e7e48;
+      border-color: var(--success-green);
+      font-weight: bold;
+    }
+    button.locked-sim {
+      opacity: 0.65;
+      border-color: var(--danger-red);
+    }
+    button.tiny-btn {
+      padding: 2px 7px;
+      font-size: 10px;
+      border-radius: 2px;
+    }
+
+    /* 메인 워크스페이스: 좌측 290px | 중앙 1fr | 우측 295px (약 300px 이내 고정) */
+    .workspace {
+      display: grid;
+      grid-template-columns: 290px 1fr 295px;
+      flex: 1;
+      height: calc(100vh - 74px);
+      overflow: hidden;
+    }
+
+    .panel-left {
+      background: var(--panel-bg);
+      border-right: 1px solid var(--panel-border);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .panel-right {
+      background: var(--panel-bg);
+      border-left: 1px solid var(--panel-border);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .panel-header {
+      background: #0e1923;
+      padding: 6px 10px;
+      font-weight: bold;
+      color: var(--accent-cyan);
+      border-bottom: 1px solid var(--panel-border);
+      font-size: 11px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-shrink: 0;
+    }
+
+    .panel-body {
+      padding: 8px;
+      overflow-y: auto;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .sub-card {
+      background: #0c161f;
+      border: 1px solid var(--panel-border);
+      border-radius: 4px;
+      padding: 7px 8px;
+    }
+
+    .sub-card-title {
+      font-size: 10.5px;
+      font-weight: bold;
+      color: #8faec4;
+      margin-bottom: 5px;
+      border-bottom: 1px solid #1a2f3f;
+      padding-bottom: 3px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .info-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 10.5px;
+      padding: 2.5px 0;
+      font-family: var(--font-mono);
+    }
+
+    .matrix-box {
+      background: #070b0e;
+      border: 1px solid #1a2c3a;
+      padding: 6px;
+      color: var(--yellow-warn);
+      font-family: var(--font-mono);
+      font-size: 10.5px;
+      line-height: 1.38;
+      white-space: pre;
+      overflow-x: auto;
+    }
+
+    .code-box {
+      background: #070b0e;
+      border: 1px solid #1a2c3a;
+      padding: 6px;
+      color: #a4e57e;
+      font-family: var(--font-mono);
+      font-size: 10px;
+      line-height: 1.42;
+      white-space: pre;
+      overflow-x: auto;
+    }
+
+    input[type="text"], input[type="number"], select {
+      background: #080d12;
+      border: 1px solid var(--panel-border);
+      color: #fff;
+      padding: 3px 6px;
+      border-radius: 3px;
+      font-size: 10.8px;
+      font-family: var(--font-mono);
+      user-select: text;
+      width: 100%;
+    }
+    input:focus, select:focus {
+      outline: none;
+      border-color: var(--accent-cyan);
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: 95px 1fr;
+      gap: 4px 6px;
+      align-items: center;
+      font-size: 10.5px;
+    }
+    .form-grid label { color: var(--text-muted); }
+
+    /* 중앙 3D 뷰포트 */
+    #viewport-container {
+      position: relative;
+      background: radial-gradient(circle at center, #152636 0%, #091016 100%);
+      overflow: hidden;
+    }
+
+    .viewport-overlay {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      font-family: var(--font-mono);
+      font-size: 10.5px;
+      color: #00ffcc;
+      line-height: 1.48;
+      pointer-events: none;
+      text-shadow: 1px 1px 2px #000;
+      z-index: 5;
+      background: rgba(8, 13, 18, 0.72);
+      padding: 7px 10px;
+      border-radius: 4px;
+      border: 1px solid rgba(0, 173, 181, 0.3);
+    }
+
+    .cam-presets {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      display: flex;
+      gap: 4px;
+      z-index: 6;
+    }
+
+    .bottom-status-bar {
+      position: absolute;
+      bottom: 10px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(8, 13, 18, 0.92);
+      border: 1px solid var(--accent-cyan);
+      padding: 6px 14px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: bold;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      z-index: 6;
+      white-space: nowrap;
+    }
+
+    .judge-pill {
+      padding: 2px 8px;
+      border-radius: 3px;
+      font-family: var(--font-mono);
+      font-size: 10.5px;
+      background: #1b354b;
+      color: var(--accent-cyan);
+    }
+    .judge-pill.ok { background: var(--success-green); color: #080d12; }
+    .judge-pill.ng { background: var(--danger-red); color: #fff; }
+
+    .interlock-card {
+      border: 1px solid #2a465c;
+      background: #0a131b;
+      border-radius: 4px;
+      padding: 6px 8px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 10.5px;
+    }
+    .interlock-card.passed {
+      border-color: var(--success-green);
+      background: rgba(46, 213, 115, 0.1);
+    }
+    .interlock-card.locked {
+      border-color: var(--danger-red);
+      background: rgba(255, 71, 87, 0.1);
+    }
+
+    .phase-tracker {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+      margin-top: 6px;
+      font-family: var(--font-mono);
+      font-size: 10px;
+    }
+    .phase-item {
+      padding: 3px 6px;
+      border-radius: 3px;
+      background: #080d12;
+      color: #64748b;
+      border-left: 2px solid #334155;
+    }
+    .phase-item.active {
+      color: #00ffcc;
+      background: rgba(0, 173, 181, 0.15);
+      border-left-color: #00ffcc;
+      font-weight: bold;
+    }
+    .phase-item.done {
+      color: #2ed573;
+      border-left-color: #2ed573;
+    }
+
+    .log-mini {
+      background: #060a0e;
+      border: 1px solid #1a2c3a;
+      border-radius: 3px;
+      padding: 5px 6px;
+      font-family: var(--font-mono);
+      font-size: 9.8px;
+      line-height: 1.4;
+      color: #9ab4c7;
+      height: 120px;
+      overflow-y: auto;
+    }
+    .log-ok { color: var(--success-green); }
+    .log-err { color: var(--danger-red); font-weight: bold; }
+    .log-info { color: var(--accent-cyan); }
+  </style>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+</head>
+<body>
+
+  <!-- 상단 헤더: 좌측 [버전 배지 + 타이틀] → 중앙 [장비 상태] → 우측 끝 [회사 로고 홈 복귀] -->
+  <header>
+    <div class="header-left">
+      <span class="ver-badge">V0.2 (Nov.15)</span>
+      <span class="title">3D 공통좌표계(CC) 설정 Simulator</span>
+    </div>
+
+    <div class="header-center">
+      <div class="hw-badge"><span class="led-dot" id="led-r1"></span>R1: HYUNDAI HH020 (Hi6)</div>
+      <div class="hw-badge"><span class="led-dot" id="led-r2"></span>R2: FANUC (90° Axis)</div>
+      <div class="hw-badge"><span class="led-dot warn" id="led-s1"></span>S1: 3DU (EyeOnHand · WD700)</div>
+      <div class="hw-badge"><span class="led-dot warn" id="led-s2"></span>S2: 3DM (FixedEye · WD1400)</div>
+    </div>
+
+    <div class="header-right">
+      <a href="index.html" class="logo-link" title="초기화면(index.html)으로 이동">
+        <img src="image/atm_red.png" alt="ATM" onerror="this.style.display='none'; this.nextElementSibling.style.display='inline';">
+        <span class="logo-fallback" style="display:none;">ATM</span>
+      </a>
+    </div>
+  </header>
+
+  <!-- 서브 내비게이션: 교육 단계 탭 및 제어 버튼 -->
+  <div class="sub-nav">
+    <div class="step-tabs">
+      <button class="step-tab active" id="tab-step1" onclick="switchStage(1, this)">1. 기구 & 축 비교</button>
+      <button class="step-tab" id="tab-step2" onclick="switchStage(2, this)">2. 캘리브레이션 트랜스퍼 (3DU→3DM)</button>
+      <button class="step-tab" id="tab-step3" onclick="switchStage(3, this)">3. 공통좌표계(CC=TLH) 생성</button>
+      <button class="step-tab" id="tab-step4" onclick="switchStage(4, this)">4. 듀얼 도어 순차 협업 장착</button>
+    </div>
+
+    <div class="sim-controls">
+      <button class="tiny-btn" onclick="toggleFovVisibility()">👁 FOV 사각뿔대 ON/OFF</button>
+      <button class="primary locked-sim" id="btn-run-dual" onclick="runDualDoorSequence()">▶ 듀얼 도어 협업 장착 실행</button>
+      <button onclick="resetSimulator()">↺ 초기화</button>
+    </div>
+  </div>
+
+  <!-- 메인 3단 레이아웃 (좌측 290px | 중앙 3D | 우측 295px) -->
+  <div class="workspace">
+
+    <!-- 좌측 정보창 (가로 290px) -->
+    <div class="panel-left">
+      <div class="panel-header">
+        <span>시스템 구성 & 좌표계 규격</span>
+        <span style="font-size:9.5px; color:var(--text-muted);">B안 이기종 배치</span>
+      </div>
+      <div class="panel-body">
+
+        <div class="sub-card">
+          <div class="sub-card-title"><span>1. 로봇 2대 기종 및 축 배치 비교</span></div>
+          <div style="font-size:10.3px; line-height:1.48; color:#cbd5e1;">
+            • <b style="color:#f59e0b;">Robot 1 (앞문 장착):</b> 현대로봇 HH020-03 (Hi6)<br>
+            &nbsp;&nbsp;- 하네스 반대방향 <b>+X</b> / 좌측 <b>+Y</b> / 상단 <b>+Z</b><br>
+            • <b style="color:#facc15;">Robot 2 (뒷문 장착):</b> FANUC 로봇 (90° 회전 배치)<br>
+            &nbsp;&nbsp;- 하네스 기준축이 <b>90° 회전</b>되어 Base 좌표축이 R1과 90° 다름
+          </div>
+        </div>
+
+        <div class="sub-card">
+          <div class="sub-card-title"><span>2. 공통좌표계 (CC) = 차량 TLH 축</span></div>
+          <div style="font-size:10.3px; line-height:1.48; color:#cbd5e1;">
+            • <span style="color:#ff4757; font-weight:bold;">■ CC +X (XX)</span> = 차량 <b>+T</b> (진행 반대 방향)<br>
+            • <span style="color:#2ed573; font-weight:bold;">■ CC +Y (XY)</span> = 차량 <b>+L</b> (우측 / 조수석 방향)<br>
+            • <span style="color:#1e90ff; font-weight:bold;">■ CC +Z (법선)</span> = 차량 <b>+H</b> (상단 방향)<br>
+            <span style="color:#829aa8; font-size:9.8px;">※ 단일 CC 보드 기준점으로 두 로봇의 상이한 Base 좌표계를 하나로 통합합니다.</span>
+          </div>
+        </div>
+
+        <div class="sub-card">
+          <div class="sub-card-title"><span>3. 하이브리드 스캐너 사양 (4:3 FOV)</span></div>
+          <div class="info-row"><span>S1 (R1 손목부착)</span><span style="color:#00ffff;">3DU · WD 700mm</span></div>
+          <div class="info-row"><span>S2 (상부 고정형)</span><span style="color:#38bdf8;">3DM · WD 1400mm</span></div>
+          <div class="info-row"><span>공간 FOV 비율</span><span>사각뿔대 (4 : 3)</span></div>
+        </div>
+
+        <div class="sub-card">
+          <div class="sub-card-title"><span>4. 공통좌표계(U10) 동차변환 행렬</span></div>
+          <div class="matrix-box" id="cc-matrix-view">
+[ 1.0000,  0.0000,  0.0000,   0.00;
+  0.0000,  1.0000,  0.0000,   0.00;
+  0.0000,  0.0000,  1.0000,   0.00;
+  0.0000,  0.0000,  0.0000,  1.000 ]</div>
+        </div>
+
+        <div class="sub-card" style="margin-top:auto;">
+          <div class="sub-card-title"><span>실시간 시뮬레이터 로그</span></div>
+          <div class="log-mini" id="sim-log"></div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- 중앙 3D 뷰포트 -->
+    <div id="viewport-container">
+      <div class="viewport-overlay">
+        [3D Common Coordinate Cell — Dual Robot Door Assembly]<br>
+        <span style="color:#ff4757;">X/T(Red)</span> · <span style="color:#2ed573;">Y/L(Green)</span> · <span style="color:#1e90ff;">Z/H(Blue)</span> | <span style="color:#00ffff;">FOV: 4:3 Frustum</span><br>
+        <span id="overlay-guide" style="color:#f1c40f; font-weight:bold;">[INTERLOCK] 우측 패널에서 Step 1~3 셋업 검증을 완료하세요.</span>
+      </div>
+
+      <div class="cam-presets">
+        <button class="tiny-btn" onclick="setCameraView('ISO')">입체 뷰 (3D)</button>
+        <button class="tiny-btn" onclick="setCameraView('TOP')">평면도 (Top)</button>
+        <button class="tiny-btn" onclick="setCameraView('SIDE')">측면 뷰 (Side)</button>
+      </div>
+
+      <div class="bottom-status-bar">
+        <span id="status-msg">단계 1/4 : 이기종 로봇(Hyundai HH020 vs FANUC 90°) 및 3DU/3DM 스캐너 배치 확인</span>
+        <span class="judge-pill ng" id="interlock-pill">INTERLOCK LOCKED</span>
+      </div>
+    </div>
+
+    <!-- 우측 정보창 (가로 295px - 인터락 평가 및 단계별 설정 패널) -->
+    <div class="panel-right">
+      <div class="panel-header">
+        <span id="right-title">인터락 평가 및 CC 설정 제어</span>
+        <span style="font-size:9.5px; color:var(--yellow-warn);">교육 평가 모드</span>
+      </div>
+      <div class="panel-body">
+
+        <!-- 인터락 진행 상태 요약 -->
+        <div class="sub-card">
+          <div class="sub-card-title"><span>교육 실습 인터락 잠금 현황</span></div>
+          <div style="display:flex; flex-direction:column; gap:4px;">
+            <div class="interlock-card locked" id="ilk-1">
+              <span>1. 스캐너 트랜스퍼 (3DU→3DM)</span>
+              <b style="color:#ff4757;" id="ilk-1-st">LOCK</b>
+            </div>
+            <div class="interlock-card locked" id="ilk-2">
+              <span>2. 공통좌표계(CC=TLH) 생성</span>
+              <b style="color:#ff4757;" id="ilk-2-st">LOCK</b>
+            </div>
+            <div class="interlock-card locked" id="ilk-3">
+              <span>3. R1·R2 MKUCRD U10 등록</span>
+              <b style="color:#ff4757;" id="ilk-3-st">LOCK</b>
+            </div>
+          </div>
+        </div>
+
+        <!-- Stage 1 패널 -->
+        <div id="stage-panel-1" class="sub-card">
+          <div class="sub-card-title"><span>[Step 1] 기구 배치 및 축 회전 점검</span></div>
+          <p style="font-size:10.3px; color:#cbd5e1; line-height:1.48; margin-bottom:8px;">
+            • 우측 전방 앞문 로봇은 <b>현대로봇 HH020-03</b>, 후방 뒷문 로봇은 <b>90° 회전 배치된 FANUC 로봇</b>입니다.<br>
+            • 두 로봇의 Base 좌표계(R-G-B)가 서로 90° 어긋나 있음을 3D 뷰에서 확인한 뒤 다음 단계로 진행하세요.
+          </p>
+          <button class="primary" style="width:100%;" onclick="confirmStage1()">✓ 로봇 축 배치 확인 완료 → Step 2 이동</button>
+        </div>
+
+        <!-- Stage 2 패널: TransferCalib -->
+        <div id="stage-panel-2" class="sub-card" style="display:none;">
+          <div class="sub-card-title"><span>[Step 2] 캘리브레이션 트랜스퍼</span></div>
+          <p style="font-size:10px; color:var(--yellow-warn); line-height:1.4; margin-bottom:6px;">
+            * 규칙: 캘리브레이션 오브젝트 위치 고정(NEVER MOVE) & 회전 오차 2° 이내 유지
+          </p>
+          <div class="form-grid" style="margin-bottom:8px;">
+            <label>기준 스캐너(A)</label><input type="text" value="S1: 3DU (EyeOnHand)" readonly>
+            <label>대상 스캐너(B)</label><input type="text" value="S2: 3DM (FixedEye)" readonly>
+            <label>오브젝트 고정</label>
+            <select id="sel-obj-fixed">
+              <option value="MOVED">미고정 (이동됨 - 오류)</option>
+              <option value="FIXED">고정 완료 (NEVER MOVE)</option>
+            </select>
+            <label>로봇 자세 회전</label><input type="number" id="inp-rot-err" value="12.5" step="0.5">
+          </div>
+          <button class="primary" style="width:100%;" onclick="executeTransferCalib()">▶ TransferCalib 실행 및 정합 검증</button>
+        </div>
+
+        <!-- Stage 3 패널: CC 보드 생성 -->
+        <div id="stage-panel-3" class="sub-card" style="display:none;">
+          <div class="sub-card-title"><span>[Step 3] 공통좌표계(CC) 생성</span></div>
+          <p style="font-size:10px; color:#cbd5e1; line-height:1.4; margin-bottom:6px;">
+            * CC 보드 축을 <b>차량 TLH (T=+X, L=+Y)</b>와 일치시키고 난반사 방지를 위해 <b>15° 기울기</b>로 설정하세요.
+          </p>
+          <div class="form-grid" style="margin-bottom:8px;">
+            <label>CC +X 축 기준</label>
+            <select id="sel-cc-x">
+              <option value="L">차량 +L축 (조수석 방향)</option>
+              <option value="T">차량 +T축 (진행 반대 방향)</option>
+            </select>
+            <label>CC +Y 축 기준</label>
+            <select id="sel-cc-y">
+              <option value="T">차량 +T축 (진행 반대 방향)</option>
+              <option value="L">차량 +L축 (조수석 방향)</option>
+            </select>
+            <label>보드 기울기(°)</label><input type="number" id="inp-tilt" value="0" min="0" max="45">
+          </div>
+          <button class="primary" style="width:100%;" onclick="generateCommonCoord()">▶ 공통좌표계(U10) 생성 & 양 로봇 전송</button>
+        </div>
+
+        <!-- Stage 4 패널: MKUCRD & 듀얼 도어 순차 협업 장착 -->
+        <div id="stage-panel-4" class="sub-card" style="display:none;">
+          <div class="sub-card-title"><span>[Step 4] U10 좌표계 및 5단계 협업 장착</span></div>
+          <div class="code-box" style="margin-bottom:6px;">
+' [Robot 1: Hyundai HH020]
+MKUCRD 10, P111, P112, P113
+SELUCRD 10 ' T=X, L=Y 통합
+
+' [Robot 2: FANUC 90° Rotated]
+UFRAME[10] = CC_TLH_MATRIX
+UFRAME_NUM = 10 ' 동일 기준 적용</div>
+
+          <button class="success" style="width:100%;" onclick="runDualDoorSequence()">▶ 5단계 듀얼 도어 협업 시퀀스 실행</button>
+
+          <div class="phase-tracker" id="phase-tracker">
+            <div class="phase-item" id="ph-1">Phase 1: 비틀어진 차체 진입 & S1·S2 스캔</div>
+            <div class="phase-item" id="ph-2">Phase 2: R1·R2 도어 파지대 접근 & 픽업</div>
+            <div class="phase-item" id="ph-3">Phase 3: U10 보정 자세로 차체 앞/뒷문 접근</div>
+            <div class="phase-item" id="ph-4">Phase 4: 차체 개구부 정밀 안착 & 클램핑</div>
+            <div class="phase-item" id="ph-5">Phase 5: 양 로봇 홈(HOME) 안전 복귀 완료</div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    /* =========================================================
+       1. 시뮬레이터 상태 및 인터락 변수
+       ========================================================= */
+    const state = {
+      step1Checked: false,
+      transferOk: false,
+      ccCreated: false,
+      fovVisible: true,
+      r1HoldingDoor: false,
+      r2HoldingDoor: false,
+      seqTimers: []
+    };
+
+    function clearSeqTimers() {
+      state.seqTimers.forEach(t => clearTimeout(t));
+      state.seqTimers = [];
+    }
+
+    function addLog(msg, cls = '') {
+      const box = document.getElementById('sim-log');
+      const now = new Date().toTimeString().split(' ')[0];
+      const line = document.createElement('div');
+      line.className = cls;
+      line.innerHTML = `<span style="color:#5c768d;">[${now}]</span> ${msg}`;
+      box.appendChild(line);
+      box.scrollTop = box.scrollHeight;
+    }
+
+    function switchStage(stageNum, btnEl) {
+      document.querySelectorAll('.step-tab').forEach(b => b.classList.remove('active'));
+      if (btnEl) btnEl.classList.add('active');
+      [1, 2, 3, 4].forEach(n => {
+        document.getElementById(`stage-panel-${n}`).style.display = (n === stageNum) ? 'block' : 'none';
+      });
+    }
+
+    function setPhaseUI(activeIdx) {
+      for (let i = 1; i <= 5; i++) {
+        const el = document.getElementById(`ph-${i}`);
+        if (!el) continue;
+        el.classList.remove('active', 'done');
+        if (i < activeIdx) el.classList.add('done');
+        else if (i === activeIdx) el.classList.add('active');
+      }
+    }
+
+    /* =========================================================
+       2. Three.js 3D 공간 구성
+       ========================================================= */
+    const vp = document.getElementById('viewport-container');
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(42, vp.clientWidth / vp.clientHeight, 1, 4000);
+    camera.position.set(-220, 310, 420);
+
+    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+    renderer.setSize(vp.clientWidth, vp.clientHeight);
+    vp.appendChild(renderer.domElement);
+
+    const controls = new THREE.OrbitControls(camera, renderer.domElement);
+    controls.enableDamping = true;
+    controls.target.set(0, 60, 0);
+
+    function setCameraView(mode) {
+      if (mode === 'TOP') {
+        camera.position.set(0, 520, 10);
+        controls.target.set(0, 20, 0);
+      } else if (mode === 'SIDE') {
+        camera.position.set(-460, 150, 0);
+        controls.target.set(0, 65, 0);
+      } else {
+        camera.position.set(-220, 310, 420);
+        controls.target.set(0, 60, 0);
+      }
+      controls.update();
+    }
+
+    const grid = new THREE.GridHelper(800, 40, 0x274156, 0x162633);
+    scene.add(grid);
+
+    scene.add(new THREE.AmbientLight(0xffffff, 0.78));
+    const dirLight = new THREE.DirectionalLight(0xffffff, 0.85);
+    dirLight.position.set(180, 420, 260);
+    scene.add(dirLight);
+
+    // 3축 좌표계 기즈모 생성 (R: X/T, G: Y/L, B: Z/H)
+    function createAxisGizmo(len, yawRad = 0) {
+      const g = new THREE.Group();
+      g.rotation.y = yawRad;
+      const shaft = new THREE.CylinderGeometry(1.3, 1.3, len, 10);
+      const cone = new THREE.ConeGeometry(3.2, 8, 10);
+
+      // +X (Red) -> Three.js -X (차량 진행 반대 T축)
+      const matX = new THREE.MeshBasicMaterial({ color: 0xff4757 });
+      const axX = new THREE.Mesh(shaft, matX);
+      axX.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), new THREE.Vector3(-1, 0, 0));
+      axX.position.x = -len / 2;
+      const tipX = new THREE.Mesh(cone, matX);
+      tipX.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), new THREE.Vector3(-1, 0, 0));
+      tipX.position.x = -len;
+
+      // +Y (Green) -> Three.js +Z (차량 조수석/우측 L축)
+      const matY = new THREE.MeshBasicMaterial({ color: 0x2ed573 });
+      const axY = new THREE.Mesh(shaft, matY);
+      axY.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), new THREE.Vector3(0, 0, 1));
+      axY.position.z = len / 2;
+      const tipY = new THREE.Mesh(cone, matY);
+      tipY.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), new THREE.Vector3(0, 0, 1));
+      tipY.position.z = len;
+
+      // +Z (Blue) -> Three.js +Y (차량 상단 H축)
+      const matZ = new THREE.MeshBasicMaterial({ color: 0x1e90ff });
+      const axZ = new THREE.Mesh(shaft, matZ);
+      axZ.position.y = len / 2;
+      const tipZ = new THREE.Mesh(cone, matZ);
+      tipZ.position.y = len;
+
+      g.add(axX, tipX, axY, tipY, axZ, tipZ);
+      return g;
+    }
+
+    // 4:3 비율 사각뿔대(Frustum) 공간 FOV 생성 함수
+    function createFrustum4to3(wdNear, wdFar, fovHalfAngleRad, colorHex) {
+      const grp = new THREE.Group();
+      const aspect = 4 / 3;
+
+      const hNear = Math.tan(fovHalfAngleRad) * wdNear;
+      const wNear = hNear * aspect;
+      const hFar = Math.tan(fovHalfAngleRad) * wdFar;
+      const wFar = hFar * aspect;
+
+      const edges = new Float32Array([
+        -wNear, -wdNear, -hNear,   wNear, -wdNear, -hNear,
+         wNear, -wdNear, -hNear,   wNear, -wdNear,  hNear,
+         wNear, -wdNear,  hNear,  -wNear, -wdNear,  hNear,
+        -wNear, -wdNear,  hNear,  -wNear, -wdNear, -hNear,
+
+        -wFar,  -wdFar,  -hFar,    wFar,  -wdFar,  -hFar,
+         wFar,  -wdFar,  -hFar,    wFar,  -wdFar,   hFar,
+         wFar,  -wdFar,   hFar,   -wFar,  -wdFar,   hFar,
+        -wFar,  -wdFar,   hFar,   -wFar,  -wdFar,  -hFar,
+
+        -wNear, -wdNear, -hNear,  -wFar,  -wdFar,  -hFar,
+         wNear, -wdNear, -hNear,   wFar,  -wdFar,  -hFar,
+         wNear, -wdNear,  hNear,   wFar,  -wdFar,   hFar,
+        -wNear, -wdNear,  hNear,  -wFar,  -wdFar,   hFar
+      ]);
+
+      const lineGeo = new THREE.BufferGeometry();
+      lineGeo.setAttribute('position', new THREE.BufferAttribute(edges, 3));
+      const lineMat = new THREE.LineBasicMaterial({ color: colorHex });
+      grp.add(new THREE.LineSegments(lineGeo, lineMat));
+
+      const apexLines = new Float32Array([
+        0, 0, 0, -wNear, -wdNear, -hNear,
+        0, 0, 0,  wNear, -wdNear, -hNear,
+        0, 0, 0,  wNear, -wdNear,  hNear,
+        0, 0, 0, -wNear, -wdNear,  hNear
+      ]);
+      const apexGeo = new THREE.BufferGeometry();
+      apexGeo.setAttribute('position', new THREE.BufferAttribute(apexLines, 3));
+      grp.add(new THREE.LineSegments(apexGeo, new THREE.LineBasicMaterial({ color: colorHex, transparent: true, opacity: 0.3 })));
+
+      const sideVerts = new Float32Array([
+        -wNear,-wdNear,-hNear,  -wFar,-wdFar,-hFar,   wFar,-wdFar,-hFar,
+        -wNear,-wdNear,-hNear,   wFar,-wdFar,-hFar,   wNear,-wdNear,-hNear,
+         wNear,-wdNear,-hNear,   wFar,-wdFar,-hFar,   wFar,-wdFar, hFar,
+         wNear,-wdNear,-hNear,   wFar,-wdFar, hFar,   wNear,-wdNear, hNear,
+         wNear,-wdNear, hNear,   wFar,-wdFar, hFar,  -wFar,-wdFar, hFar,
+         wNear,-wdNear, hNear,  -wFar,-wdFar, hFar,  -wNear,-wdNear, hNear,
+        -wNear,-wdNear, hNear,  -wFar,-wdFar, hFar,  -wFar,-wdFar,-hFar,
+        -wNear,-wdNear, hNear,  -wFar,-wdFar,-hFar,  -wNear,-wdNear,-hNear
+      ]);
+      const polyGeo = new THREE.BufferGeometry();
+      polyGeo.setAttribute('position', new THREE.BufferAttribute(sideVerts, 3));
+      const polyMat = new THREE.MeshBasicMaterial({ color: colorHex, transparent: true, opacity: 0.18, side: THREE.DoubleSide });
+      grp.add(new THREE.Mesh(polyGeo, polyMat));
+
+      return grp;
+    }
+
+    // A. 중앙 차체 (Car Body)
+    const carGroup = new THREE.Group();
+    const carBasePos = new THREE.Vector3(0, 0, -40);
+    carGroup.position.copy(carBasePos);
+    const chassis = new THREE.Mesh(new THREE.BoxGeometry(240, 34, 96), new THREE.MeshLambertMaterial({ color: 0x475569 }));
+    chassis.position.y = 24;
+    const cabin = new THREE.Mesh(new THREE.BoxGeometry(135, 32, 84), new THREE.MeshPhongMaterial({ color: 0x1e293b, transparent: true, opacity: 0.85 }));
+    cabin.position.set(-10, 56, 0);
+
+    const frontOpening = new THREE.LineSegments(
+      new THREE.EdgesGeometry(new THREE.BoxGeometry(56, 30, 2)),
+      new THREE.LineBasicMaterial({ color: 0xf1c40f })
+    );
+    frontOpening.position.set(22, 42, 48);
+
+    const rearOpening = new THREE.LineSegments(
+      new THREE.EdgesGeometry(new THREE.BoxGeometry(52, 30, 2)),
+      new THREE.LineBasicMaterial({ color: 0xf1c40f })
+    );
+    rearOpening.position.set(-36, 42, 48);
+
+    carGroup.add(chassis, cabin, frontOpening, rearOpening);
+    carGroup.add(createAxisGizmo(42, 0));
+    scene.add(carGroup);
+
+    // B. 공통좌표계 (CC) 기준 캘리브레이션 보드
+    const ccBoardGroup = new THREE.Group();
+    ccBoardGroup.position.set(0, 12, 45);
+    const boardMesh = new THREE.Mesh(new THREE.BoxGeometry(44, 2, 34), new THREE.MeshLambertMaterial({ color: 0xf8fafc }));
+    const boardGrid = new THREE.GridHelper(32, 6, 0x0f172a, 0x334155);
+    boardGrid.position.y = 1.2;
+    const ccAxisGizmo = createAxisGizmo(48, 0);
+    ccAxisGizmo.visible = false;
+    ccBoardGroup.add(boardMesh, boardGrid, ccAxisGizmo);
+    scene.add(ccBoardGroup);
+
+    // C. 이기종 로봇 2대 생성 (R1: 현대 HH020-03 아이보리 / R2: FANUC 옐로우 90도 회전)
+    function createRobotUnit(bodyColorHex, baseYawRad, attachEyeOnHand) {
+      const root = new THREE.Group();
+      const basePed = new THREE.Mesh(new THREE.CylinderGeometry(20, 25, 30, 20), new THREE.MeshLambertMaterial({ color: bodyColorHex }));
+      basePed.position.y = 15;
+
+      const harnessBox = new THREE.Mesh(new THREE.BoxGeometry(14, 16, 12), new THREE.MeshLambertMaterial({ color: 0x111827 }));
+      harnessBox.position.set(18, 16, 0);
+      harnessBox.rotation.y = baseYawRad;
+
+      const baseAxis = createAxisGizmo(45, baseYawRad);
+      baseAxis.position.y = 31;
+
+      const shoulder = new THREE.Vector3(0, 36, 0);
+      const elbow = new THREE.Mesh(new THREE.SphereGeometry(9, 14, 14), new THREE.MeshLambertMaterial({ color: 0x1f2937 }));
+      const upperArm = new THREE.Mesh(new THREE.CylinderGeometry(6, 7.5, 1, 12), new THREE.MeshLambertMaterial({ color: bodyColorHex }));
+      const foreArm = new THREE.Mesh(new THREE.CylinderGeometry(5, 6, 1, 12), new THREE.MeshLambertMaterial({ color: bodyColorHex }));
+
+      const wrist = new THREE.Group();
+      const toolPlate = new THREE.Mesh(new THREE.BoxGeometry(26, 6, 18), new THREE.MeshLambertMaterial({ color: 0x64748b }));
+      wrist.add(toolPlate);
+
+      let handScannerFov = null;
+      if (attachEyeOnHand) {
+        const s1Head = new THREE.Mesh(new THREE.BoxGeometry(16, 10, 22), new THREE.MeshLambertMaterial({ color: 0x0f172a }));
+        s1Head.position.set(0, 8, 8);
+        handScannerFov = createFrustum4to3(38, 78, 0.24, 0x00ffff);
+        handScannerFov.position.set(0, 4, 8);
+        handScannerFov.rotation.x = -0.35;
+        wrist.add(s1Head, handScannerFov);
+      }
+
+      root.add(basePed, harnessBox, baseAxis, elbow, upperArm, foreArm, wrist);
+      scene.add(root);
+      return { root, shoulder, elbow, upperArm, foreArm, wrist, handScannerFov };
+    }
+
+    const robot1 = createRobotUnit(0xe8dec8, 0, true);
+    robot1.root.position.set(75, 0, 125);
+    const r1Home = new THREE.Vector3(45, 95, 78);
+    const r1Target = r1Home.clone();
+
+    const robot2 = createRobotUnit(0xfacc15, Math.PI / 2, false);
+    robot2.root.position.set(-85, 0, 125);
+    const r2Home = new THREE.Vector3(-55, 95, 78);
+    const r2Target = r2Home.clone();
+
+    // D. 고정형 스캐너 S2: 3DM (FixedEye)
+    const s2Group = new THREE.Group();
+    s2Group.position.set(-35, 178, 45);
+    const s2Body = new THREE.Mesh(new THREE.BoxGeometry(34, 15, 44), new THREE.MeshLambertMaterial({ color: 0x1e293b }));
+    const s2Fov = createFrustum4to3(72, 152, 0.22, 0x38bdf8);
+    s2Group.add(s2Body, s2Fov);
+    scene.add(s2Group);
+
+    // 도어 파지대 & 앞문 / 뒷문 부품
+    const doorFrontStand = new THREE.Vector3(125, 22, 130);
+    const doorRearStand  = new THREE.Vector3(-135, 22, 130);
+
+    const doorFront = new THREE.Mesh(new THREE.BoxGeometry(52, 28, 3), new THREE.MeshPhongMaterial({ color: 0x38bdf8, transparent: true, opacity: 0.82 }));
+    const doorRear  = new THREE.Mesh(new THREE.BoxGeometry(48, 28, 3), new THREE.MeshPhongMaterial({ color: 0x2ed573, transparent: true, opacity: 0.82 }));
+    scene.add(doorFront, doorRear);
+
+    /* =========================================================
+       3. 인터락 단계별 평가 및 5단계 듀얼 도어 협업 시퀀스
+       ========================================================= */
+    function updateInterlockUI() {
+      const setCard = (id, stId, ok) => {
+        const c = document.getElementById(id);
+        const s = document.getElementById(stId);
+        c.className = 'interlock-card ' + (ok ? 'passed' : 'locked');
+        s.style.color = ok ? '#2ed573' : '#ff4757';
+        s.textContent = ok ? 'OK' : 'LOCK';
+      };
+      setCard('ilk-1', 'ilk-1-st', state.transferOk);
+      setCard('ilk-2', 'ilk-2-st', state.ccCreated);
+      setCard('ilk-3', 'ilk-3-st', state.ccCreated);
+
+      const allReady = state.transferOk && state.ccCreated;
+      const runBtn = document.getElementById('btn-run-dual');
+      const pill = document.getElementById('interlock-pill');
+
+      if (allReady) {
+        runBtn.classList.remove('locked-sim');
+        pill.className = 'judge-pill ok';
+        pill.textContent = 'SYSTEM READY (U10)';
+        document.getElementById('overlay-guide').style.color = '#2ed573';
+        document.getElementById('overlay-guide').textContent = '[READY] 공통좌표계(U10) 설정 완료 — 5단계 듀얼 도어 협업 장착을 실행할 수 있습니다.';
+      } else {
+        runBtn.classList.add('locked-sim');
+        pill.className = 'judge-pill ng';
+        pill.textContent = 'INTERLOCK LOCKED';
+      }
+    }
+
+    function confirmStage1() {
+      state.step1Checked = true;
+      addLog('[Step 1 완료] Hyundai HH020과 90° 회전 배치된 FANUC 로봇 Base 축 차이를 확인했습니다.', 'ok');
+      document.getElementById('status-msg').textContent = '단계 2/4 : S1(3DU) → S2(3DM) 캘리브레이션 데이터 트랜스퍼를 수행하세요.';
+      switchStage(2, document.getElementById('tab-step2'));
+    }
+
+    function executeTransferCalib() {
+      const isFixed = document.getElementById('sel-obj-fixed').value === 'FIXED';
+      const rotErr = Math.abs(parseFloat(document.getElementById('inp-rot-err').value) || 0);
+
+      if (!isFixed) {
+        addLog('[TransferCalib 실패] 캘리브레이션 오브젝트가 이동했습니다! NEVER MOVE 원칙을 준수하세요.', 'err');
+        return;
+      }
+      if (rotErr > 2.0) {
+        addLog(`[TransferCalib 경고] 회전량(${rotErr}°)이 과다합니다. 직교 이동 위주로 2.0° 이내로 맞추세요.`, 'err');
+        return;
+      }
+
+      state.transferOk = true;
+      document.getElementById('led-s1').className = 'led-dot';
+      document.getElementById('led-s2').className = 'led-dot';
+      updateInterlockUI();
+      addLog('[TransferCalib 성공] 3DU → 3DM 캘리브레이션 이관 및 Distance Map 정합 완료!', 'ok');
+      document.getElementById('status-msg').textContent = '단계 3/4 : 공통좌표계(CC) 보드를 차량 TLH 축과 15° 기울기로 설정하세요.';
+      switchStage(3, document.getElementById('tab-step3'));
+    }
+
+    function generateCommonCoord() {
+      if (!state.transferOk) {
+        addLog('[인터락 차단] 먼저 Step 2의 TransferCalib 정합 검증을 통과해야 합니다.', 'err');
+        return;
+      }
+      const xAxis = document.getElementById('sel-cc-x').value;
+      const yAxis = document.getElementById('sel-cc-y').value;
+      const tilt = parseFloat(document.getElementById('inp-tilt').value) || 0;
+
+      if (xAxis !== 'T' || yAxis !== 'L') {
+        addLog('[CC 축 오류] 공통좌표계 +X는 차량 +T(진행반대), +Y는 차량 +L(조수석)과 일치해야 합니다.', 'err');
+        return;
+      }
+      if (tilt < 10 || tilt > 20) {
+        addLog(`[광학 반사 경고] 보드 기울기(${tilt}°)가 부적절합니다. 난반사 방지를 위해 약 15°로 설정하세요.`, 'err');
+        return;
+      }
+
+      state.ccCreated = true;
+      ccBoardGroup.rotation.x = tilt * Math.PI / 180;
+      ccAxisGizmo.visible = true;
+
+      document.getElementById('cc-matrix-view').textContent =
+`[ 1.0000,  0.0000,  0.0000,  45.00;
+  0.0000,  0.9659, -0.2588,  12.00;
+  0.0000,  0.2588,  0.9659,   0.00;
+  0.0000,  0.0000,  0.0000,  1.000 ]`;
+
+      updateInterlockUI();
+      addLog('[CC 생성 완료] TLH 기준 공통좌표계(U10)가 생성되어 Hyundai R1과 FANUC R2에 동시 적용되었습니다.', 'ok');
+      document.getElementById('status-msg').textContent = '단계 4/4 : 두 로봇이 5단계 시퀀스로 앞문·뒷문을 협업 장착합니다.';
+      switchStage(4, document.getElementById('tab-step4'));
+    }
+
+    // 체계적인 5단계 로봇 협업 시퀀스 실행
+    function runDualDoorSequence() {
+      if (!state.transferOk || !state.ccCreated) {
+        addLog('[인터락 잠금] 스캐너 트랜스퍼 및 공통좌표계(U10) 생성이 완료되어야 실행 가능합니다.', 'err');
+        return;
+      }
+      clearSeqTimers();
+      state.r1HoldingDoor = false;
+      state.r2HoldingDoor = false;
+      doorFront.position.copy(doorFrontStand);
+      doorRear.position.copy(doorRearStand);
+      doorFront.rotation.set(0, 0, 0);
+      doorRear.rotation.set(0, 0, 0);
+
+      // Phase 1: 차체 진입 오차 부여 및 3D 비전 보정량 산출 (0.0s)
+      setPhaseUI(1);
+      carGroup.rotation.y = 0.06;
+      carGroup.position.set(8, 0, -40);
+      frontOpening.material.color.setHex(0xf1c40f);
+      rearOpening.material.color.setHex(0xf1c40f);
+      document.getElementById('status-msg').textContent = 'Phase 1/5 : 차체 진입 오차(ΔX=+8mm, ΔRz=+3.4°) 계측 및 U10 보정행렬 산출';
+      addLog('[Phase 1] 차체 위치 편차 계측 완료 → R1·R2 공통좌표계(U10) Shift 반영.', 'info');
+
+      // Phase 2: 양 로봇 도어 파지대 이동 및 픽업 (1.4s)
+      state.seqTimers.push(setTimeout(() => {
+        setPhaseUI(2);
+        r1Target.set(125, 34, 130);
+        r2Target.set(-135, 34, 130);
+        document.getElementById('status-msg').textContent = 'Phase 2/5 : R1(앞문)·R2(뒷문) 파지대 접근 및 도어 흡착 파지';
+        addLog('[Phase 2] R1(Hyundai)·R2(FANUC) 각 도어 파지대로 접근 중...', 'info');
+      }, 1400));
+
+      // Phase 2-2: 도어 흡착 완료 및 리프트업 (2.7s)
+      state.seqTimers.push(setTimeout(() => {
+        state.r1HoldingDoor = true;
+        state.r2HoldingDoor = true;
+        r1Target.set(80, 95, 95);
+        r2Target.set(-80, 95, 95);
+        addLog('[Phase 2 완료] 앞문·뒷문 진공 흡착 완료 및 안전 높이 리프트업.', 'ok');
+      }, 2700));
+
+      // Phase 3: 비틀어진 차체 개구부 전방 대기 위치로 U10 보정 접근 (4.0s)
+      state.seqTimers.push(setTimeout(() => {
+        setPhaseUI(3);
+        r1Target.set(30, 44, 24);
+        r2Target.set(-28, 44, 24);
+        document.getElementById('status-msg').textContent = 'Phase 3/5 : U10 보정 자세로 비틀어진 차체 도어 개구부 전방 정렬 접근';
+        addLog('[Phase 3] 서로 다른 Base 축의 두 로봇이 단일 U10 좌표계 기준으로 차체 측면에 정렬 접근.', 'info');
+      }, 4000));
+
+      // Phase 4: 차체 개구부 정밀 안착 및 릴리즈 (5.5s)
+      state.seqTimers.push(setTimeout(() => {
+        setPhaseUI(4);
+        r1Target.set(30, 42, 9);
+        r2Target.set(-28, 42, 9);
+        document.getElementById('status-msg').textContent = 'Phase 4/5 : 앞문·뒷문 차체 개구부 정밀 안착 및 클램핑 완료!';
+        addLog('[Phase 4] 앞문·뒷문 동시 안착 및 클램핑 완료!', 'ok');
+      }, 5500));
+
+      // Phase 4-2: 도어 고정 해제 및 개구부 녹색 전환 (6.7s)
+      state.seqTimers.push(setTimeout(() => {
+        state.r1HoldingDoor = false;
+        state.r2HoldingDoor = false;
+        doorFront.position.set(30, 42, 8);
+        doorFront.rotation.y = 0.06;
+        doorRear.position.set(-28, 42, 8);
+        doorRear.rotation.y = 0.06;
+        frontOpening.material.color.setHex(0x2ed573);
+        rearOpening.material.color.setHex(0x2ed573);
+      }, 6700));
+
+      // Phase 5: 양 로봇 홈(HOME) 복귀 완료 (7.6s)
+      state.seqTimers.push(setTimeout(() => {
+        setPhaseUI(5);
+        r1Target.copy(r1Home);
+        r2Target.copy(r2Home);
+        document.getElementById('status-msg').textContent = 'Phase 5/5 : 협업 장착 사이클 완료 — 양 로봇 홈(HOME) 안전 복귀 완료';
+        addLog('[Phase 5 완료] Hyundai HH020 & FANUC 양 로봇 홈 복귀 완료 (WORK SUCCESS).', 'ok');
+      }, 7600));
+    }
+
+    function toggleFovVisibility() {
+      state.fovVisible = !state.fovVisible;
+      if (robot1.handScannerFov) robot1.handScannerFov.visible = state.fovVisible;
+      s2Fov.visible = state.fovVisible;
+    }
+
+    function resetSimulator() {
+      clearSeqTimers();
+      state.step1Checked = false;
+      state.transferOk = false;
+      state.ccCreated = false;
+      state.r1HoldingDoor = false;
+      state.r2HoldingDoor = false;
+
+      ccBoardGroup.rotation.set(0, 0, 0);
+      ccAxisGizmo.visible = false;
+      carGroup.position.copy(carBasePos);
+      carGroup.rotation.set(0, 0, 0);
+      frontOpening.material.color.setHex(0xf1c40f);
+      rearOpening.material.color.setHex(0xf1c40f);
+
+      r1Target.copy(r1Home);
+      r2Target.copy(r2Home);
+      doorFront.position.copy(doorFrontStand);
+      doorFront.rotation.set(0, 0, 0);
+      doorRear.position.copy(doorRearStand);
+      doorRear.rotation.set(0, 0, 0);
+
+      document.getElementById('led-s1').className = 'led-dot warn';
+      document.getElementById('led-s2').className = 'led-dot warn';
+      document.getElementById('sim-log').innerHTML = '';
+      setPhaseUI(0);
+      updateInterlockUI();
+      switchStage(1, document.getElementById('tab-step1'));
+      addLog('[V0.2 초기화] 3D 공통좌표계(CC) 시뮬레이터가 초기화되었습니다.', 'info');
+    }
+
+    /* =========================================================
+       4. 기구학 업데이트 및 렌더링 루프
+       ========================================================= */
+    function updateRobotLimbs(rob, targetWorldPos) {
+      const localTarget = rob.root.worldToLocal(targetWorldPos.clone());
+      rob.wrist.position.lerp(localTarget, 0.09);
+
+      const mid = rob.shoulder.clone().lerp(rob.wrist.position, 0.5);
+      mid.y += 42;
+      rob.elbow.position.copy(mid);
+
+      const align = (mesh, p1, p2) => {
+        const d = p1.distanceTo(p2);
+        mesh.scale.set(1, d, 1);
+        mesh.position.copy(p1).lerp(p2, 0.5);
+        mesh.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), p2.clone().sub(p1).normalize());
+      };
+      align(rob.upperArm, rob.shoulder, mid);
+      align(rob.foreArm, mid, rob.wrist.position);
+    }
+
+    function animate() {
+      requestAnimationFrame(animate);
+      updateRobotLimbs(robot1, r1Target);
+      updateRobotLimbs(robot2, r2Target);
+
+      if (state.r1HoldingDoor) {
+        const w1 = new THREE.Vector3();
+        robot1.wrist.getWorldPosition(w1);
+        doorFront.position.copy(w1).add(new THREE.Vector3(0, -14, 0));
+      }
+      if (state.r2HoldingDoor) {
+        const w2 = new THREE.Vector3();
+        robot2.wrist.getWorldPosition(w2);
+        doorRear.position.copy(w2).add(new THREE.Vector3(0, -14, 0));
+      }
+
+      controls.update();
+      renderer.render(scene, camera);
+    }
+
+    window.addEventListener('resize', () => {
+      camera.aspect = vp.clientWidth / vp.clientHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(vp.clientWidth, vp.clientHeight);
+    });
+
+    resetSimulator();
+    animate();
+  </script>
+</body>
+</html>
