@@ -1,0 +1,2273 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>3D Vision - PLC - Robot 통신 Simulator | V2.0 (Nov.14)</title>
+  <style>
+    :root {
+      --bg-dark: #0a1117;
+      --panel-bg: #142330;
+      --panel-border: #233c4f;
+      --accent-cyan: #00adb5;
+      --accent-blue: #0088cc;
+      --text-main: #dce7ee;
+      --text-muted: #829aa8;
+      --danger-red: #ff4757;
+      --success-green: #2ed573;
+      --yellow-warn: #f1c40f;
+      --font-mono: 'Consolas', 'Monaco', 'Courier New', monospace;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+      font-family: 'Segoe UI', Tahoma, "Noto Sans KR", sans-serif;
+    }
+
+    body {
+      background-color: var(--bg-dark);
+      color: var(--text-main);
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      font-size: 12px;
+    }
+
+    /* 상단 헤더 */
+    header {
+      background: #080d12;
+      border-bottom: 1px solid var(--panel-border);
+      padding: 5px 14px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-shrink: 0;
+      gap: 10px;
+    }
+
+    .title-box {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .ver-badge {
+      background: #132a3a;
+      color: var(--accent-cyan);
+      border: 1px solid var(--accent-cyan);
+      font-family: var(--font-mono);
+      font-weight: 800;
+      padding: 3px 8px;
+      border-radius: 3px;
+      font-size: 11px;
+      letter-spacing: 0.4px;
+      white-space: nowrap;
+    }
+
+    .title {
+      font-size: 13.5px;
+      font-weight: bold;
+      color: #ffffff;
+      letter-spacing: 0.3px;
+    }
+
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .status-bar {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .hw-badge {
+      background: #0c161e;
+      border: 1px solid var(--panel-border);
+      padding: 3px 7px;
+      border-radius: 3px;
+      font-family: var(--font-mono);
+      font-size: 10px;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .led-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--success-green);
+      box-shadow: 0 0 6px var(--success-green);
+    }
+
+    .led-dot.err {
+      background: var(--danger-red);
+      box-shadow: 0 0 6px var(--danger-red);
+      animation: pulse 0.9s infinite;
+    }
+
+    @keyframes pulse {
+      50% { opacity: 0.25; }
+    }
+
+    .logo-link {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 2px 6px;
+      border-radius: 4px;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid transparent;
+      transition: all 0.2s;
+      cursor: pointer;
+      text-decoration: none;
+    }
+    .logo-link:hover {
+      border-color: var(--danger-red);
+      background: rgba(255, 71, 87, 0.12);
+    }
+    .logo-link img {
+      height: 22px;
+      width: auto;
+      display: block;
+    }
+    .logo-fallback {
+      color: #e60012;
+      font-weight: 900;
+      font-size: 15px;
+      letter-spacing: 1px;
+    }
+
+    /* 서브 내비게이션 & 시뮬레이션 제어바 */
+    .sub-nav {
+      background: #0e1923;
+      border-bottom: 1px solid var(--panel-border);
+      padding: 0 14px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-shrink: 0;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .nav-tabs {
+      display: flex;
+      gap: 4px;
+    }
+
+    .nav-tab {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      padding: 6px 12px;
+      font-size: 11px;
+      font-weight: bold;
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+    }
+
+    .nav-tab:hover { color: #fff; }
+    .nav-tab.active {
+      color: var(--accent-cyan);
+      border-bottom-color: var(--accent-cyan);
+      background: rgba(0, 173, 181, 0.08);
+    }
+
+    .sim-controls {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 0;
+    }
+
+    select, input[type="text"] {
+      background: #080d12;
+      border: 1px solid var(--panel-border);
+      color: #fff;
+      padding: 3px 6px;
+      border-radius: 3px;
+      font-size: 11px;
+      font-family: var(--font-mono);
+    }
+
+    button {
+      background: #1a3347;
+      border: 1px solid var(--panel-border);
+      color: #fff;
+      padding: 4px 10px;
+      font-size: 11px;
+      cursor: pointer;
+      border-radius: 3px;
+      transition: background 0.15s;
+    }
+    button:hover:not(:disabled) { background: #254964; }
+    button.primary {
+      background: #007799;
+      border-color: var(--accent-cyan);
+      font-weight: bold;
+    }
+    button.primary:hover:not(:disabled) { background: #0099bb; }
+    button.success {
+      background: #1e7e48;
+      border-color: var(--success-green);
+      font-weight: bold;
+    }
+    button.tiny-btn {
+      padding: 1px 6px;
+      font-size: 9.5px;
+      border-radius: 2px;
+    }
+    button.tiny-btn.active {
+      background: var(--accent-cyan);
+      color: #080d12;
+      font-weight: bold;
+    }
+
+    /* 메인 워크스페이스 */
+    .workspace {
+      display: grid;
+      grid-template-columns: 295px 1fr 330px;
+      grid-template-rows: 1fr 138px;
+      flex: 1;
+      overflow: hidden;
+    }
+
+    .panel {
+      background: var(--panel-bg);
+      border-right: 1px solid var(--panel-border);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    .panel-right {
+      border-right: none;
+      border-left: 1px solid var(--panel-border);
+    }
+
+    .panel-header {
+      background: #0e1923;
+      padding: 5px 10px;
+      font-weight: bold;
+      color: var(--accent-cyan);
+      border-bottom: 1px solid var(--panel-border);
+      font-size: 11px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-shrink: 0;
+    }
+
+    .panel-body {
+      padding: 8px;
+      overflow-y: auto;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 7px;
+    }
+
+    /* I/O 핀맵 LED 리스트 */
+    .io-split {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6px;
+    }
+
+    .io-box {
+      background: #0c161f;
+      border: 1px solid var(--panel-border);
+      border-radius: 4px;
+      padding: 5px;
+    }
+
+    .io-box-title {
+      font-size: 10px;
+      font-weight: bold;
+      color: #8faec4;
+      border-bottom: 1px solid #1a2f3f;
+      padding-bottom: 3px;
+      margin-bottom: 4px;
+      font-family: var(--font-mono);
+    }
+
+    .io-row {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      padding: 2px 3px;
+      font-family: var(--font-mono);
+      font-size: 10px;
+      border-radius: 2px;
+      cursor: pointer;
+    }
+    .io-row:hover {
+      background: rgba(255, 255, 255, 0.06);
+    }
+
+    .bit-lamp {
+      width: 10px;
+      height: 10px;
+      border-radius: 2px;
+      background: #172736;
+      border: 1px solid #35536b;
+      flex-shrink: 0;
+    }
+    .bit-lamp.in-on {
+      background: var(--success-green);
+      border-color: #a3ffcb;
+      box-shadow: 0 0 6px var(--success-green);
+    }
+    .bit-lamp.out-on {
+      background: var(--accent-cyan);
+      border-color: #9ef8ff;
+      box-shadow: 0 0 6px var(--accent-cyan);
+    }
+    .bit-lamp.ng-on {
+      background: var(--danger-red);
+      border-color: #ff9aa2;
+      box-shadow: 0 0 6px var(--danger-red);
+    }
+
+    /* 중앙 3D 뷰포트 */
+    #viewport-container {
+      position: relative;
+      background: radial-gradient(circle at center, #152636 0%, #091016 100%);
+      overflow: hidden;
+    }
+
+    .viewport-overlay {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      font-family: var(--font-mono);
+      font-size: 10.5px;
+      color: #00ffcc;
+      line-height: 1.45;
+      pointer-events: none;
+      text-shadow: 1px 1px 2px #000;
+      z-index: 5;
+      background: rgba(8, 13, 18, 0.65);
+      padding: 6px 9px;
+      border-radius: 4px;
+      border: 1px solid rgba(0, 173, 181, 0.25);
+    }
+
+    .cam-presets {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      display: flex;
+      gap: 4px;
+      z-index: 6;
+    }
+
+    .bottom-banners {
+      position: absolute;
+      bottom: 8px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 5px;
+      z-index: 6;
+      width: 94%;
+      max-width: 680px;
+    }
+
+    .plc-result-banner {
+      display: none;
+      width: 100%;
+      padding: 6px 14px;
+      border-radius: 4px;
+      font-family: var(--font-mono);
+      font-size: 11.5px;
+      font-weight: 800;
+      text-align: center;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.6);
+    }
+    .plc-result-banner.ok {
+      display: block;
+      background: rgba(20, 83, 45, 0.94);
+      border: 2px solid var(--success-green);
+      color: #86efac;
+    }
+    .plc-result-banner.ng {
+      display: block;
+      background: rgba(127, 29, 29, 0.95);
+      border: 2px solid var(--danger-red);
+      color: #fca5a5;
+      animation: bannerFlash 0.8s infinite alternate;
+    }
+    @keyframes bannerFlash {
+      from { box-shadow: 0 0 6px rgba(255, 71, 87, 0.4); }
+      to   { box-shadow: 0 0 18px rgba(255, 71, 87, 0.95); }
+    }
+
+    .step-banner {
+      background: rgba(8, 13, 18, 0.92);
+      border: 1px solid var(--accent-cyan);
+      padding: 5px 14px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: bold;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      white-space: nowrap;
+    }
+
+    .judge-pill {
+      padding: 2px 8px;
+      border-radius: 3px;
+      font-family: var(--font-mono);
+      font-size: 10.5px;
+      background: #1b354b;
+      color: var(--accent-cyan);
+    }
+    .judge-pill.ok { background: var(--success-green); color: #080d12; }
+    .judge-pill.ng { background: var(--danger-red); color: #fff; }
+
+    /* 우측 패널 카드 */
+    .sub-card {
+      background: #0c161f;
+      border: 1px solid var(--panel-border);
+      border-radius: 4px;
+      padding: 8px;
+    }
+
+    .sub-card-title {
+      font-size: 10.5px;
+      font-weight: bold;
+      color: #8faec4;
+      margin-bottom: 6px;
+      border-bottom: 1px solid #1a2f3f;
+      padding-bottom: 3px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    /* 2번 탭: 1행 1항목 IP 입력 행 스타일 (가로 넘침 방지) */
+    .port-group-title {
+      font-weight: bold;
+      font-size: 10.5px;
+      margin: 7px 0 4px 0;
+      padding-top: 4px;
+      border-top: 1px dashed #1f3648;
+    }
+    .port-group-title:first-of-type {
+      border-top: none;
+      margin-top: 2px;
+      padding-top: 0;
+    }
+
+    .net-row-single {
+      display: grid;
+      grid-template-columns: 105px 1fr;
+      gap: 6px;
+      align-items: center;
+      font-size: 10.5px;
+      margin-bottom: 4px;
+    }
+    .net-row-single label {
+      color: var(--text-muted);
+      white-space: nowrap;
+    }
+    .net-row-single input {
+      width: 100%;
+      min-width: 0;
+    }
+
+    .tp-box {
+      background: #070b0e;
+      border: 1px solid #1a2c3a;
+      padding: 6px;
+      font-family: var(--font-mono);
+      font-size: 9.8px;
+      color: #a4e57e;
+      border-radius: 3px;
+      line-height: 1.42;
+      white-space: pre;
+      overflow-x: auto;
+    }
+
+    .tp-line.active-line {
+      background: rgba(0, 173, 181, 0.28);
+      color: #fff;
+      font-weight: bold;
+      border-left: 3px solid var(--accent-cyan);
+      padding-left: 4px;
+    }
+
+    /* 3번 탭: 현장 트러블슈팅 가이드 (atm_error.pdf 요약 & 원본 링크) */
+    .pdf-link-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      width: 100%;
+      padding: 7px 10px;
+      background: linear-gradient(135deg, #007799 0%, #005577 100%);
+      border: 1px solid var(--accent-cyan);
+      border-radius: 4px;
+      color: #ffffff;
+      font-weight: bold;
+      font-size: 11px;
+      text-decoration: none;
+      transition: all 0.2s;
+      margin-bottom: 6px;
+    }
+    .pdf-link-btn:hover {
+      background: #0099bb;
+      box-shadow: 0 0 10px rgba(0, 173, 181, 0.4);
+    }
+
+    .guide-acc {
+      background: #080d12;
+      border: 1px solid #1f3648;
+      border-radius: 4px;
+      margin-bottom: 5px;
+      overflow: hidden;
+    }
+    .guide-acc summary {
+      padding: 6px 8px;
+      font-size: 10.8px;
+      font-weight: bold;
+      color: #e2e8f0;
+      cursor: pointer;
+      background: #0f1b26;
+      list-style: none;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .guide-acc summary:hover {
+      color: var(--accent-cyan);
+    }
+    .guide-acc[open] summary {
+      border-bottom: 1px solid #1f3648;
+      color: var(--accent-cyan);
+    }
+    .guide-content {
+      padding: 7px 8px;
+      font-size: 10.3px;
+      color: #cbd5e1;
+      line-height: 1.5;
+    }
+    .guide-content code {
+      background: #142330;
+      color: var(--yellow-warn);
+      padding: 1px 4px;
+      border-radius: 2px;
+      font-family: var(--font-mono);
+    }
+    .led-pill-row {
+      display: flex;
+      gap: 4px;
+      flex-wrap: wrap;
+      margin: 4px 0;
+    }
+    .led-tag {
+      font-family: var(--font-mono);
+      font-size: 9.5px;
+      padding: 1px 5px;
+      border-radius: 3px;
+      background: #142330;
+      border: 1px solid #2b485e;
+    }
+
+    /* 하단 좌측: 스캐너별 UF6 4x4 행렬 & 6-DOF 개별 점멸 박스 */
+    .bottom-left {
+      grid-column: 1 / 2;
+      border-top: 1px solid var(--panel-border);
+      border-right: 1px solid var(--panel-border);
+      background: #0c161f;
+      padding: 5px 8px;
+      font-family: var(--font-mono);
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    .matrix-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .matrix-source-badge {
+      font-size: 9.8px;
+      font-weight: bold;
+      color: var(--accent-cyan);
+    }
+
+    .matrix-box {
+      background: #070b0e;
+      border: 1px solid #1a2c3a;
+      padding: 3px 5px;
+      margin-top: 2px;
+      color: var(--yellow-warn);
+      font-size: 9px;
+      line-height: 1.25;
+      white-space: pre;
+    }
+
+    .shift-6dof-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 3px;
+      margin-top: 3px;
+    }
+
+    .dof-box {
+      background: #080d12;
+      border: 1px solid #22384a;
+      border-radius: 3px;
+      padding: 2px 4px;
+      font-size: 9.2px;
+      color: #cbd5e1;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .dof-box.ok-val {
+      border-color: rgba(46, 213, 115, 0.45);
+    }
+
+    .dof-box.ng-blink {
+      border-color: var(--danger-red);
+      color: #fff;
+      font-weight: bold;
+      animation: dofAlarmBlink 0.45s infinite alternate;
+    }
+
+    @keyframes dofAlarmBlink {
+      from { background: rgba(255, 71, 87, 0.25); }
+      to   { background: rgba(255, 71, 87, 0.85); }
+    }
+
+    /* 하단 우측: 슬림 디지털 타이밍 차트(Waveform) + 통신 로그 */
+    .bottom-right {
+      grid-column: 2 / 4;
+      border-top: 1px solid var(--panel-border);
+      background: #080c10;
+      display: grid;
+      grid-template-columns: 0.82fr 1.18fr;
+      overflow: hidden;
+    }
+
+    .wave-panel {
+      border-right: 1px solid var(--panel-border);
+      padding: 5px 8px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    #wave-canvas {
+      width: 100%;
+      height: 100%;
+      background: #05090d;
+      border: 1px solid #1a2c3a;
+      border-radius: 3px;
+    }
+
+    .log-panel {
+      padding: 5px 8px;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .log-list {
+      flex: 1;
+      overflow-y: auto;
+      font-family: var(--font-mono);
+      font-size: 10px;
+      line-height: 1.4;
+      color: #a4b0be;
+      margin-top: 3px;
+    }
+
+    .log-ok { color: var(--success-green); }
+    .log-err { color: var(--danger-red); font-weight: bold; }
+    .log-info { color: var(--accent-cyan); }
+
+    @media (max-width: 1100px) {
+      body { height: auto; overflow-y: auto; }
+      .workspace {
+        grid-template-columns: 1fr;
+        grid-template-rows: auto 440px auto auto auto;
+        height: auto;
+      }
+      .bottom-left, .bottom-right { grid-column: 1 / 2; }
+      .bottom-right { grid-template-columns: 1fr; height: 260px; }
+    }
+  </style>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+</head>
+<body>
+
+  <!-- 상단 헤더 -->
+  <header>
+    <div class="title-box">
+      <span class="ver-badge">V2.0 (Nov.14)</span>
+      <span class="title">3D Vision - PLC - Robot 통신 Simulator</span>
+    </div>
+
+    <div class="header-right">
+      <div class="status-bar">
+        <div class="hw-badge"><span class="led-dot" id="hw-plc"></span>PLC</div>
+        <div class="hw-badge"><span class="led-dot" id="hw-s0"></span>S0 [3DM]</div>
+        <div class="hw-badge"><span class="led-dot" id="hw-s1"></span>S1 [3DM]</div>
+        <div class="hw-badge"><span class="led-dot" id="hw-rob"></span>Hi5a</div>
+      </div>
+
+      <a href="index.html" class="logo-link" title="메인 교육 포털(index.html)로 돌아가기">
+        <img src="atm_red.png" alt="ATM" onerror="this.style.display='none'; this.nextElementSibling.style.display='inline';">
+        <span class="logo-fallback" style="display:none;">ATM</span>
+      </a>
+    </div>
+  </header>
+
+  <!-- 서브 내비게이션 & 시뮬레이션 제어바 -->
+  <div class="sub-nav">
+    <div class="nav-tabs">
+      <button class="nav-tab active" onclick="switchRightMode('mode-seq', this)">1. 11단계 공정 핸드셰이크 (Sequence)</button>
+      <button class="nav-tab" onclick="switchRightMode('mode-net', this)">2. 4-Port IP 격리 설정 (Network)</button>
+      <button class="nav-tab" onclick="switchRightMode('mode-guide', this)">3. 현장 트러블슈팅 가이드</button>
+    </div>
+
+    <div class="sim-controls">
+      <select id="sel-model" onchange="onModelChange()">
+        <option value="MODEL_A">차종: 세단 파노라마 (Bit 8)</option>
+        <option value="MODEL_B">차종: SUV 파노라마 (Bit 9)</option>
+      </select>
+      <select id="sel-scenario" onchange="resetAll()">
+        <option value="OK_DEMO">OK Demo (랜덤 정상 보정)</option>
+        <option value="NG_S0">NG Demo (S0 부품 오차 초과 → Pick_NG)</option>
+        <option value="NG_S1">NG Demo (S1 차체 오차 초과 → 부품 회수)</option>
+      </select>
+      <button class="primary" onclick="nextStep()">▶ 다음 스텝 (1~11)</button>
+      <button class="success" id="btn-auto" onclick="toggleAuto()">⏩ 자동 연속</button>
+      <button onclick="resetAll()">↺ 초기화 (1)</button>
+    </div>
+  </div>
+
+  <!-- 메인 3D 워크스페이스 -->
+  <div class="workspace">
+
+    <!-- 좌측 패널: PLC & Hi5a 실시간 I/O 핀맵 -->
+    <div class="panel">
+      <div class="panel-header">
+        <span>I/O 핀맵 모니터 (클릭: 수동 토글)</span>
+        <span style="font-size:9.5px; color:var(--text-muted);">Forced I/O</span>
+      </div>
+      <div class="panel-body">
+        <div class="io-split">
+          <div class="io-box">
+            <div class="io-box-title">ATMC R (PLC→PC)</div>
+            <div id="list-plc-in"></div>
+          </div>
+          <div class="io-box">
+            <div class="io-box-title">ATMC W (PC→PLC)</div>
+            <div id="list-plc-out"></div>
+          </div>
+        </div>
+
+        <div class="io-split">
+          <div class="io-box">
+            <div class="io-box-title">Hi5a DI (입력)</div>
+            <div id="list-rob-di"></div>
+          </div>
+          <div class="io-box">
+            <div class="io-box-title">Hi5a DO (출력)</div>
+            <div id="list-rob-do"></div>
+          </div>
+        </div>
+
+        <div style="font-size:10px; color:var(--text-muted); line-height:1.42; padding:2px;">
+          * <b>로봇 Base {B} (기단 상단 원점, CW 90°):</b><br>
+          &nbsp;&nbsp;<span style="color:#ff4757;">■ X(Red)</span>: 전후 | <span style="color:#2ed573;">■ Y(Green)</span>: 좌우 | <span style="color:#1e90ff;">■ Z(Blue)</span>: 상하<br>
+          * <b>차체 TLH 프레임 (Z축 180° 회전):</b><br>
+          &nbsp;&nbsp;<span style="color:#ff4757;">■ T(X)</span>: 진행반대(좌) | <span style="color:#2ed573;">■ L(Y)</span>: 조수석(전) | <span style="color:#1e90ff;">■ H(Z)</span>: 상
+        </div>
+      </div>
+    </div>
+
+    <!-- 중앙: Three.js 3D 파노라마 선루프 장착 공정 셀 뷰포트 -->
+    <div id="viewport-container">
+      <div class="viewport-overlay">
+        [Panorama Sunroof Cell — Hi5a Base {B} & Car TLH Frame]<br>
+        <span style="color:#ff4757;">X/T(Red)</span> · <span style="color:#2ed573;">Y/L(Green)</span> · <span style="color:#1e90ff;">Z/H(Blue)</span> | <span style="color:#fef08a;">■ 전면 LED 전조등(우측진행)</span><br>
+        <span id="overlay-state" style="color:#f1c40f; font-weight:bold;">(1) 초기 상태: 시스템 대기 (READY = 1)</span>
+      </div>
+
+      <!-- 시점 빠른 전환 버튼 -->
+      <div class="cam-presets">
+        <button class="tiny-btn" onclick="setCameraView('ISO')">입체 뷰 (3D)</button>
+        <button class="tiny-btn" onclick="setCameraView('TOP')">평면도 (Top)</button>
+        <button class="tiny-btn" onclick="setCameraView('FRONT')">정면 뷰 (Front)</button>
+      </div>
+
+      <!-- 하단 PLC 결과 알림창 + 스텝 진행 배너 -->
+      <div class="bottom-banners">
+        <div class="plc-result-banner" id="plc-result-banner">
+          [PLC 판정 결과 알림] 작업 성공 (OK)
+        </div>
+        <div class="step-banner">
+          <span id="step-text">(1) / (11) : 초기 상태 — 시스템 준비 완료</span>
+          <span class="judge-pill" id="judge-pill">STEP 1/11</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 우측 패널: 선택된 모드별 인터랙션 -->
+    <div class="panel panel-right">
+      <div class="panel-header" id="right-panel-title">Hi5a 제어기 JOB 실행 & 11단계 공정</div>
+      <div class="panel-body">
+
+        <!-- 모드 1: 시퀀스 & Hi5a HR-BASIC 프로그램 추적 -->
+        <div id="mode-seq">
+          <div class="sub-card" style="margin-bottom:7px;">
+            <div class="sub-card-title">
+              <span>Hi5a 티칭 펜던트 (0001.JOB)</span>
+              <span style="color:var(--yellow-warn);">HR-BASIC</span>
+            </div>
+            <div class="tp-box" id="tp-viewer"></div>
+          </div>
+
+          <div class="sub-card">
+            <div class="sub-card-title"><span>시간차 동기화 및 NG 복구 로직</span></div>
+            <div style="font-size:10.3px; color:#cbd5e1; line-height:1.48;">
+              • <b>(7) 시간차 파지:</b> <code>PC → Robot</code> <code>PICK</code> 패킷 수신 완료 후 로봇이 부품대로 이동해 파지합니다.<br>
+              • <b>(10) 시간차 장착:</b> <code>S1</code> 보정으로 <b>차체가 먼저 정위치 정렬</b>된 후 로봇이 선루프를 장착합니다.<br>
+              • <b>NG 복구:</b> <code>S0 NG</code> 시 로봇 정지 종료 / <code>S1 NG</code> 시 부품을 부품대 원위치로 반납 후 종료.
+            </div>
+          </div>
+        </div>
+
+        <!-- 모드 2: 4-Port 멀티 랜카드 IP 격리 설정 (1행 1항목 배열 수정) -->
+        <div id="mode-net" style="display:none;">
+          <div class="sub-card" style="margin-bottom:8px;">
+            <div class="sub-card-title">
+              <span>비전 PC 4-Port IP 격리 설정</span>
+              <button class="primary" style="padding:2px 7px; font-size:10px;" onclick="verifyNetworks()">연결 검증</button>
+            </div>
+            <p style="font-size:10.3px; color:var(--yellow-warn); margin-bottom:6px; line-height:1.4;">
+              * 4개 포트는 서로 다른 서브넷 대역으로 분리되어야 합니다. 현재 <b>LAN 3(S0)</b> 대역을 맞춰보세요.
+            </p>
+
+            <div class="port-group-title" style="color:#60a5fa;">[LAN 1] Hi5a Robot (HR-RPC)</div>
+            <div class="net-row-single"><label>Vision PC IP</label><input type="text" id="ip-pc-rob" value="10.10.10.100"></div>
+            <div class="net-row-single"><label>Hi5a Robot IP</label><input type="text" id="ip-dev-rob" value="10.10.10.55"></div>
+
+            <div class="port-group-title" style="color:#38bdf8;">[LAN 2] Melsec PLC (Port 5020)</div>
+            <div class="net-row-single"><label>Vision PC IP</label><input type="text" id="ip-pc-plc" value="192.168.0.111"></div>
+            <div class="net-row-single"><label>Melsec PLC IP</label><input type="text" id="ip-dev-plc" value="192.168.0.1"></div>
+
+            <div class="port-group-title" style="color:#f59e0b;">[LAN 3] S0 [3DM] (Glass Rack)</div>
+            <div class="net-row-single"><label>Vision PC IP</label><input type="text" id="ip-pc-s0" value="192.168.10.100"></div>
+            <div class="net-row-single"><label>S0 Camera IP</label><input type="text" id="ip-cam-s0" value="192.168.1.135"></div>
+            <div class="net-row-single"><label>S0 Projector IP</label><input type="text" id="ip-prj-s0" value="192.168.10.10"></div>
+
+            <div class="port-group-title" style="color:#2ed573;">[LAN 4] S1 [3DM] (Car Body)</div>
+            <div class="net-row-single"><label>Vision PC IP</label><input type="text" id="ip-pc-s1" value="192.168.11.100"></div>
+            <div class="net-row-single"><label>S1 Camera IP</label><input type="text" id="ip-cam-s1" value="192.168.11.135"></div>
+            <div class="net-row-single"><label>S1 Projector IP</label><input type="text" id="ip-prj-s1" value="192.168.11.10"></div>
+          </div>
+          <button style="width:100%;" onclick="resetNetInputs()">출하 초기값(에러 상태)으로 복원</button>
+        </div>
+
+        <!-- 모드 3: 현장 트러블슈팅 가이드 (atm_error.pdf 요약 및 원본 PDF 링크) -->
+        <div id="mode-guide" style="display:none;">
+          <a href="atm_error.pdf" target="_blank" class="pdf-link-btn" title="같은 폴더의 원본 트러블슈팅 매뉴얼(atm_error.pdf)을 새 탭에서 엽니다">
+            <span>📄 원본 매뉴얼 열기 (atm_error.pdf)</span>
+          </a>
+
+          <div class="sub-card" style="padding:6px;">
+            <div class="sub-card-title">
+              <span>ATM Robot Vision 트러블슈팅 요약</span>
+              <span style="font-size:9.5px; color:var(--text-muted);">항목 클릭 시 펼침</span>
+            </div>
+
+            <!-- 1. 스캐너 LED 점등 상태 -->
+            <details class="guide-acc" open>
+              <summary><span>1. AITZ 3D 스캐너 LED 점등 확인 (p.4)</span><span>▾</span></summary>
+              <div class="guide-content">
+                <div class="led-pill-row">
+                  <span class="led-tag" style="color:#4ade80;">PWR: 전원</span>
+                  <span class="led-tag" style="color:#facc15;">TRX: 스캔중</span>
+                  <span class="led-tag" style="color:#38bdf8;">LNK: 5초 점멸</span>
+                  <span class="led-tag" style="color:#c084fc;">STA: 통신상태</span>
+                </div>
+                • <b>정상 부팅 순서:</b> TRX 노랑 → TRX 초록 → PWR·LNK 초록 / STA 노랑 → <b>PWR 초록 점등(연결 완료)</b>.<br>
+                • 전면 <b>LPF(Low Pass Filter)</b>는 일반 유리가 아니므로 손 접촉 금지, <b>렌즈 와이프</b>로만 세척합니다.
+              </div>
+            </details>
+
+            <!-- 2. 통신 끊김 & 로그 분석 -->
+            <details class="guide-acc" open>
+              <summary><span>2. 하드웨어 연결 끊김 & 로그 조치 (p.8~13)</span><span>▾</span></summary>
+              <div class="guide-content">
+                • <b>1차 즉시 복구:</b> 하단 상태바의 적색 탭(<code>PLC</code>, <code>SCANNER</code>, <code>ROBOT</code>)을 <b>Ctrl + 더블클릭</b>하여 재연결 시도.<br>
+                • <b>로그 <code>"physically removed"</code>:</b> 99% LAN/전원 케이블 단선 또는 커넥터 풀림 → RJ45·M12 체결 확인.<br>
+                • <b>프로젝터 <code>[EVENT_DISCONNECTED]</code>:</b> 펌웨어 충돌 → PC 랙 후면 스캐너 <b>CP 전원을 20초 이상 내린 후</b> 재부팅.
+              </div>
+            </details>
+
+            <!-- 3. 네트워크 속도 및 랜포트 LED -->
+            <details class="guide-acc">
+              <summary><span>3. 네트워크 1.0Gbps 속도 & 랜카드 점검 (p.14)</span><span>▾</span></summary>
+              <div class="guide-content">
+                • 제어판 어댑터 상태에서 링크 속도가 <b>1.0 Gbps</b>인지 확인 (속도 저하 시 3D 데이터 취득 실패 → 케이블 교체).<br>
+                • <b>PC 후면 랜포트 LED:</b> 정상(초록/주황 점멸) / 통신이상(초록/초록 또는 소등).<br>
+                • <code>AbeoSCAN</code> 테스트 시에는 반드시 현장 프로그램(ATMC)을 먼저 종료해야 합니다.
+              </div>
+            </details>
+
+            <!-- 4. 공정 NG (Fitness / Overlap / Limit 초과) -->
+            <details class="guide-acc">
+              <summary><span>4. 공정 판정 NG (FIT / OVL / Limit 초과) (p.20~25)</span><span>▾</span></summary>
+              <div class="guide-content">
+                • <b>OVL 낮음 / FIT 높음:</b> 기준 모델 대비 대상물 형상 변형, 조명 간섭 또는 스캐너 LPF 오염 점검 후 재스캔.<br>
+                • <b>Shift Limit 초과 NG:</b> 로봇 경로 간섭 방지를 위한 안전 허용치 초과 상태 → 대상물 정위치 정렬 후 재기동.<br>
+                • 스캐너 물리적 충격·교체 시에는 <b>원점 보정(Eye correction matrix)</b>을 수행합니다.
+              </div>
+            </details>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- 하단 좌측: 스캐너별 UF6 4x4 행렬 & 6-DOF 개별 점멸 박스 -->
+    <div class="bottom-left">
+      <div class="matrix-header">
+        <span class="matrix-source-badge" id="matrix-source-lbl">[대기] 보정 행렬 (T_Shift)</span>
+        <div style="display:flex; gap:3px;">
+          <button class="tiny-btn" id="btn-view-s0" onclick="selectMatrixView('S0')">S0 [3DM]</button>
+          <button class="tiny-btn" id="btn-view-s1" onclick="selectMatrixView('S1')">S1 [3DM]</button>
+        </div>
+      </div>
+
+      <div class="matrix-box" id="matrix-out">
+[1.0000, 0.0000, 0.0000,  0.00;
+ 0.0000, 1.0000, 0.0000,  0.00;
+ 0.0000, 0.0000, 1.0000,  0.00;
+ 0.0000, 0.0000, 0.0000,  1.00]</div>
+
+      <div class="shift-6dof-grid" id="shift-6dof-box">
+        <div class="dof-box" id="box-dx"><span>ΔX</span><span>0.0mm</span></div>
+        <div class="dof-box" id="box-dy"><span>ΔY</span><span>0.0mm</span></div>
+        <div class="dof-box" id="box-dz"><span>ΔZ</span><span>0.0mm</span></div>
+        <div class="dof-box" id="box-rx"><span>ΔRx</span><span>0.0°</span></div>
+        <div class="dof-box" id="box-ry"><span>ΔRy</span><span>0.0°</span></div>
+        <div class="dof-box" id="box-rz"><span>ΔRz</span><span>0.0°</span></div>
+      </div>
+    </div>
+
+    <!-- 하단 우측: 슬림 디지털 타이밍 차트 + ATMC 로그 -->
+    <div class="bottom-right">
+      <div class="wave-panel">
+        <div style="display:flex; justify-content:space-between; font-size:9.5px; color:var(--accent-cyan); font-weight:bold; margin-bottom:2px;">
+          <span>신호 타이밍 파형 (Handshake)</span>
+          <span style="color:var(--text-muted);">SCAN · OK/NG · VAC · END</span>
+        </div>
+        <canvas id="wave-canvas"></canvas>
+      </div>
+
+      <div class="log-panel">
+        <div style="font-size:9.5px; color:var(--accent-cyan); font-weight:bold;">ATMC & Hi5a 실시간 통신 로그</div>
+        <div class="log-list" id="log-list"></div>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    /* =========================================================
+       1. I/O 핀맵 데이터 & UI 렌더링
+       ========================================================= */
+    const ioState = {
+      R0: 0, R1: 0, R2: 0, R3: 0, R8: 1, R9: 0, R15: 0,
+      W0: 1, W1: 0, W2: 0, W3: 0, W4: 0, W5: 0, W14: 0, W15: 1,
+      DI10: 0, DI11: 0, DI12: 0, DI13: 0, DI14: 0, DI15: 0, DI16: 0,
+      DO10: 0, DO11: 0, DO12: 0, DO13: 0, DO14: 0, DO15: 0, DO45: 0
+    };
+
+    const pinDefs = {
+      plcIn: [
+        { k: 'R0', label: '0 RESET' },
+        { k: 'R1', label: '1 START' },
+        { k: 'R2', label: '2 S0_SCAN' },
+        { k: 'R3', label: '3 S1_SCAN' },
+        { k: 'R8', label: '8 MODEL_A' },
+        { k: 'R9', label: '9 MODEL_B' },
+        { k: 'R15', label: '15 END' }
+      ],
+      plcOut: [
+        { k: 'W0', label: '0 READY' },
+        { k: 'W1', label: '1 HW_ERR', ng: true },
+        { k: 'W2', label: '2 S0_OK' },
+        { k: 'W3', label: '3 S0_NG', ng: true },
+        { k: 'W4', label: '4 S1_OK' },
+        { k: 'W5', label: '5 S1_NG', ng: true },
+        { k: 'W14', label: '14 BUSY' },
+        { k: 'W15', label: '15 PCRUN' }
+      ],
+      robDi: [
+        { k: 'DI10', label: 'DI10 부품안착' },
+        { k: 'DI11', label: 'DI11 PICK_OK' },
+        { k: 'DI12', label: 'DI12 PICK_NG', ng: true },
+        { k: 'DI13', label: 'DI13 진공센서' },
+        { k: 'DI14', label: 'DI14 차체진입' },
+        { k: 'DI15', label: 'DI15 INST_OK' },
+        { k: 'DI16', label: 'DI16 INST_NG', ng: true }
+      ],
+      robDo: [
+        { k: 'DO10', label: 'DO10 S0요청' },
+        { k: 'DO11', label: 'DO11 진공ON' },
+        { k: 'DO12', label: 'DO12 진공파기' },
+        { k: 'DO13', label: 'DO13 중간대기' },
+        { k: 'DO14', label: 'DO14 S1요청' },
+        { k: 'DO15', label: 'DO15 간섭무' },
+        { k: 'DO45', label: 'DO45 작업종료' }
+      ]
+    };
+
+    function buildIoLists() {
+      const renderGroup = (list, elId, typeClass) => {
+        document.getElementById(elId).innerHTML = list.map(item => `
+          <div class="io-row" onclick="toggleManualBit('${item.k}')">
+            <span class="bit-lamp" id="lamp-${item.k}" data-type="${typeClass}" data-ng="${item.ng ? '1' : '0'}"></span>
+            <span>${item.label}</span>
+          </div>
+        `).join('');
+      };
+      renderGroup(pinDefs.plcIn, 'list-plc-in', 'in-on');
+      renderGroup(pinDefs.plcOut, 'list-plc-out', 'out-on');
+      renderGroup(pinDefs.robDi, 'list-rob-di', 'in-on');
+      renderGroup(pinDefs.robDo, 'list-rob-do', 'out-on');
+      syncIoLeds();
+    }
+
+    function syncIoLeds() {
+      Object.keys(ioState).forEach(k => {
+        const el = document.getElementById(`lamp-${k}`);
+        if (!el) return;
+        el.classList.remove('in-on', 'out-on', 'ng-on');
+        if (ioState[k]) {
+          if (el.dataset.ng === '1') el.classList.add('ng-on');
+          else el.classList.add(el.dataset.type);
+        }
+      });
+    }
+
+    function toggleManualBit(key) {
+      ioState[key] = ioState[key] ? 0 : 1;
+      syncIoLeds();
+      addLog(`[Forced I/O] ${key} 신호 수동 전환 → ${ioState[key]}`, 'info');
+    }
+
+    const tpLines = [
+      "S1   WAIT DI10                ' (2) 부품대 글라스 안착 확인",
+      "S2   WAIT R8 OR R9            ' (3) PLC 차종 모델 수신",
+      "S3   DO10 = 1                 ' (4~5) S0 [3DM] 스캔 지령",
+      "S4   WAIT DI11 OR DI12        ' (6) S0 판정 및 T_S0 수신",
+      "S5   IF DI12=1 GOTO *PICK_NG  ' S0 NG 시 정지 및 종료 선언",
+      "S6   WAIT DI11 : MOVE L (...) ' (7-1) PC PICK 지령 수신 대기",
+      "S7   DO11=1 : MOVE P(MID_WAIT)' (7-2) 부품 파지 후 중간 대기",
+      "S8   DO14 = 1                 ' (8~9) S1 [3DM] 차체 스캔",
+      "S9   WAIT DI15 OR DI16        ' (10) 차체 판정 및 T_S1 수신",
+      "S10  IF DI16=1 GOTO *RET_PART ' S1 NG 시 부품대 원위치 반납",
+      "S11  CALL *ALIGN_BODY_UF6     ' (10-1) 차체 정위치 보정 완료",
+      "S12  MOVE L (ROOF_INST)U6     ' (10-2) 보정 완료 후 선루프 장착",
+      "S13  DO12=1 : DO15=1 : DO45=1 ' (11) 진공 파기 및 작업 종료",
+      "END"
+    ];
+
+    function renderTpCode(activeIndices = []) {
+      document.getElementById('tp-viewer').innerHTML = tpLines.map((line, i) =>
+        `<div class="tp-line ${activeIndices.includes(i) ? 'active-line' : ''}">${line}</div>`
+      ).join('');
+    }
+
+    function addLog(msg, cls = '') {
+      const box = document.getElementById('log-list');
+      const now = new Date().toTimeString().split(' ')[0];
+      const div = document.createElement('div');
+      div.className = cls;
+      div.innerHTML = `<span style="color:#5c768d;">[${now}]</span> ${msg}`;
+      box.appendChild(div);
+      box.scrollTop = box.scrollHeight;
+    }
+
+    /* =========================================================
+       2. Three.js 3D 장면 구축
+       ========================================================= */
+    const vpContainer = document.getElementById('viewport-container');
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(42, vpContainer.clientWidth / vpContainer.clientHeight, 1, 3000);
+    camera.position.set(0, 340, 450);
+
+    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+    renderer.setSize(vpContainer.clientWidth, vpContainer.clientHeight);
+    vpContainer.appendChild(renderer.domElement);
+
+    const controls = new THREE.OrbitControls(camera, renderer.domElement);
+    controls.enableDamping = true;
+    controls.target.set(0, 55, 10);
+
+    function setCameraView(mode) {
+      if (mode === 'TOP') {
+        camera.position.set(0, 540, 15);
+        controls.target.set(0, 20, 10);
+      } else if (mode === 'FRONT') {
+        camera.position.set(0, 145, 510);
+        controls.target.set(0, 65, 0);
+      } else {
+        camera.position.set(0, 340, 450);
+        controls.target.set(0, 55, 10);
+      }
+      controls.update();
+    }
+
+    const grid = new THREE.GridHelper(820, 41, 0x274156, 0x162633);
+    scene.add(grid);
+
+    const railMat = new THREE.MeshBasicMaterial({ color: 0xf1c40f, transparent: true, opacity: 0.35 });
+    const railLeft = new THREE.Mesh(new THREE.BoxGeometry(360, 1, 3), railMat);
+    railLeft.position.set(175, 0.5, 52);
+    const railRight = new THREE.Mesh(new THREE.BoxGeometry(360, 1, 3), railMat);
+    railRight.position.set(175, 0.5, 128);
+    scene.add(railLeft, railRight);
+
+    scene.add(new THREE.AmbientLight(0xffffff, 0.8));
+    const dirLight = new THREE.DirectionalLight(0xffffff, 0.85);
+    dirLight.position.set(150, 450, 280);
+    scene.add(dirLight);
+
+    function createOrientedAxis(len, yawRad = 0, xray = false) {
+      const g = new THREE.Group();
+      g.rotation.y = yawRad;
+
+      const matOpt = (hex) => new THREE.MeshBasicMaterial({
+        color: hex,
+        depthTest: !xray,
+        transparent: false
+      });
+
+      const shaftGeom = new THREE.CylinderGeometry(1.3, 1.3, len, 12);
+      const coneGeom = new THREE.ConeGeometry(3.2, 8, 12);
+
+      const axX = new THREE.Mesh(shaftGeom, matOpt(0xff4757));
+      axX.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), new THREE.Vector3(1, 0, 0));
+      axX.position.x = len / 2;
+      const tipX = new THREE.Mesh(coneGeom, matOpt(0xff4757));
+      tipX.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), new THREE.Vector3(1, 0, 0));
+      tipX.position.x = len;
+
+      const axY = new THREE.Mesh(shaftGeom, matOpt(0x2ed573));
+      axY.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), new THREE.Vector3(0, 0, -1));
+      axY.position.z = -len / 2;
+      const tipY = new THREE.Mesh(coneGeom, matOpt(0x2ed573));
+      tipY.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), new THREE.Vector3(0, 0, -1));
+      tipY.position.z = -len;
+
+      const axZ = new THREE.Mesh(shaftGeom, matOpt(0x1e90ff));
+      axZ.position.y = len / 2;
+      const tipZ = new THREE.Mesh(coneGeom, matOpt(0x1e90ff));
+      tipZ.position.y = len;
+
+      if (xray) {
+        [axX, tipX, axY, tipY, axZ, tipZ].forEach(m => { m.renderOrder = 999; });
+      }
+
+      g.add(axX, tipX, axY, tipY, axZ, tipZ);
+      return g;
+    }
+
+    function createFrontLabel(text, bgColor = '#0f172a', textColor = '#ffffff', borderColor = '#38bdf8', w = 256, h = 64) {
+      const canvas = document.createElement('canvas');
+      canvas.width = w;
+      canvas.height = h;
+      const ctx = canvas.getContext('2d');
+      ctx.fillStyle = bgColor;
+      ctx.fillRect(0, 0, w, h);
+      ctx.strokeStyle = borderColor;
+      ctx.lineWidth = 6;
+      ctx.strokeRect(3, 3, w - 6, h - 6);
+      ctx.fillStyle = textColor;
+      ctx.font = 'bold 30px Consolas, "Noto Sans KR", sans-serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(text, w / 2, h / 2);
+      return new THREE.MeshBasicMaterial({ map: new THREE.CanvasTexture(canvas) });
+    }
+
+    const plcPos       = new THREE.Vector3(-230, 0, -135);
+    const vpcPos       = new THREE.Vector3(210, 0, -135);
+    const robotBasePos = new THREE.Vector3(0, 0, -75);
+    const rackPos      = new THREE.Vector3(-145, 0, 80);
+    const carMasterPos = new THREE.Vector3(165, 0, 90);
+
+    // 1. PLC 캐비닛
+    const plcGroup = new THREE.Group();
+    plcGroup.position.copy(plcPos);
+    const plcBody = new THREE.Mesh(new THREE.BoxGeometry(52, 110, 46), new THREE.MeshLambertMaterial({ color: 0xcbd5e1 }));
+    plcBody.position.y = 55;
+    plcGroup.add(plcBody);
+
+    const plcLabelMesh = new THREE.Mesh(
+      new THREE.PlaneGeometry(44, 15),
+      createFrontLabel('PLC', '#1e293b', '#38bdf8', '#38bdf8', 220, 75)
+    );
+    plcLabelMesh.position.set(0, 92, 23.3);
+    plcGroup.add(plcLabelMesh);
+
+    for (let r = 0; r < 5; r++) {
+      const card = new THREE.Mesh(new THREE.BoxGeometry(36, 8, 2), new THREE.MeshBasicMaterial({ color: 0x0f172a }));
+      card.position.set(0, 70 - r * 11, 23.2);
+      const led = new THREE.Mesh(new THREE.BoxGeometry(10, 4, 2.5), new THREE.MeshBasicMaterial({ color: 0x2ed573 }));
+      led.position.set(10, 70 - r * 11, 23.3);
+      plcGroup.add(card, led);
+    }
+    scene.add(plcGroup);
+
+    // 2. Vision PC 캐비닛
+    const vpcGroup = new THREE.Group();
+    vpcGroup.position.copy(vpcPos);
+    const vpcBody = new THREE.Mesh(new THREE.BoxGeometry(56, 110, 48), new THREE.MeshLambertMaterial({ color: 0xe2e8f0 }));
+    vpcBody.position.y = 55;
+    vpcGroup.add(vpcBody);
+
+    const vpcLabelMesh = new THREE.Mesh(
+      new THREE.PlaneGeometry(48, 14),
+      createFrontLabel('Vision PC', '#0f172a', '#00ffcc', '#00adb5', 256, 72)
+    );
+    vpcLabelMesh.position.set(0, 92, 24.3);
+    vpcGroup.add(vpcLabelMesh);
+
+    const monScreen = new THREE.Mesh(new THREE.PlaneGeometry(38, 24), new THREE.MeshBasicMaterial({ color: 0x0284c7 }));
+    monScreen.position.set(0, 66, 24.3);
+    vpcGroup.add(monScreen);
+    scene.add(vpcGroup);
+
+    // 3. 파노라마 선루프 공급 대차(Rack)
+    const rackGroup = new THREE.Group();
+    rackGroup.position.copy(rackPos);
+    const frameBed = new THREE.Mesh(new THREE.BoxGeometry(88, 6, 68), new THREE.MeshLambertMaterial({ color: 0x334155 }));
+    frameBed.position.y = 12;
+    rackGroup.add(frameBed);
+
+    const wheelGeo = new THREE.CylinderGeometry(5, 5, 4, 14);
+    wheelGeo.rotateZ(Math.PI / 2);
+    const wheelMat = new THREE.MeshLambertMaterial({ color: 0x0f172a });
+    [[-36, -26], [36, -26], [-36, 26], [36, 26]].forEach(([wx, wz]) => {
+      const w = new THREE.Mesh(wheelGeo, wheelMat);
+      w.position.set(wx, 5, wz);
+      rackGroup.add(w);
+    });
+
+    const postMat = new THREE.MeshLambertMaterial({ color: 0x475569 });
+    const padYellow = new THREE.MeshBasicMaterial({ color: 0xf1c40f });
+    [[-34, -24], [34, -24], [-34, 24], [34, 24]].forEach(([px, pz]) => {
+      const post = new THREE.Mesh(new THREE.CylinderGeometry(2.5, 3, 22, 10), postMat);
+      post.position.set(px, 24, pz);
+      const rubber = new THREE.Mesh(new THREE.BoxGeometry(8, 3, 8), padYellow);
+      rubber.position.set(px, 36, pz);
+      rackGroup.add(post, rubber);
+    });
+    const handleBar = new THREE.Mesh(new THREE.BoxGeometry(4, 34, 58), postMat);
+    handleBar.position.set(-43, 30, 0);
+    rackGroup.add(handleBar);
+    scene.add(rackGroup);
+
+    // 파노라마 선루프 글라스
+    const sunroofGroup = new THREE.Group();
+    const glassPane = new THREE.Mesh(
+      new THREE.BoxGeometry(74, 2.5, 52),
+      new THREE.MeshPhongMaterial({ color: 0x0ea5e9, transparent: true, opacity: 0.74, shininess: 100 })
+    );
+    const glassRim = new THREE.LineSegments(
+      new THREE.EdgesGeometry(new THREE.BoxGeometry(74, 2.8, 52)),
+      new THREE.LineBasicMaterial({ color: 0xe0f2fe })
+    );
+    sunroofGroup.add(glassPane, glassRim);
+    scene.add(sunroofGroup);
+
+    // 4. 자동차 모형 (세단 vs SUV + 입체 LED 전조등 + TLH 좌표계)
+    const carGroup = new THREE.Group();
+    carGroup.position.copy(carMasterPos);
+
+    const chassisLower = new THREE.Mesh(
+      new THREE.BoxGeometry(156, 26, 74),
+      new THREE.MeshLambertMaterial({ color: 0x64748b })
+    );
+    chassisLower.position.y = 21;
+    carGroup.add(chassisLower);
+
+    const frontGrill = new THREE.Mesh(new THREE.BoxGeometry(4, 14, 50), new THREE.MeshBasicMaterial({ color: 0x1e293b }));
+    frontGrill.position.set(78.5, 19, 0);
+    carGroup.add(frontGrill);
+
+    const ledHousingMat = new THREE.MeshLambertMaterial({ color: 0x0f172a });
+    const ledGlowMat = new THREE.MeshBasicMaterial({ color: 0xfef08a });
+    const ledBeamMat = new THREE.MeshBasicMaterial({ color: 0xfef08a, transparent: true, opacity: 0.25 });
+
+    [26, -26].forEach(zOffset => {
+      const housing = new THREE.Mesh(new THREE.BoxGeometry(6, 9, 16), ledHousingMat);
+      housing.position.set(79, 25, zOffset);
+      const lens = new THREE.Mesh(new THREE.BoxGeometry(2.5, 7, 14), ledGlowMat);
+      lens.position.set(81.5, 25, zOffset);
+      const beam = new THREE.Mesh(new THREE.BoxGeometry(16, 6, 13), ledBeamMat);
+      beam.position.set(90, 25, zOffset);
+      carGroup.add(housing, lens, beam);
+    });
+
+    const tireGeo = new THREE.CylinderGeometry(12, 12, 8, 20);
+    tireGeo.rotateX(Math.PI / 2);
+    const tireMat = new THREE.MeshLambertMaterial({ color: 0x0f172a });
+    [[-48, 37], [48, 37], [-48, -37], [48, -37]].forEach(([tx, tz]) => {
+      const tire = new THREE.Mesh(tireGeo, tireMat);
+      tire.position.set(tx, 12, tz);
+      carGroup.add(tire);
+    });
+
+    const carUpperGroup = new THREE.Group();
+    carGroup.add(carUpperGroup);
+
+    const roofOpening = new THREE.LineSegments(
+      new THREE.EdgesGeometry(new THREE.BoxGeometry(76, 2, 54)),
+      new THREE.LineBasicMaterial({ color: 0xf1c40f })
+    );
+    carGroup.add(roofOpening);
+
+    const carTlhAxis = createOrientedAxis(34, Math.PI, false);
+    carGroup.add(carTlhAxis);
+
+    let currentRoofHeight = 56.5;
+
+    function buildCarCabinGeometry(modelType) {
+      while (carUpperGroup.children.length > 0) {
+        carUpperGroup.remove(carUpperGroup.children[0]);
+      }
+
+      const cabinMat = new THREE.MeshPhongMaterial({ color: 0x1e293b, transparent: true, opacity: 0.82 });
+      const bodyUpperMat = new THREE.MeshLambertMaterial({ color: 0x475569 });
+
+      if (modelType === 'MODEL_A') {
+        const cabin = new THREE.Mesh(new THREE.BoxGeometry(92, 22, 64), cabinMat);
+        cabin.position.set(-4, 45, 0);
+        carUpperGroup.add(cabin);
+
+        currentRoofHeight = 56.5;
+        roofOpening.position.set(-4, currentRoofHeight, 0);
+        carTlhAxis.position.set(-4, currentRoofHeight + 0.5, 0);
+      } else {
+        const shape = new THREE.Shape();
+        shape.moveTo(-78, 34);
+        shape.lineTo(-78, 63);
+        shape.lineTo(24, 63);
+        shape.lineTo(48, 34);
+        shape.closePath();
+
+        const extrudeGeo = new THREE.ExtrudeGeometry(shape, { depth: 64, bevelEnabled: false });
+        extrudeGeo.translate(0, 0, -32);
+        const suvCabin = new THREE.Mesh(extrudeGeo, cabinMat);
+
+        const rail1 = new THREE.Mesh(new THREE.BoxGeometry(92, 2, 2), bodyUpperMat);
+        rail1.position.set(-28, 64, 28);
+        const rail2 = new THREE.Mesh(new THREE.BoxGeometry(92, 2, 2), bodyUpperMat);
+        rail2.position.set(-28, 64, -28);
+
+        carUpperGroup.add(suvCabin, rail1, rail2);
+
+        currentRoofHeight = 63.5;
+        roofOpening.position.set(-26, currentRoofHeight, 0);
+        carTlhAxis.position.set(-26, currentRoofHeight + 0.5, 0);
+      }
+    }
+
+    scene.add(carGroup);
+
+    // 5. 고정형 3D 스캐너 S0 [3DM] & S1 [3DM] + 사각뿔대 구조광
+    function createFrustumScanner(posVec, labelText, targetY) {
+      const grp = new THREE.Group();
+      grp.position.copy(posVec);
+
+      const body = new THREE.Mesh(new THREE.BoxGeometry(36, 16, 46), new THREE.MeshLambertMaterial({ color: 0x1e293b }));
+      body.position.y = 8;
+      grp.add(body);
+
+      const frontLabel = new THREE.Mesh(
+        new THREE.PlaneGeometry(34, 11),
+        createFrontLabel(labelText, '#090d16', '#00ffff', '#00adb5', 240, 72)
+      );
+      frontLabel.position.set(0, 8, 23.3);
+      grp.add(frontLabel);
+
+      const apexDot = new THREE.Mesh(new THREE.SphereGeometry(2.5, 10, 10), new THREE.MeshBasicMaterial({ color: 0x00ffff }));
+      grp.add(apexDot);
+
+      const totalH = posVec.y - targetY;
+      const topH = totalH * 0.48;
+      const botH = totalH;
+      const topW = 24, topD = 18;
+      const botW = 46, botD = 34;
+
+      const frustumEdges = new Float32Array([
+        -topW, -topH, -topD,   topW, -topH, -topD,
+         topW, -topH, -topD,   topW, -topH,  topD,
+         topW, -topH,  topD,  -topW, -topH,  topD,
+        -topW, -topH,  topD,  -topW, -topH, -topD,
+        -botW, -botH, -botD,   botW, -botH, -botD,
+         botW, -botH, -botD,   botW, -botH,  botD,
+         botW, -botH,  botD,  -botW, -botH,  botD,
+        -botW, -botH,  botD,  -botW, -botH, -botD,
+        -topW, -topH, -topD,  -botW, -botH, -botD,
+         topW, -topH, -topD,   botW, -botH, -botD,
+         topW, -topH,  topD,   botW, -botH,  botD,
+        -topW, -topH,  topD,  -botW, -botH,  botD
+      ]);
+      const lineGeo = new THREE.BufferGeometry();
+      lineGeo.setAttribute('position', new THREE.BufferAttribute(frustumEdges, 3));
+      const lineMat = new THREE.LineBasicMaterial({ color: 0x00ffff });
+      const wireMesh = new THREE.LineSegments(lineGeo, lineMat);
+
+      const sideVerts = new Float32Array([
+        -topW,-topH,-topD,  -botW,-botH,-botD,   botW,-botH,-botD,
+        -topW,-topH,-topD,   botW,-botH,-botD,   topW,-topH,-topD,
+         topW,-topH,-topD,   botW,-botH,-botD,   botW,-botH, botD,
+         topW,-topH,-topD,   botW,-botH, botD,   topW,-topH, botD,
+         topW,-topH, botD,   botW,-botH, botD,  -botW,-botH, botD,
+         topW,-topH, botD,  -botW,-botH, botD,  -topW,-topH, botD,
+        -topW,-topH, botD,  -botW,-botH, botD,  -botW,-botH,-botD,
+        -topW,-topH, botD,  -botW,-botH,-botD,  -topW,-topH,-topD
+      ]);
+      const polyGeo = new THREE.BufferGeometry();
+      polyGeo.setAttribute('position', new THREE.BufferAttribute(sideVerts, 3));
+      const polyMat = new THREE.MeshBasicMaterial({ color: 0x00ffff, transparent: true, opacity: 0.24, side: THREE.DoubleSide });
+      const polyMesh = new THREE.Mesh(polyGeo, polyMat);
+
+      const guideVerts = new Float32Array([
+        0, 0, 0,  -topW, -topH, -topD,
+        0, 0, 0,   topW, -topH, -topD,
+        0, 0, 0,   topW, -topH,  topD,
+        0, 0, 0,  -topW, -topH,  topD
+      ]);
+      const guideGeo = new THREE.BufferGeometry();
+      guideGeo.setAttribute('position', new THREE.BufferAttribute(guideVerts, 3));
+      const guideMat = new THREE.LineBasicMaterial({ color: 0x00adb5, transparent: true, opacity: 0.28 });
+      const guideLines = new THREE.LineSegments(guideGeo, guideMat);
+
+      const fovGroup = new THREE.Group();
+      fovGroup.add(wireMesh, polyMesh, guideLines);
+      fovGroup.visible = false;
+      grp.add(fovGroup);
+
+      scene.add(grp);
+      return { grp, fovGroup, lineMat, polyMat };
+    }
+
+    const s0Pos = new THREE.Vector3(rackPos.x, 148, rackPos.z);
+    const s1Pos = new THREE.Vector3(carMasterPos.x - 10, 172, carMasterPos.z);
+    const scannerS0 = createFrustumScanner(s0Pos, 'S0 [3DM]', 38);
+    const scannerS1 = createFrustumScanner(s1Pos, 'S1 [3DM]', 60);
+
+    function flashStructuredLight(scannerObj, isNg = false) {
+      scannerObj.lineMat.color.setHex(0x00ffff);
+      scannerObj.polyMat.color.setHex(0x00ffff);
+      let toggleCount = 0;
+      const totalToggles = 10;
+      scannerObj.fovGroup.visible = true;
+
+      const timer = setInterval(() => {
+        toggleCount++;
+        if (toggleCount >= totalToggles) {
+          clearInterval(timer);
+          scannerObj.fovGroup.visible = true;
+          const finalColor = isNg ? 0xff4757 : 0x2ed573;
+          scannerObj.lineMat.color.setHex(finalColor);
+          scannerObj.polyMat.color.setHex(finalColor);
+        } else {
+          scannerObj.fovGroup.visible = (toggleCount % 2 === 0);
+        }
+      }, 150);
+    }
+
+    // 6. 현대로봇 Hi5a 6축 암 & Base 기단 중앙 투과 좌표계
+    const pedestal = new THREE.Mesh(
+      new THREE.CylinderGeometry(24, 30, 36, 24),
+      new THREE.MeshLambertMaterial({ color: 0x2c3e50 })
+    );
+    pedestal.position.set(robotBasePos.x, 18, robotBasePos.z);
+    scene.add(pedestal);
+
+    const robotBaseAxis = createOrientedAxis(55, -Math.PI / 2, true);
+    robotBaseAxis.position.set(robotBasePos.x, 36, robotBasePos.z);
+    scene.add(robotBaseAxis);
+
+    const shoulderPos = new THREE.Vector3(robotBasePos.x, 42, robotBasePos.z);
+    const elbowMesh = new THREE.Mesh(new THREE.SphereGeometry(11, 16, 16), new THREE.MeshLambertMaterial({ color: 0xf39c12 }));
+    scene.add(elbowMesh);
+
+    const armMesh1 = new THREE.Mesh(new THREE.CylinderGeometry(7, 8, 1, 12), new THREE.MeshLambertMaterial({ color: 0xe67e22 }));
+    const armMesh2 = new THREE.Mesh(new THREE.CylinderGeometry(6, 7, 1, 12), new THREE.MeshLambertMaterial({ color: 0xf39c12 }));
+    scene.add(armMesh1, armMesh2);
+
+    const gripperGroup = new THREE.Group();
+    const frameBar = new THREE.Mesh(new THREE.BoxGeometry(52, 5, 36), new THREE.MeshLambertMaterial({ color: 0x94a3b8 }));
+    gripperGroup.add(frameBar);
+
+    const padMat = new THREE.MeshBasicMaterial({ color: 0x64748b });
+    [[-18, -12], [18, -12], [-18, 12], [18, 12]].forEach(([px, pz]) => {
+      const pad = new THREE.Mesh(new THREE.CylinderGeometry(3.8, 4.8, 5, 12), padMat);
+      pad.position.set(px, -4.5, pz);
+      gripperGroup.add(pad);
+    });
+    gripperGroup.add(createOrientedAxis(26, -Math.PI / 2, false));
+    scene.add(gripperGroup);
+
+    // 7. 유선 네트워크 케이블
+    function createWiredChannel(pointsArr, labelName) {
+      const curve = new THREE.CatmullRomCurve3(pointsArr, false, 'catmullrom', 0.05);
+      const tubeGeo = new THREE.TubeGeometry(curve, 56, 1.3, 8, false);
+      const tubeMat = new THREE.MeshBasicMaterial({ color: 0x2c475c });
+      scene.add(new THREE.Mesh(tubeGeo, tubeMat));
+
+      const sliderKnob = new THREE.Mesh(
+        new THREE.BoxGeometry(9, 6, 9),
+        new THREE.MeshBasicMaterial({ color: 0xf1c40f })
+      );
+      sliderKnob.visible = false;
+      scene.add(sliderKnob);
+
+      return {
+        name: labelName, curve, tubeMat, sliderKnob,
+        active: false, progress: 0, reverse: false, blinkTick: 0,
+        colorA: 0x00ffff, colorB: 0xf1c40f
+      };
+    }
+
+    const wires = {
+      PLC_VPC: createWiredChannel([
+        new THREE.Vector3(plcPos.x + 26, 4, plcPos.z),
+        new THREE.Vector3(0, 2, -185),
+        new THREE.Vector3(vpcPos.x - 28, 4, vpcPos.z)
+      ], 'PLC ↔ Vision PC'),
+
+      VPC_S0: createWiredChannel([
+        new THREE.Vector3(vpcPos.x, 4, vpcPos.z - 24),
+        new THREE.Vector3(vpcPos.x, 2, -198),
+        new THREE.Vector3(-285, 2, -198),
+        new THREE.Vector3(-285, 2, rackPos.z),
+        new THREE.Vector3(-195, 2, rackPos.z),
+        new THREE.Vector3(-195, 148, rackPos.z),
+        new THREE.Vector3(s0Pos.x - 18, 148, s0Pos.z)
+      ], 'Vision PC ↔ S0 [3DM]'),
+
+      VPC_ROB: createWiredChannel([
+        new THREE.Vector3(vpcPos.x - 28, 4, vpcPos.z + 8),
+        new THREE.Vector3(95, 2, -75),
+        new THREE.Vector3(robotBasePos.x + 26, 4, robotBasePos.z)
+      ], 'Vision PC ↔ Hi5a Robot'),
+
+      VPC_S1: createWiredChannel([
+        new THREE.Vector3(vpcPos.x + 28, 4, vpcPos.z),
+        new THREE.Vector3(265, 2, -30),
+        new THREE.Vector3(265, 172, carMasterPos.z),
+        new THREE.Vector3(s1Pos.x + 18, 172, s1Pos.z)
+      ], 'Vision PC ↔ S1 [3DM]')
+    };
+
+    function activateWireSignal(wireKey, reverse = false, cA = 0x00ffff, cB = 0xf1c40f) {
+      const w = wires[wireKey];
+      if (!w) return;
+      w.active = true;
+      w.progress = 0;
+      w.reverse = reverse;
+      w.blinkTick = 0;
+      w.colorA = cA;
+      w.colorB = cB;
+      w.sliderKnob.visible = true;
+    }
+
+    function updateWireAnimations() {
+      Object.values(wires).forEach(w => {
+        if (!w.active) {
+          w.tubeMat.color.setHex(0x2c475c);
+          w.sliderKnob.visible = false;
+          return;
+        }
+        w.blinkTick++;
+        const isColorA = Math.floor(w.blinkTick / 6) % 2 === 0;
+        w.tubeMat.color.setHex(isColorA ? w.colorA : w.colorB);
+        w.sliderKnob.material.color.setHex(isColorA ? w.colorB : w.colorA);
+
+        w.progress += 0.016;
+        if (w.progress >= 1) {
+          w.active = false;
+          w.sliderKnob.visible = false;
+          w.tubeMat.color.setHex(0x2c475c);
+        } else {
+          const u = w.reverse ? (1 - w.progress) : w.progress;
+          w.sliderKnob.position.copy(w.curve.getPointAt(u));
+        }
+      });
+    }
+
+    /* =========================================================
+       3. 11단계 작업 순서 & 시간차 연출 & OK/NG 랜덤 데모
+       ========================================================= */
+    const poses = {
+      HOME:     { pos: new THREE.Vector3(0, 135, -60),               rot: new THREE.Euler(0, 0, 0) },
+      S0_PICK:  { pos: new THREE.Vector3(rackPos.x, 45, rackPos.z),  rot: new THREE.Euler(0, 0, 0) },
+      MID_WAIT: { pos: new THREE.Vector3(0, 152, 85),                rot: new THREE.Euler(0, 0, 0) }
+    };
+
+    function getCarInstallPos() {
+      const m = document.getElementById('sel-model').value;
+      const xOffset = (m === 'MODEL_A') ? -4 : -26;
+      return new THREE.Vector3(carMasterPos.x + xOffset, currentRoofHeight + 7.5, carMasterPos.z);
+    }
+
+    let targetGripperPos = poses.HOME.pos.clone();
+    let targetGripperRot = poses.HOME.rot.clone();
+    let targetPartPos = new THREE.Vector3(rackPos.x, 39, rackPos.z);
+    let targetPartRot = new THREE.Euler(0, 0, 0);
+    let targetCarPos = carMasterPos.clone();
+    let targetCarRot = new THREE.Euler(0, 0, 0);
+
+    let isGlassAttached = false;
+    let currentStep = 1;
+    let autoInterval = null;
+    let subTimers = [];
+
+    function clearSubTimers() {
+      subTimers.forEach(t => clearTimeout(t));
+      subTimers = [];
+    }
+
+    const matrixHistory = {
+      S0: { title: '[S0 3DM] 부품 보정 행렬 (T_S0)', dx: 0, dy: 0, dz: 0, rx: 0, ry: 0, rz: 0, valid: false },
+      S1: { title: '[S1 3DM] 차체 보정 행렬 (T_S1)', dx: 0, dy: 0, dz: 0, rx: 0, ry: 0, rz: 0, valid: false }
+    };
+    let activeMatrixTab = 'S0';
+
+    const LIMIT_TRANS = 10.0;
+    const LIMIT_ROT = 5.0;
+
+    function randRange(min, max) {
+      const sign = Math.random() < 0.5 ? -1 : 1;
+      return sign * (min + Math.random() * (max - min));
+    }
+
+    function generateShiftData(isNg) {
+      if (!isNg) {
+        return {
+          dx: Number(randRange(1.2, 5.5).toFixed(1)),
+          dy: Number(randRange(1.2, 5.5).toFixed(1)),
+          dz: Number(randRange(0.3, 2.2).toFixed(1)),
+          rx: Number(randRange(0.2, 1.5).toFixed(1)),
+          ry: Number(randRange(0.2, 1.5).toFixed(1)),
+          rz: Number(randRange(0.8, 3.2).toFixed(1)),
+          valid: true
+        };
+      } else {
+        return {
+          dx: Number(randRange(18.0, 36.0).toFixed(1)),
+          dy: Number(randRange(15.0, 32.0).toFixed(1)),
+          dz: Number(randRange(1.0, 4.5).toFixed(1)),
+          rx: Number(randRange(0.5, 2.5).toFixed(1)),
+          ry: Number(randRange(5.8, 9.5).toFixed(1)),
+          rz: Number(randRange(11.0, 18.5).toFixed(1)),
+          valid: true
+        };
+      }
+    }
+
+    function selectMatrixView(source) {
+      activeMatrixTab = source;
+      document.getElementById('btn-view-s0').classList.toggle('active', source === 'S0');
+      document.getElementById('btn-view-s1').classList.toggle('active', source === 'S1');
+
+      const data = matrixHistory[source];
+      document.getElementById('matrix-source-lbl').textContent = data.valid ? data.title : `[${source} 3DM] 스캔 대기 중`;
+
+      const euler = new THREE.Euler(
+        data.rx * Math.PI / 180,
+        data.rz * Math.PI / 180,
+        -data.ry * Math.PI / 180,
+        'ZYX'
+      );
+      const te = new THREE.Matrix4().makeRotationFromEuler(euler).elements;
+
+      document.getElementById('matrix-out').textContent =
+`[${te[0].toFixed(4)}, ${te[4].toFixed(4)}, ${te[8].toFixed(4)}, ${data.dx.toFixed(2)};
+ ${te[1].toFixed(4)}, ${te[5].toFixed(4)}, ${te[9].toFixed(4)}, ${data.dy.toFixed(2)};
+ ${te[2].toFixed(4)}, ${te[6].toFixed(4)}, ${te[10].toFixed(4)}, ${data.dz.toFixed(2)};
+ 0.0000, 0.0000, 0.0000, 1.000]`;
+
+      const items = [
+        { label: 'ΔX', val: data.dx, unit: 'mm', over: Math.abs(data.dx) > LIMIT_TRANS },
+        { label: 'ΔY', val: data.dy, unit: 'mm', over: Math.abs(data.dy) > LIMIT_TRANS },
+        { label: 'ΔZ', val: data.dz, unit: 'mm', over: Math.abs(data.dz) > LIMIT_TRANS },
+        { label: 'ΔRx', val: data.rx, unit: '°', over: Math.abs(data.rx) > LIMIT_ROT },
+        { label: 'ΔRy', val: data.ry, unit: '°', over: Math.abs(data.ry) > LIMIT_ROT },
+        { label: 'ΔRz', val: data.rz, unit: '°', over: Math.abs(data.rz) > LIMIT_ROT }
+      ];
+
+      document.getElementById('shift-6dof-box').innerHTML = items.map(it => {
+        const cls = !data.valid ? 'dof-box' : (it.over ? 'dof-box ng-blink' : 'dof-box ok-val');
+        return `<div class="${cls}"><span>${it.label}</span><span>${it.val.toFixed(1)}${it.unit}</span></div>`;
+      }).join('');
+    }
+
+    function showPlcResultBanner(isOk, msg) {
+      const banner = document.getElementById('plc-result-banner');
+      banner.className = 'plc-result-banner ' + (isOk ? 'ok' : 'ng');
+      banner.textContent = msg;
+    }
+
+    function updateKinematics() {
+      gripperGroup.position.lerp(targetGripperPos, 0.09);
+      gripperGroup.rotation.x += (targetGripperRot.x - gripperGroup.rotation.x) * 0.09;
+      gripperGroup.rotation.y += (targetGripperRot.y - gripperGroup.rotation.y) * 0.09;
+      gripperGroup.rotation.z += (targetGripperRot.z - gripperGroup.rotation.z) * 0.09;
+
+      carGroup.position.lerp(targetCarPos, 0.095);
+      carGroup.rotation.x += (targetCarRot.x - carGroup.rotation.x) * 0.095;
+      carGroup.rotation.y += (targetCarRot.y - carGroup.rotation.y) * 0.095;
+      carGroup.rotation.z += (targetCarRot.z - carGroup.rotation.z) * 0.095;
+
+      if (isGlassAttached) {
+        sunroofGroup.position.copy(gripperGroup.position).add(new THREE.Vector3(0, -7.5, 0));
+        sunroofGroup.rotation.copy(gripperGroup.rotation);
+      } else {
+        sunroofGroup.position.lerp(targetPartPos, 0.09);
+        sunroofGroup.rotation.x += (targetPartRot.x - sunroofGroup.rotation.x) * 0.09;
+        sunroofGroup.rotation.y += (targetPartRot.y - sunroofGroup.rotation.y) * 0.09;
+        sunroofGroup.rotation.z += (targetPartRot.z - sunroofGroup.rotation.z) * 0.09;
+      }
+
+      const mid = shoulderPos.clone().lerp(gripperGroup.position, 0.5);
+      mid.y += 48;
+      elbowMesh.position.copy(mid);
+
+      const alignLimb = (mesh, p1, p2) => {
+        const dist = p1.distanceTo(p2);
+        mesh.scale.set(1, dist, 1);
+        mesh.position.copy(p1).lerp(p2, 0.5);
+        mesh.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), p2.clone().sub(p1).normalize());
+      };
+      alignLimb(armMesh1, shoulderPos, mid);
+      alignLimb(armMesh2, mid, gripperGroup.position);
+    }
+
+    function onModelChange() {
+      const m = document.getElementById('sel-model').value;
+      ioState.R8 = (m === 'MODEL_A') ? 1 : 0;
+      ioState.R9 = (m === 'MODEL_B') ? 1 : 0;
+      glassPane.material.color.setHex(m === 'MODEL_A' ? 0x0ea5e9 : 0x8b5cf6);
+      buildCarCabinGeometry(m);
+      syncIoLeds();
+    }
+
+    function resetAll() {
+      clearSubTimers();
+      if (autoInterval) {
+        clearInterval(autoInterval);
+        autoInterval = null;
+        document.getElementById('btn-auto').textContent = '⏩ 자동 연속';
+      }
+      currentStep = 1;
+      Object.keys(ioState).forEach(k => ioState[k] = 0);
+      ioState.W0 = 1;
+      ioState.W15 = 1;
+      onModelChange();
+      syncIoLeds();
+
+      isGlassAttached = false;
+      targetPartPos.set(rackPos.x + 6, 39, rackPos.z - 5);
+      targetPartRot.set(0, 0.12, 0);
+      sunroofGroup.position.copy(targetPartPos);
+      sunroofGroup.rotation.copy(targetPartRot);
+
+      targetCarPos.set(carMasterPos.x - 14, 0, carMasterPos.z + 14);
+      targetCarRot.set(0, -0.09, 0);
+      carGroup.position.copy(targetCarPos);
+      carGroup.rotation.copy(targetCarRot);
+      roofOpening.material.color.setHex(0xf1c40f);
+
+      targetGripperPos.copy(poses.HOME.pos);
+      targetGripperRot.copy(poses.HOME.rot);
+      padMat.color.setHex(0x64748b);
+
+      scannerS0.fovGroup.visible = false;
+      scannerS1.fovGroup.visible = false;
+      Object.values(wires).forEach(w => w.active = false);
+
+      matrixHistory.S0 = { title: '[S0 3DM] 부품 보정 행렬 (T_S0)', dx: 0, dy: 0, dz: 0, rx: 0, ry: 0, rz: 0, valid: false };
+      matrixHistory.S1 = { title: '[S1 3DM] 차체 보정 행렬 (T_S1)', dx: 0, dy: 0, dz: 0, rx: 0, ry: 0, rz: 0, valid: false };
+      selectMatrixView('S0');
+
+      document.getElementById('plc-result-banner').className = 'plc-result-banner';
+      renderTpCode([]);
+      document.getElementById('step-text').textContent = '(1) / (11) : 초기 상태 — 전체 시스템 초기화 및 대기';
+      document.getElementById('overlay-state').textContent = '(1) 초기 상태: READY = 1 (다음 스텝을 눌러 진행)';
+      const pill = document.getElementById('judge-pill');
+      pill.className = 'judge-pill';
+      pill.textContent = 'STEP 1/11';
+
+      document.getElementById('log-list').innerHTML = '';
+      addLog('(1) 초기 상태: 전체 시스템 초기화 완료 (PCRUN=1, READY=1).', 'ok');
+    }
+
+    function nextStep() {
+      if (currentStep >= 11) {
+        resetAll();
+        return;
+      }
+      clearSubTimers();
+      currentStep++;
+      const scen = document.getElementById('sel-scenario').value;
+      const pill = document.getElementById('judge-pill');
+      pill.textContent = `STEP ${currentStep}/11`;
+
+      if (currentStep === 2) {
+        ioState.DI10 = 1;
+        renderTpCode([0]);
+        document.getElementById('step-text').textContent = '(2) / (11) : 부품대 좌대에 선루프 글라스 안착 확인 (DI10=1)';
+        document.getElementById('overlay-state').textContent = '(2) 부품 안착: 좌측 대차 좌대 위 선루프 글라스 감지됨';
+        addLog('(2) 부품대 좌대 글라스 안착 센서 확인 완료 (DI10=1).', 'info');
+      }
+      else if (currentStep === 3) {
+        ioState.R1 = 1;
+        onModelChange();
+        activateWireSignal('PLC_VPC', false, 0x00ffff, 0xf1c40f);
+        renderTpCode([1]);
+        const mTxt = document.getElementById('sel-model').options[document.getElementById('sel-model').selectedIndex].text;
+        document.getElementById('step-text').textContent = `(3) / (11) : PLC → Vision PC 차종 모델 선택 전송 (${mTxt})`;
+        document.getElementById('overlay-state').textContent = '(3) PLC → PC: 차종 모델 비트 전송 중';
+        addLog(`(3) [PLC → Vision PC] ${mTxt} 선택 및 START=1 전송.`, 'info');
+      }
+      else if (currentStep === 4) {
+        ioState.R2 = 1; ioState.DO10 = 1; ioState.W14 = 1;
+        activateWireSignal('VPC_S0', false, 0x00ffff, 0x2ed573);
+        renderTpCode([2]);
+        document.getElementById('step-text').textContent = '(4) / (11) : Vision PC → S0 [3DM] 스캔 명령 전송';
+        document.getElementById('overlay-state').textContent = '(4) PC → S0 [3DM]: S0_PICK_SCAN = 1 트리거 송신';
+        addLog('(4) [Vision PC → S0 3DM] 대차 부품 스캔 지령 송신.', 'info');
+      }
+      else if (currentStep === 5) {
+        const isS0Ng = (scen === 'NG_S0');
+        flashStructuredLight(scannerS0, isS0Ng);
+        renderTpCode([2, 3]);
+        document.getElementById('step-text').textContent = '(5) / (11) : S0 [3DM] 부품 구조광 5회 점멸 스캔 중...';
+        document.getElementById('overlay-state').textContent = '(5) S0 [3DM] 스캔 실행: 사각뿔대 구조광 패턴 투사 중';
+        addLog('(5) [S0 3DM] 대차 위 선루프 글라스 3D 구조광 스캔 실행.', 'info');
+      }
+      else if (currentStep === 6) {
+        ioState.W14 = 0; ioState.R2 = 0; ioState.DO10 = 0;
+        scannerS0.fovGroup.visible = false;
+        activateWireSignal('VPC_S0', true, 0x2ed573, 0xf1c40f);
+
+        const isS0Ng = (scen === 'NG_S0');
+        const shift = generateShiftData(isS0Ng);
+        matrixHistory.S0 = {
+          title: isS0Ng ? '[S0 3DM] 부품 오차 초과 (PICK_NG)' : '[S0 3DM] 부품 보정 행렬 (T_S0)',
+          ...shift
+        };
+        selectMatrixView('S0');
+
+        if (isS0Ng) {
+          ioState.W3 = 1; ioState.DI12 = 1; ioState.DO45 = 1; ioState.R15 = 1;
+          subTimers.push(setTimeout(() => activateWireSignal('VPC_ROB', false, 0xff4757, 0xf1c40f), 400));
+          subTimers.push(setTimeout(() => activateWireSignal('PLC_VPC', true, 0xff4757, 0xffffff), 800));
+
+          renderTpCode([3, 4]);
+          pill.className = 'judge-pill ng';
+          pill.textContent = 'PICK_NG';
+          document.getElementById('step-text').textContent = '(6) / (11) : [S0 NG] 부품 위치 오차 초과 → 로봇 정지 & Pick_NG 종료 선언';
+          document.getElementById('overlay-state').textContent = 'ALARM: S0_PICK_NG → 로봇 정지 및 작업 실패 종료';
+          showPlcResultBanner(false, '[PLC 결과 알림 : NG] S0 [3DM] 부품 위치 한계 초과 (PICK_NG) — 로봇 정지 및 작업 종료');
+          addLog('(6) [S0 → PC → Robot/PLC] 허용 공차 초과! 로봇 정지 및 Pick_NG 작업 종료 선언.', 'err');
+          currentStep = 11;
+          if (autoInterval) { clearInterval(autoInterval); autoInterval = null; document.getElementById('btn-auto').textContent = '⏩ 자동 연속'; }
+        } else {
+          ioState.W2 = 1; ioState.DI11 = 1;
+          targetPartPos.set(rackPos.x, 39, rackPos.z);
+          targetPartRot.set(0, 0, 0);
+
+          renderTpCode([3]);
+          pill.className = 'judge-pill ok';
+          pill.textContent = 'S0 OK';
+          document.getElementById('step-text').textContent = '(6) / (11) : S0 스캔 완료 → 부품 위치 조정 & T_S0 행렬 PC 전송';
+          document.getElementById('overlay-state').textContent = '(6) S0 → PC 데이터 전송 완료 (T_S0 행렬 갱신)';
+          addLog(`(6) [S0 → Vision PC] 스캔 완료(ΔX=${shift.dx}, ΔY=${shift.dy}, ΔRz=${shift.rz}°). 부품 위치 보정 완료.`, 'ok');
+        }
+      }
+      else if (currentStep === 7) {
+        activateWireSignal('VPC_ROB', false, 0x2ed573, 0x00ffff);
+        renderTpCode([5]);
+        document.getElementById('step-text').textContent = '(7-1) / (11) : Vision PC → Hi5a Robot 부품 파지(PICK) 지령 송신 중...';
+        document.getElementById('overlay-state').textContent = '(7-1) PC → Robot: PICK 명령 전송 중 (로봇 수신 대기)';
+        addLog('(7-1) [Vision PC → Hi5a Robot] PICK 지령 패킷 송신 중...', 'info');
+
+        subTimers.push(setTimeout(() => {
+          if (currentStep !== 7) return;
+          targetGripperPos.copy(poses.S0_PICK.pos);
+          targetGripperRot.copy(poses.S0_PICK.rot);
+          ioState.DO11 = 1;
+          ioState.DI13 = 1;
+          padMat.color.setHex(0x2ed573);
+          syncIoLeds();
+          renderTpCode([6]);
+          document.getElementById('step-text').textContent = '(7-2) / (11) : Robot PICK 신호 수신 완료 → 부품 파지 및 중간 상공 대기';
+          document.getElementById('overlay-state').textContent = '(7-2) Robot: PICK 수신 후 선루프 흡착(DI13=1) → 중간 대기 이동';
+          addLog('(7-2) [Hi5a Robot] PC PICK 신호 수신 완료 → 부품 파지 후 중간 지점 대기 이동.', 'ok');
+
+          subTimers.push(setTimeout(() => {
+            if (currentStep !== 7) return;
+            isGlassAttached = true;
+            ioState.DO13 = 1;
+            targetGripperPos.copy(poses.MID_WAIT.pos);
+            syncIoLeds();
+          }, 550));
+        }, 750));
+      }
+      else if (currentStep === 8) {
+        ioState.DI14 = 1; ioState.DO14 = 1; ioState.R3 = 1;
+        activateWireSignal('VPC_S1', false, 0x00ffff, 0xf1c40f);
+        renderTpCode([7]);
+        document.getElementById('step-text').textContent = '(8) / (11) : Vision PC → S1 [3DM] 차체 스캔 명령 전송';
+        document.getElementById('overlay-state').textContent = '(8) PC → S1 [3DM]: S1_INST_SCAN = 1 트리거 송신';
+        addLog('(8) [Vision PC → S1 3DM] 차체 담당 스캐너 스캔 지령 송신.', 'info');
+      }
+      else if (currentStep === 9) {
+        const isS1Ng = (scen === 'NG_S1');
+        flashStructuredLight(scannerS1, isS1Ng);
+        renderTpCode([7, 8]);
+        document.getElementById('step-text').textContent = '(9) / (11) : S1 [3DM] 차체 루프 개구부 구조광 5회 스캔 중...';
+        document.getElementById('overlay-state').textContent = '(9) S1 [3DM] 스캔 실행: 차체 지붕 개구부 계측 중';
+        addLog('(9) [S1 3DM] 자동차 루프 개구부 3D 구조광 스캔 실행.', 'info');
+      }
+      else if (currentStep === 10) {
+        ioState.R3 = 0; ioState.DO14 = 0;
+        scannerS1.fovGroup.visible = false;
+        activateWireSignal('VPC_S1', true, 0x2ed573, 0xf1c40f);
+
+        const isS1Ng = (scen === 'NG_S1');
+        const shift = generateShiftData(isS1Ng);
+        matrixHistory.S1 = {
+          title: isS1Ng ? '[S1 3DM] 차체 오차 초과 (INSTALL_NG)' : '[S1 3DM] 차체 보정 행렬 (T_S1)',
+          ...shift
+        };
+        selectMatrixView('S1');
+
+        if (isS1Ng) {
+          ioState.W5 = 1; ioState.DI16 = 1; ioState.DO13 = 0;
+          roofOpening.material.color.setHex(0xff4757);
+          activateWireSignal('VPC_ROB', false, 0xff4757, 0xf1c40f);
+
+          targetGripperPos.copy(poses.S0_PICK.pos);
+          subTimers.push(setTimeout(() => {
+            if (currentStep !== 10) return;
+            isGlassAttached = false;
+            targetPartPos.set(rackPos.x, 39, rackPos.z);
+            targetPartRot.set(0, 0, 0);
+            ioState.DO11 = 0; ioState.DO12 = 1;
+            padMat.color.setHex(0x64748b);
+            syncIoLeds();
+          }, 750));
+
+          renderTpCode([8, 9]);
+          pill.className = 'judge-pill ng';
+          pill.textContent = 'INSTALL_NG';
+          document.getElementById('step-text').textContent = '(10) / (11) : [S1 NG] 차체 오차 초과 → 로봇이 부품을 부품대로 원위치 반납!';
+          document.getElementById('overlay-state').textContent = 'ALARM: S1_INST_NG → 선루프 부품을 부품대 좌대로 안전 회수';
+          addLog('(10) [S1 NG → Robot] 차체 위치 한계 초과! 대기 중이던 선루프를 부품대로 원위치 반납.', 'err');
+        } else {
+          ioState.W4 = 1; ioState.DI15 = 1;
+          roofOpening.material.color.setHex(0x2ed573);
+          activateWireSignal('VPC_ROB', false, 0x2ed573, 0x00ffff);
+
+          targetCarPos.copy(carMasterPos);
+          targetCarRot.set(0, 0, 0);
+
+          renderTpCode([8, 10]);
+          pill.className = 'judge-pill ok';
+          pill.textContent = 'BODY ALIGNED';
+          document.getElementById('step-text').textContent = '(10-1) / (11) : S1 스캔 완료 → 차체 정위치 보정 정렬 중 (로봇 대기)';
+          document.getElementById('overlay-state').textContent = '(10-1) 차체 위치 보정(T_S1) 완료 중... (정렬 후 로봇 장착 시작)';
+          addLog(`(10-1) [S1 → PC] 차체 위치 보정(ΔX=${shift.dx}, ΔY=${shift.dy}, ΔRz=${shift.rz}°) 정렬 실행.`, 'ok');
+
+          subTimers.push(setTimeout(() => {
+            if (currentStep !== 10) return;
+            ioState.DO13 = 0;
+            const installTarget = getCarInstallPos();
+            targetGripperPos.copy(installTarget);
+            renderTpCode([11]);
+            pill.textContent = 'MOUNTING';
+            document.getElementById('step-text').textContent = '(10-2) / (11) : 차체 정위치 확인 완료 → 로봇 이동 및 파노라마 선루프 장착';
+            document.getElementById('overlay-state').textContent = '(10-2) Robot: 정위치된 차체 루프 개구부에 선루프 장착';
+            addLog('(10-2) [Hi5a Robot] 차체 정위치 정렬 확인 후 선루프 안착 실행.', 'ok');
+
+            subTimers.push(setTimeout(() => {
+              if (currentStep !== 10) return;
+              isGlassAttached = false;
+              targetPartPos.set(installTarget.x, currentRoofHeight + 1.2, carMasterPos.z);
+              targetPartRot.set(0, 0, 0);
+              ioState.DO11 = 0; ioState.DO12 = 1;
+              padMat.color.setHex(0x64748b);
+              syncIoLeds();
+            }, 650));
+          }, 950));
+        }
+      }
+      else if (currentStep === 11) {
+        targetGripperPos.copy(poses.HOME.pos);
+        targetGripperRot.copy(poses.HOME.rot);
+        ioState.DO15 = 1;
+        ioState.DO45 = 1;
+        ioState.R15 = 1;
+
+        const isFailed = (scen === 'NG_S1');
+        activateWireSignal('PLC_VPC', true, isFailed ? 0xff4757 : 0x2ed573, 0xffffff);
+        renderTpCode([12, 13]);
+
+        if (isFailed) {
+          pill.className = 'judge-pill ng';
+          pill.textContent = 'END (NG)';
+          document.getElementById('step-text').textContent = '(11) / (11) : 작업 종료 선언 — 차체 오차 NG로 부품 회수 후 종료';
+          document.getElementById('overlay-state').textContent = 'END: 작업 실패 종료 (부품대 원위치 회수 완료)';
+          showPlcResultBanner(false, '[PLC 결과 알림 : NG] 차체 위치 한계 초과(INSTALL_NG) — 부품대 회수 후 작업 종료');
+          addLog('(11) [PC → PLC] 작업 실패(INSTALL_NG) 신호 전송 및 작업 종료 선언.', 'err');
+        } else {
+          pill.className = 'judge-pill ok';
+          pill.textContent = 'END (OK)';
+          document.getElementById('step-text').textContent = '(11) / (11) : 작업 종료 선언 — 파노라마 선루프 장착 성공 (OK)';
+          document.getElementById('overlay-state').textContent = 'END: 전체 11단계 공정 정상 완료 (WORK SUCCESS)';
+          showPlcResultBanner(true, '[PLC 결과 알림 : OK] S0 부품 보정 및 S1 차체 정위치 장착 성공 — 작업 종료');
+          addLog('(11) [PC → PLC] 작업 성공(OK) 신호 전송 및 작업 종료 선언 완료.', 'ok');
+        }
+
+        if (autoInterval) {
+          clearInterval(autoInterval);
+          autoInterval = null;
+          document.getElementById('btn-auto').textContent = '⏩ 자동 연속';
+        }
+      }
+
+      syncIoLeds();
+    }
+
+    function toggleAuto() {
+      const btn = document.getElementById('btn-auto');
+      if (autoInterval) {
+        clearInterval(autoInterval);
+        autoInterval = null;
+        btn.textContent = '⏩ 자동 연속';
+      } else {
+        if (currentStep >= 11) resetAll();
+        btn.textContent = '⏸ 일시 정지';
+        nextStep();
+        autoInterval = setInterval(() => {
+          if (currentStep >= 11) {
+            clearInterval(autoInterval);
+            autoInterval = null;
+            btn.textContent = '⏩ 자동 연속';
+          } else {
+            nextStep();
+          }
+        }, 2350);
+      }
+    }
+
+    /* =========================================================
+       4. 슬림 디지털 타이밍 차트 (Oscilloscope Waveform)
+       ========================================================= */
+    const waveCanvas = document.getElementById('wave-canvas');
+    const wCtx = waveCanvas.getContext('2d');
+    const waveHistory = { SCAN: [], RES: [], VAC: [], END: [] };
+    const maxSamples = 130;
+    for (let i = 0; i < maxSamples; i++) {
+      waveHistory.SCAN.push(0);
+      waveHistory.RES.push(0);
+      waveHistory.VAC.push(0);
+      waveHistory.END.push(0);
+    }
+
+    function sampleAndDrawWave() {
+      waveHistory.SCAN.push((ioState.R2 || ioState.R3) ? 1 : 0);
+      waveHistory.RES.push((ioState.W2 || ioState.W4) ? 1 : (ioState.W3 || ioState.W5 ? -1 : 0));
+      waveHistory.VAC.push(ioState.DI13 ? 1 : 0);
+      waveHistory.END.push(ioState.DO45 ? 1 : 0);
+
+      Object.keys(waveHistory).forEach(k => {
+        if (waveHistory[k].length > maxSamples) waveHistory[k].shift();
+      });
+
+      const rect = waveCanvas.getBoundingClientRect();
+      if (waveCanvas.width !== Math.floor(rect.width) || waveCanvas.height !== Math.floor(rect.height)) {
+        waveCanvas.width = Math.floor(rect.width);
+        waveCanvas.height = Math.floor(rect.height);
+      }
+
+      const w = waveCanvas.width;
+      const h = waveCanvas.height;
+      wCtx.clearRect(0, 0, w, h);
+
+      wCtx.strokeStyle = '#132230';
+      wCtx.lineWidth = 1;
+      for (let x = 0; x < w; x += 25) {
+        wCtx.beginPath(); wCtx.moveTo(x, 0); wCtx.lineTo(x, h); wCtx.stroke();
+      }
+
+      const channels = [
+        { key: 'SCAN', label: 'SCAN', color: '#00ffff' },
+        { key: 'RES',  label: 'OK/NG', color: '#2ed573' },
+        { key: 'VAC',  label: 'VAC',  color: '#f1c40f' },
+        { key: 'END',  label: 'END',  color: '#ff6b81' }
+      ];
+
+      const rowH = h / channels.length;
+      channels.forEach((ch, idx) => {
+        const baseY = (idx + 1) * rowH - 4;
+        const highY = idx * rowH + 5;
+
+        wCtx.fillStyle = ch.color;
+        wCtx.font = '9.5px Consolas, monospace';
+        wCtx.fillText(ch.label, 4, highY + 7);
+
+        wCtx.strokeStyle = ch.color;
+        wCtx.lineWidth = 1.5;
+        wCtx.beginPath();
+        const data = waveHistory[ch.key];
+        const stepX = (w - 48) / (maxSamples - 1);
+
+        for (let i = 0; i < data.length; i++) {
+          const x = 44 + i * stepX;
+          const val = data[i];
+          const y = val !== 0 ? highY : baseY;
+          if (i === 0) wCtx.moveTo(x, y);
+          else {
+            const prevY = data[i - 1] !== 0 ? highY : baseY;
+            if (prevY !== y) wCtx.lineTo(x, prevY);
+            wCtx.lineTo(x, y);
+          }
+        }
+        wCtx.stroke();
+      });
+    }
+    setInterval(sampleAndDrawWave, 100);
+
+    /* =========================================================
+       5. 우측 모드 전환 (시퀀스 / IP 설정 / 현장 트러블슈팅 가이드)
+       ========================================================= */
+    function switchRightMode(modeId, btn) {
+      document.querySelectorAll('.nav-tab').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      ['mode-seq', 'mode-net', 'mode-guide'].forEach(id => {
+        document.getElementById(id).style.display = (id === modeId) ? 'block' : 'none';
+      });
+      const titles = {
+        'mode-seq': 'Hi5a 제어기 JOB 실행 & 11단계 공정',
+        'mode-net': '비전 PC 4-Port 네트워크 격리 설정',
+        'mode-guide': '현장 트러블슈팅 가이드 (atm_error.pdf)'
+      };
+      document.getElementById('right-panel-title').textContent = titles[modeId];
+    }
+
+    function getSubnet(ip) {
+      const p = ip.trim().split('.');
+      if (p.length !== 4 || p.some(x => x === '' || isNaN(x) || x < 0 || x > 255)) return null;
+      return `${p[0]}.${p[1]}.${p[2]}`;
+    }
+
+    function verifyNetworks() {
+      const groups = [
+        { name: 'LAN 1 (Hi5a)', dot: 'hw-rob', wire: 'VPC_ROB', ips: [document.getElementById('ip-pc-rob').value, document.getElementById('ip-dev-rob').value] },
+        { name: 'LAN 2 (PLC)',  dot: 'hw-plc', wire: 'PLC_VPC', ips: [document.getElementById('ip-pc-plc').value, document.getElementById('ip-dev-plc').value] },
+        { name: 'LAN 3 (S0)',   dot: 'hw-s0',  wire: 'VPC_S0',  ips: [document.getElementById('ip-pc-s0').value, document.getElementById('ip-cam-s0').value, document.getElementById('ip-prj-s0').value] },
+        { name: 'LAN 4 (S1)',   dot: 'hw-s1',  wire: 'VPC_S1',  ips: [document.getElementById('ip-pc-s1').value, document.getElementById('ip-cam-s1').value, document.getElementById('ip-prj-s1').value] }
+      ];
+
+      let allOk = true;
+      const seenSubnets = new Set();
+
+      groups.forEach(g => {
+        const subs = g.ips.map(getSubnet);
+        const dotEl = document.getElementById(g.dot);
+        if (subs.includes(null) || new Set(subs).size > 1 || new Set(g.ips).size !== g.ips.length) {
+          allOk = false;
+          dotEl.classList.add('err');
+          addLog(`[Network Error] ${g.name}: 서브넷 불일치 또는 잘못된 IP 설정!`, 'err');
+        } else if (seenSubnets.has(subs[0])) {
+          allOk = false;
+          dotEl.classList.add('err');
+          addLog(`[Network Error] ${g.name}: 타 포트와 서브넷(${subs[0]}.x) 중복!`, 'err');
+        } else {
+          seenSubnets.add(subs[0]);
+          dotEl.classList.remove('err');
+          activateWireSignal(g.wire, false, 0x2ed573, 0x00ffff);
+        }
+      });
+
+      if (allOk) {
+        addLog('[Network OK] 4개 포트 서브넷 격리 및 유선 케이블 연결 검증 완료!', 'ok');
+      }
+    }
+
+    function resetNetInputs() {
+      document.getElementById('ip-pc-rob').value = '10.10.10.100';
+      document.getElementById('ip-dev-rob').value = '10.10.10.55';
+      document.getElementById('ip-pc-plc').value = '192.168.0.111';
+      document.getElementById('ip-dev-plc').value = '192.168.0.1';
+      document.getElementById('ip-pc-s0').value = '192.168.10.100';
+      document.getElementById('ip-cam-s0').value = '192.168.1.135';
+      document.getElementById('ip-prj-s0').value = '192.168.10.10';
+      document.getElementById('ip-pc-s1').value = '192.168.11.100';
+      document.getElementById('ip-cam-s1').value = '192.168.11.135';
+      document.getElementById('ip-prj-s1').value = '192.168.11.10';
+      verifyNetworks();
+    }
+
+    /* =========================================================
+       6. 메인 애니메이션 루프 및 초기화
+       ========================================================= */
+    function animate() {
+      requestAnimationFrame(animate);
+      updateKinematics();
+      updateWireAnimations();
+      controls.update();
+      renderer.render(scene, camera);
+    }
+
+    window.addEventListener('resize', () => {
+      camera.aspect = vpContainer.clientWidth / vpContainer.clientHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(vpContainer.clientWidth, vpContainer.clientHeight);
+    });
+
+    buildIoLists();
+    resetAll();
+    animate();
+  </script>
+</body>
+</html>

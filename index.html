@@ -38,7 +38,7 @@
       border: 1px solid var(--card-border);
       border-radius: 1.5rem;
       padding: 2.5rem;
-      max-width: 980px;
+      max-width: 1040px;
       width: 100%;
       box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
     }
@@ -138,11 +138,11 @@
       flex-shrink: 0;
     }
 
-    /* 5대 모듈 그리드 (PC 5열 / 태블릿 3열 / 모바일 2열 자동 대응) */
+    /* 6대 모듈 그리드 (PC 6열 / 태블릿 3열 / 모바일 2열 자동 대응) */
     .modules-grid {
       display: grid;
-      grid-template-columns: repeat(5, 1fr);
-      gap: 1.25rem;
+      grid-template-columns: repeat(6, 1fr);
+      gap: 1.1rem;
       justify-items: center;
       align-items: start;
     }
@@ -164,8 +164,8 @@
 
     /* 원형 버튼 디자인 */
     .circle-btn {
-      width: 105px;
-      height: 105px;
+      width: 102px;
+      height: 102px;
       border-radius: 50%;
       background: #0f172a;
       border: 2px solid var(--accent-blue);
@@ -186,14 +186,14 @@
     }
 
     .btn-icon {
-      font-size: 1.65rem;
+      font-size: 1.6rem;
       margin-bottom: 0.2rem;
       color: var(--accent-blue);
       transition: color 0.25s ease;
     }
 
     .btn-code {
-      font-size: 0.8rem;
+      font-size: 0.78rem;
       font-weight: 700;
       color: var(--text-main);
       transition: color 0.25s ease;
@@ -209,7 +209,7 @@
     .beta-badge {
       position: absolute;
       top: 0px;
-      right: 10px;
+      right: 8px;
       background: var(--accent-amber);
       color: #0f172a;
       font-size: 0.65rem;
@@ -223,7 +223,7 @@
     /* 버튼 하단 텍스트 */
     .module-title {
       margin-top: 0.85rem;
-      font-size: 0.95rem;
+      font-size: 0.92rem;
       font-weight: 700;
       text-align: center;
       color: #ffffff;
@@ -231,7 +231,7 @@
     }
 
     .module-desc {
-      font-size: 0.75rem;
+      font-size: 0.74rem;
       color: var(--text-sub);
       text-align: center;
       margin-top: 0.3rem;
@@ -240,7 +240,7 @@
     }
 
     /* 반응형 디자인 */
-    @media (max-width: 880px) {
+    @media (max-width: 960px) {
       .modules-grid {
         grid-template-columns: repeat(3, 1fr);
         gap: 1.5rem 1rem;
@@ -298,7 +298,7 @@
       </div>
     </section>
 
-    <!-- 3. 원형 링크 모듈 (5대 핵심 교육 모듈) -->
+    <!-- 3. 원형 링크 모듈 (6대 핵심 교육 모듈) -->
     <nav class="modules-grid">
       <!-- ① UF6 PC 시뮬레이터 -->
       <a href="uf6_pc.html" class="module-item">
@@ -307,7 +307,7 @@
           <span class="btn-code">uf6_pc</span>
         </div>
         <div class="module-title">UF6 3D (PC)</div>
-        <div class="module-desc">데스크톱 정밀 시뮬레이터[cite: 1]</div>
+        <div class="module-desc">데스크톱 정밀 시뮬레이터</div>
       </a>
 
       <!-- ② UF6 모바일 시뮬레이터 -->
@@ -317,7 +317,7 @@
           <span class="btn-code">uf6_mo</span>
         </div>
         <div class="module-title">UF6 3D (Mobile)</div>
-        <div class="module-desc">현장 터치 최적화 뷰어[cite: 1]</div>
+        <div class="module-desc">현장 터치 최적화 뷰어</div>
       </a>
 
       <!-- ③ FOV 모듈 -->
@@ -338,7 +338,7 @@
           <span class="btn-code">icp_pc</span>
         </div>
         <div class="module-title">ICP 매칭 (PC)</div>
-        <div class="module-desc">포인트클라우드 정합[cite: 1]</div>
+        <div class="module-desc">포인트클라우드 정합</div>
       </a>
 
       <!-- ⑤ 구조광 3D Scan 모듈 (신규 연동 / 베타) -->
@@ -350,6 +350,17 @@
         </div>
         <div class="module-title">구조광 3D Scan</div>
         <div class="module-desc">Pointcloud 생성</div>
+      </a>
+
+      <!-- ⑥ 네트워크 & PLC-로봇 통신 시뮬레이터 (신규 연동) -->
+      <a href="net_comm.html" class="module-item">
+        <div class="circle-btn">
+          <span class="beta-badge">BETA</span>
+          <span class="btn-icon">🔌</span>
+          <span class="btn-code">net_comm</span>
+        </div>
+        <div class="module-title">PLC-Robot 통신</div>
+        <div class="module-desc">3D 비전 핸드셰이크</div>
       </a>
     </nav>
   </main>
