@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>3D Vision - PLC - Robot 통신 Simulator | V2.0 (Nov.14)</title>
+  <title>3D Vision - PLC - Robot 통신 Simulator | V1.5 (Nov.14)</title>
   <style>
     :root {
       --bg-dark: #0a1117;
@@ -196,6 +196,20 @@
       border-radius: 3px;
       font-size: 11px;
       font-family: var(--font-mono);
+      user-select: text;
+    }
+
+    input[type="text"]:focus {
+      outline: none;
+      border-color: var(--accent-cyan);
+      box-shadow: 0 0 0 1px rgba(0, 173, 181, 0.4);
+    }
+
+    input[type="text"][readonly] {
+      background: #0c141c;
+      color: #7b93a6;
+      border-color: #1b2f3f;
+      cursor: not-allowed;
     }
 
     button {
@@ -220,6 +234,12 @@
       border-color: var(--success-green);
       font-weight: bold;
     }
+    button.warn-btn {
+      background: #7c2d12;
+      border-color: #f97316;
+      font-weight: bold;
+    }
+    button.warn-btn:hover:not(:disabled) { background: #9a3412; }
     button.tiny-btn {
       padding: 1px 6px;
       font-size: 9.5px;
@@ -231,25 +251,38 @@
       font-weight: bold;
     }
 
-    /* 메인 워크스페이스 */
+    button.locked-sim {
+      opacity: 0.72;
+      border-color: var(--danger-red);
+    }
+
+    /* 메인 워크스페이스: 좌측(295px)과 우측(330px)은 화면 하단 끝까지 풀 연장 */
     .workspace {
       display: grid;
       grid-template-columns: 295px 1fr 330px;
-      grid-template-rows: 1fr 138px;
+      grid-template-rows: 1fr 142px;
       flex: 1;
       overflow: hidden;
     }
 
-    .panel {
+    .panel-left-full {
+      grid-column: 1 / 2;
+      grid-row: 1 / 3;
       background: var(--panel-bg);
       border-right: 1px solid var(--panel-border);
       display: flex;
       flex-direction: column;
       overflow: hidden;
     }
-    .panel-right {
-      border-right: none;
+
+    .panel-right-full {
+      grid-column: 3 / 4;
+      grid-row: 1 / 3;
+      background: var(--panel-bg);
       border-left: 1px solid var(--panel-border);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
     }
 
     .panel-header {
@@ -266,12 +299,12 @@
     }
 
     .panel-body {
-      padding: 8px;
+      padding: 7px 8px;
       overflow-y: auto;
       flex: 1;
       display: flex;
       flex-direction: column;
-      gap: 7px;
+      gap: 6px;
     }
 
     /* I/O 핀맵 LED 리스트 */
@@ -336,8 +369,83 @@
       box-shadow: 0 0 6px var(--danger-red);
     }
 
+    /* 좌측 패널 하단: 4x4 행렬(폰트 30% 확대) & 6-DOF 변위 박스 */
+    .left-matrix-section {
+      margin-top: auto;
+      background: #0c161f;
+      border: 1px solid var(--panel-border);
+      border-radius: 4px;
+      padding: 6px;
+      font-family: var(--font-mono);
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+
+    .matrix-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .matrix-source-badge {
+      font-size: 10px;
+      font-weight: bold;
+      color: var(--accent-cyan);
+    }
+
+    .matrix-box {
+      background: #070b0e;
+      border: 1px solid #1a2c3a;
+      padding: 5px 6px;
+      color: var(--yellow-warn);
+      font-size: 11.7px; /* 기존 9px 대비 30% 확대 */
+      line-height: 1.32;
+      white-space: pre;
+      overflow-x: auto;
+      letter-spacing: -0.2px;
+    }
+
+    .shift-6dof-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 4px;
+    }
+
+    .dof-box {
+      background: #080d12;
+      border: 1px solid #22384a;
+      border-radius: 3px;
+      padding: 3px 5px;
+      font-size: 10.6px; /* 기존 9.2px 대비 확대 */
+      font-weight: bold;
+      color: #cbd5e1;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .dof-box.ok-val {
+      border-color: rgba(46, 213, 115, 0.45);
+    }
+
+    .dof-box.ng-blink {
+      border-color: var(--danger-red);
+      color: #fff;
+      font-weight: bold;
+      animation: dofAlarmBlink 0.45s infinite alternate;
+    }
+
+    @keyframes dofAlarmBlink {
+      from { background: rgba(255, 71, 87, 0.25); }
+      to   { background: rgba(255, 71, 87, 0.85); }
+    }
+
     /* 중앙 3D 뷰포트 */
     #viewport-container {
+      grid-column: 2 / 3;
+      grid-row: 1 / 2;
       position: relative;
       background: radial-gradient(circle at center, #152636 0%, #091016 100%);
       overflow: hidden;
@@ -379,7 +487,7 @@
       align-items: center;
       gap: 5px;
       z-index: 6;
-      width: 94%;
+      width: 95%;
       max-width: 680px;
     }
 
@@ -389,7 +497,7 @@
       padding: 6px 14px;
       border-radius: 4px;
       font-family: var(--font-mono);
-      font-size: 11.5px;
+      font-size: 11px;
       font-weight: 800;
       text-align: center;
       box-shadow: 0 4px 15px rgba(0,0,0,0.6);
@@ -415,7 +523,7 @@
     .step-banner {
       background: rgba(8, 13, 18, 0.92);
       border: 1px solid var(--accent-cyan);
-      padding: 5px 14px;
+      padding: 5px 12px;
       border-radius: 4px;
       font-size: 11px;
       font-weight: bold;
@@ -433,23 +541,81 @@
       font-size: 10.5px;
       background: #1b354b;
       color: var(--accent-cyan);
+      transition: transform 0.15s, box-shadow 0.15s;
     }
     .judge-pill.ok { background: var(--success-green); color: #080d12; }
     .judge-pill.ng { background: var(--danger-red); color: #fff; }
+    .judge-pill.clickable-lock {
+      cursor: pointer;
+      border: 1px solid #ff9aa2;
+      box-shadow: 0 0 8px rgba(255, 71, 87, 0.7);
+    }
+    .judge-pill.clickable-lock:hover {
+      transform: scale(1.06);
+      background: #ff2e43;
+    }
+
+    /* 중앙 하단: 신호 타이밍 파형(30%) + 실시간 통신 로그(70%) */
+    .bottom-center {
+      grid-column: 2 / 3;
+      grid-row: 2 / 3;
+      border-top: 1px solid var(--panel-border);
+      background: #080c10;
+      display: grid;
+      grid-template-columns: 30% 70%;
+      overflow: hidden;
+    }
+
+    .wave-panel {
+      border-right: 1px solid var(--panel-border);
+      padding: 5px 7px;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    #wave-canvas {
+      width: 100%;
+      height: 100%;
+      background: #05090d;
+      border: 1px solid #1a2c3a;
+      border-radius: 3px;
+    }
+
+    .log-panel {
+      padding: 5px 8px;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .log-list {
+      flex: 1;
+      overflow-y: auto;
+      font-family: var(--font-mono);
+      font-size: 10px;
+      line-height: 1.42;
+      color: #a4b0be;
+      margin-top: 3px;
+    }
+
+    .log-ok { color: var(--success-green); }
+    .log-err { color: var(--danger-red); font-weight: bold; }
+    .log-info { color: var(--accent-cyan); }
 
     /* 우측 패널 카드 */
     .sub-card {
       background: #0c161f;
       border: 1px solid var(--panel-border);
       border-radius: 4px;
-      padding: 8px;
+      padding: 7px 8px;
     }
 
     .sub-card-title {
       font-size: 10.5px;
       font-weight: bold;
       color: #8faec4;
-      margin-bottom: 6px;
+      margin-bottom: 5px;
       border-bottom: 1px solid #1a2f3f;
       padding-bottom: 3px;
       display: flex;
@@ -457,27 +623,30 @@
       align-items: center;
     }
 
-    /* 2번 탭: 1행 1항목 IP 입력 행 스타일 (가로 넘침 방지) */
+    /* 2번 탭: 1행 1항목 IP 입력 행 스타일 */
     .port-group-title {
       font-weight: bold;
-      font-size: 10.5px;
-      margin: 7px 0 4px 0;
+      font-size: 10.2px;
+      margin: 6px 0 3px 0;
       padding-top: 4px;
       border-top: 1px dashed #1f3648;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
     }
     .port-group-title:first-of-type {
       border-top: none;
-      margin-top: 2px;
+      margin-top: 1px;
       padding-top: 0;
     }
 
     .net-row-single {
       display: grid;
-      grid-template-columns: 105px 1fr;
+      grid-template-columns: 106px 1fr;
       gap: 6px;
       align-items: center;
-      font-size: 10.5px;
-      margin-bottom: 4px;
+      font-size: 10.2px;
+      margin-bottom: 3px;
     }
     .net-row-single label {
       color: var(--text-muted);
@@ -486,6 +655,127 @@
     .net-row-single input {
       width: 100%;
       min-width: 0;
+      padding: 2px 6px;
+      font-size: 10.8px;
+    }
+    .net-row-single input.ip-err {
+      border-color: var(--danger-red);
+      background: rgba(255, 71, 87, 0.12);
+    }
+    .net-row-single input.ip-ok {
+      border-color: rgba(46, 213, 115, 0.65);
+    }
+
+    /* 4-Port 진단 미니 상태 박스 (2x2 그리드) */
+    .lan-status-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 5px;
+      margin-top: 4px;
+    }
+
+    .lan-mini-box {
+      background: #080d12;
+      border: 1px solid #233c4f;
+      border-radius: 4px;
+      padding: 5px 6px;
+      font-family: var(--font-mono);
+      transition: all 0.2s;
+    }
+    .lan-mini-box.ok {
+      border-color: var(--success-green);
+      background: rgba(46, 213, 115, 0.08);
+    }
+    .lan-mini-box.err {
+      border-color: var(--danger-red);
+      background: rgba(255, 71, 87, 0.12);
+    }
+
+    .lan-mini-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 10px;
+      font-weight: bold;
+      margin-bottom: 2px;
+    }
+
+    .lan-badge {
+      padding: 1px 4px;
+      border-radius: 2px;
+      font-size: 9px;
+      font-weight: 800;
+    }
+    .lan-badge.ok {
+      background: var(--success-green);
+      color: #080d12;
+    }
+    .lan-badge.err {
+      background: var(--danger-red);
+      color: #ffffff;
+    }
+
+    .lan-mini-desc {
+      font-size: 9.2px;
+      color: #cbd5e1;
+      line-height: 1.3;
+      word-break: keep-all;
+    }
+
+    .ip-howto-box {
+      background: #080d12;
+      border: 1px dashed #2d4c63;
+      border-radius: 4px;
+      padding: 6px 7px;
+      font-size: 9.8px;
+      color: #cbd5e1;
+      line-height: 1.44;
+      margin-top: 6px;
+    }
+    .ip-howto-box b {
+      color: var(--yellow-warn);
+    }
+
+    /* 우측 하단 여유 공간: 공정 실습 바로가기 원클릭 카드 */
+    .next-action-box {
+      margin-top: 7px;
+      background: #0b141d;
+      border: 1px dashed #2e4a61;
+      border-radius: 5px;
+      padding: 8px 9px;
+      text-align: center;
+      transition: all 0.25s;
+      cursor: not-allowed;
+      opacity: 0.78;
+    }
+    .next-action-box.ready {
+      background: linear-gradient(135deg, rgba(20, 83, 45, 0.9) 0%, rgba(15, 61, 34, 0.95) 100%);
+      border: 1.5px solid var(--success-green);
+      box-shadow: 0 0 12px rgba(46, 213, 115, 0.35);
+      cursor: pointer;
+      opacity: 1;
+    }
+    .next-action-box.ready:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 0 16px rgba(46, 213, 115, 0.6);
+      background: linear-gradient(135deg, rgba(25, 102, 56, 0.95) 0%, rgba(18, 74, 42, 0.98) 100%);
+    }
+    .next-action-title {
+      font-size: 10.8px;
+      font-weight: 800;
+      color: #829aa8;
+      margin-bottom: 3px;
+    }
+    .next-action-box.ready .next-action-title {
+      color: #86efac;
+    }
+    .next-action-sub {
+      font-size: 9.6px;
+      color: #94a3b8;
+      line-height: 1.35;
+    }
+    .next-action-box.ready .next-action-sub {
+      color: #e2e8f0;
     }
 
     .tp-box {
@@ -509,7 +799,7 @@
       padding-left: 4px;
     }
 
-    /* 3번 탭: 현장 트러블슈팅 가이드 (atm_error.pdf 요약 & 원본 링크) */
+    /* 3번 탭: 현장 트러블슈팅 가이드 */
     .pdf-link-btn {
       display: flex;
       align-items: center;
@@ -586,134 +876,18 @@
       border: 1px solid #2b485e;
     }
 
-    /* 하단 좌측: 스캐너별 UF6 4x4 행렬 & 6-DOF 개별 점멸 박스 */
-    .bottom-left {
-      grid-column: 1 / 2;
-      border-top: 1px solid var(--panel-border);
-      border-right: 1px solid var(--panel-border);
-      background: #0c161f;
-      padding: 5px 8px;
-      font-family: var(--font-mono);
-      overflow-y: auto;
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-    }
-
-    .matrix-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 4px;
-    }
-
-    .matrix-source-badge {
-      font-size: 9.8px;
-      font-weight: bold;
-      color: var(--accent-cyan);
-    }
-
-    .matrix-box {
-      background: #070b0e;
-      border: 1px solid #1a2c3a;
-      padding: 3px 5px;
-      margin-top: 2px;
-      color: var(--yellow-warn);
-      font-size: 9px;
-      line-height: 1.25;
-      white-space: pre;
-    }
-
-    .shift-6dof-grid {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 3px;
-      margin-top: 3px;
-    }
-
-    .dof-box {
-      background: #080d12;
-      border: 1px solid #22384a;
-      border-radius: 3px;
-      padding: 2px 4px;
-      font-size: 9.2px;
-      color: #cbd5e1;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-
-    .dof-box.ok-val {
-      border-color: rgba(46, 213, 115, 0.45);
-    }
-
-    .dof-box.ng-blink {
-      border-color: var(--danger-red);
-      color: #fff;
-      font-weight: bold;
-      animation: dofAlarmBlink 0.45s infinite alternate;
-    }
-
-    @keyframes dofAlarmBlink {
-      from { background: rgba(255, 71, 87, 0.25); }
-      to   { background: rgba(255, 71, 87, 0.85); }
-    }
-
-    /* 하단 우측: 슬림 디지털 타이밍 차트(Waveform) + 통신 로그 */
-    .bottom-right {
-      grid-column: 2 / 4;
-      border-top: 1px solid var(--panel-border);
-      background: #080c10;
-      display: grid;
-      grid-template-columns: 0.82fr 1.18fr;
-      overflow: hidden;
-    }
-
-    .wave-panel {
-      border-right: 1px solid var(--panel-border);
-      padding: 5px 8px;
-      display: flex;
-      flex-direction: column;
-    }
-
-    #wave-canvas {
-      width: 100%;
-      height: 100%;
-      background: #05090d;
-      border: 1px solid #1a2c3a;
-      border-radius: 3px;
-    }
-
-    .log-panel {
-      padding: 5px 8px;
-      display: flex;
-      flex-direction: column;
-      overflow: hidden;
-    }
-
-    .log-list {
-      flex: 1;
-      overflow-y: auto;
-      font-family: var(--font-mono);
-      font-size: 10px;
-      line-height: 1.4;
-      color: #a4b0be;
-      margin-top: 3px;
-    }
-
-    .log-ok { color: var(--success-green); }
-    .log-err { color: var(--danger-red); font-weight: bold; }
-    .log-info { color: var(--accent-cyan); }
-
     @media (max-width: 1100px) {
       body { height: auto; overflow-y: auto; }
       .workspace {
         grid-template-columns: 1fr;
-        grid-template-rows: auto 440px auto auto auto;
+        grid-template-rows: auto 440px 220px auto;
         height: auto;
       }
-      .bottom-left, .bottom-right { grid-column: 1 / 2; }
-      .bottom-right { grid-template-columns: 1fr; height: 260px; }
+      .panel-left-full, #viewport-container, .bottom-center, .panel-right-full {
+        grid-column: 1 / 2;
+        grid-row: auto;
+      }
+      .bottom-center { grid-template-columns: 1fr; height: 260px; }
     }
   </style>
   <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js"></script>
@@ -724,20 +898,20 @@
   <!-- 상단 헤더 -->
   <header>
     <div class="title-box">
-      <span class="ver-badge">V2.0 (Nov.14)</span>
+      <span class="ver-badge">V1.5 (Nov.14)</span>
       <span class="title">3D Vision - PLC - Robot 통신 Simulator</span>
     </div>
 
     <div class="header-right">
       <div class="status-bar">
-        <div class="hw-badge"><span class="led-dot" id="hw-plc"></span>PLC</div>
-        <div class="hw-badge"><span class="led-dot" id="hw-s0"></span>S0 [3DM]</div>
-        <div class="hw-badge"><span class="led-dot" id="hw-s1"></span>S1 [3DM]</div>
-        <div class="hw-badge"><span class="led-dot" id="hw-rob"></span>Hi5a</div>
+        <div class="hw-badge"><span class="led-dot err" id="hw-plc"></span>PLC</div>
+        <div class="hw-badge"><span class="led-dot err" id="hw-s0"></span>S0 [3DM]</div>
+        <div class="hw-badge"><span class="led-dot err" id="hw-s1"></span>S1 [3DM]</div>
+        <div class="hw-badge"><span class="led-dot err" id="hw-rob"></span>Hi5a</div>
       </div>
 
       <a href="index.html" class="logo-link" title="메인 교육 포털(index.html)로 돌아가기">
-        <img src="atm_red.png" alt="ATM" onerror="this.style.display='none'; this.nextElementSibling.style.display='inline';">
+        <img src="image/atm_red.png" alt="ATM" onerror="this.style.display='none'; this.nextElementSibling.style.display='inline';">
         <span class="logo-fallback" style="display:none;">ATM</span>
       </a>
     </div>
@@ -746,9 +920,9 @@
   <!-- 서브 내비게이션 & 시뮬레이션 제어바 -->
   <div class="sub-nav">
     <div class="nav-tabs">
-      <button class="nav-tab active" onclick="switchRightMode('mode-seq', this)">1. 11단계 공정 핸드셰이크 (Sequence)</button>
-      <button class="nav-tab" onclick="switchRightMode('mode-net', this)">2. 4-Port IP 격리 설정 (Network)</button>
-      <button class="nav-tab" onclick="switchRightMode('mode-guide', this)">3. 현장 트러블슈팅 가이드</button>
+      <button class="nav-tab" id="tab-seq" onclick="switchRightMode('mode-seq', this)">1. 11단계 공정 핸드셰이크 (Sequence)</button>
+      <button class="nav-tab active" id="tab-net" onclick="switchRightMode('mode-net', this)">2. 4-Port IP 격리 설정 (Network)</button>
+      <button class="nav-tab" id="tab-guide" onclick="switchRightMode('mode-guide', this)">3. 현장 트러블슈팅 가이드</button>
     </div>
 
     <div class="sim-controls">
@@ -756,22 +930,22 @@
         <option value="MODEL_A">차종: 세단 파노라마 (Bit 8)</option>
         <option value="MODEL_B">차종: SUV 파노라마 (Bit 9)</option>
       </select>
-      <select id="sel-scenario" onchange="resetAll()">
+      <select id="sel-scenario" onchange="resetSequenceOnly()">
         <option value="OK_DEMO">OK Demo (랜덤 정상 보정)</option>
         <option value="NG_S0">NG Demo (S0 부품 오차 초과 → Pick_NG)</option>
         <option value="NG_S1">NG Demo (S1 차체 오차 초과 → 부품 회수)</option>
       </select>
-      <button class="primary" onclick="nextStep()">▶ 다음 스텝 (1~11)</button>
-      <button class="success" id="btn-auto" onclick="toggleAuto()">⏩ 자동 연속</button>
-      <button onclick="resetAll()">↺ 초기화 (1)</button>
+      <button class="primary locked-sim" id="btn-next" onclick="nextStep()">▶ 다음 스텝 (1~11)</button>
+      <button class="success locked-sim" id="btn-auto" onclick="toggleAuto()">⏩ 자동 연속</button>
+      <button onclick="fullReset()">↺ 초기화</button>
     </div>
   </div>
 
   <!-- 메인 3D 워크스페이스 -->
   <div class="workspace">
 
-    <!-- 좌측 패널: PLC & Hi5a 실시간 I/O 핀맵 -->
-    <div class="panel">
+    <!-- 좌측 패널 (상단 I/O 핀맵 + 좌표축 안내 + 하단 4x4 행렬 풀 연장) -->
+    <div class="panel-left-full">
       <div class="panel-header">
         <span>I/O 핀맵 모니터 (클릭: 수동 토글)</span>
         <span style="font-size:9.5px; color:var(--text-muted);">Forced I/O</span>
@@ -799,21 +973,47 @@
           </div>
         </div>
 
-        <div style="font-size:10px; color:var(--text-muted); line-height:1.42; padding:2px;">
-          * <b>로봇 Base {B} (기단 상단 원점, CW 90°):</b><br>
+        <div style="font-size:10px; color:var(--text-muted); line-height:1.45; padding:2px;">
+          * <b>로봇 Base(직교) 좌표계:</b><br>
           &nbsp;&nbsp;<span style="color:#ff4757;">■ X(Red)</span>: 전후 | <span style="color:#2ed573;">■ Y(Green)</span>: 좌우 | <span style="color:#1e90ff;">■ Z(Blue)</span>: 상하<br>
-          * <b>차체 TLH 프레임 (Z축 180° 회전):</b><br>
+          * <b>차체 TLH 좌표계:</b><br>
           &nbsp;&nbsp;<span style="color:#ff4757;">■ T(X)</span>: 진행반대(좌) | <span style="color:#2ed573;">■ L(Y)</span>: 조수석(전) | <span style="color:#1e90ff;">■ H(Z)</span>: 상
+        </div>
+
+        <!-- 좌측 최하단: 스캐너별 UF6 4x4 행렬 & 6-DOF 변위 값 -->
+        <div class="left-matrix-section">
+          <div class="matrix-header">
+            <span class="matrix-source-badge" id="matrix-source-lbl">[대기] 보정 행렬 (T_Shift)</span>
+            <div style="display:flex; gap:3px;">
+              <button class="tiny-btn" id="btn-view-s0" onclick="selectMatrixView('S0')">S0 [3DM]</button>
+              <button class="tiny-btn" id="btn-view-s1" onclick="selectMatrixView('S1')">S1 [3DM]</button>
+            </div>
+          </div>
+
+          <div class="matrix-box" id="matrix-out">
+[1.0000, 0.0000, 0.0000,  0.00;
+ 0.0000, 1.0000, 0.0000,  0.00;
+ 0.0000, 0.0000, 1.0000,  0.00;
+ 0.0000, 0.0000, 0.0000,  1.000]</div>
+
+          <div class="shift-6dof-grid" id="shift-6dof-box">
+            <div class="dof-box" id="box-dx"><span>ΔX</span><span>0.0mm</span></div>
+            <div class="dof-box" id="box-dy"><span>ΔY</span><span>0.0mm</span></div>
+            <div class="dof-box" id="box-dz"><span>ΔZ</span><span>0.0mm</span></div>
+            <div class="dof-box" id="box-rx"><span>ΔRx</span><span>0.0°</span></div>
+            <div class="dof-box" id="box-ry"><span>ΔRy</span><span>0.0°</span></div>
+            <div class="dof-box" id="box-rz"><span>ΔRz</span><span>0.0°</span></div>
+          </div>
         </div>
       </div>
     </div>
 
-    <!-- 중앙: Three.js 3D 파노라마 선루프 장착 공정 셀 뷰포트 -->
+    <!-- 중앙 상단: Three.js 3D 파노라마 선루프 장착 공정 셀 뷰포트 -->
     <div id="viewport-container">
       <div class="viewport-overlay">
-        [Panorama Sunroof Cell — Hi5a Base {B} & Car TLH Frame]<br>
-        <span style="color:#ff4757;">X/T(Red)</span> · <span style="color:#2ed573;">Y/L(Green)</span> · <span style="color:#1e90ff;">Z/H(Blue)</span> | <span style="color:#fef08a;">■ 전면 LED 전조등(우측진행)</span><br>
-        <span id="overlay-state" style="color:#f1c40f; font-weight:bold;">(1) 초기 상태: 시스템 대기 (READY = 1)</span>
+        [Panorama Sunroof Cell — U5 Master Ghost & U6 Robot Shift]<br>
+        <span style="color:#ff4757;">X/T(Red)</span> · <span style="color:#2ed573;">Y/L(Green)</span> · <span style="color:#1e90ff;">Z/H(Blue)</span> | <span style="color:#2ed573;">□ 연초록 반투명: 티칭 마스터 위치(U5)</span><br>
+        <span id="overlay-state" style="color:#ff4757; font-weight:bold;">[INTERLOCK] 4-Port IP 설정 미검증 — 네트워크 설정 후 연결 검증 필요</span>
       </div>
 
       <!-- 시점 빠른 전환 버튼 -->
@@ -829,19 +1029,35 @@
           [PLC 판정 결과 알림] 작업 성공 (OK)
         </div>
         <div class="step-banner">
-          <span id="step-text">(1) / (11) : 초기 상태 — 시스템 준비 완료</span>
-          <span class="judge-pill" id="judge-pill">STEP 1/11</span>
+          <span id="step-text">(1) / (11) : 네트워크 IP 검증 대기 — 우측 설정창에서 4-Port IP를 맞추세요</span>
+          <span class="judge-pill ng clickable-lock" id="judge-pill" onclick="onStatusPillClick()" title="클릭 시 4-Port 네트워크 IP 설정창으로 이동합니다">NET LOCK</span>
         </div>
       </div>
     </div>
 
-    <!-- 우측 패널: 선택된 모드별 인터랙션 -->
-    <div class="panel panel-right">
-      <div class="panel-header" id="right-panel-title">Hi5a 제어기 JOB 실행 & 11단계 공정</div>
+    <!-- 중앙 하단: 좌측 30% 신호 타이밍 파형 + 우측 70% 실시간 통신 로그 -->
+    <div class="bottom-center">
+      <div class="wave-panel">
+        <div style="display:flex; justify-content:space-between; font-size:9.5px; color:var(--accent-cyan); font-weight:bold; margin-bottom:2px;">
+          <span>신호 타이밍 파형</span>
+          <span style="color:var(--text-muted); font-size:8.8px;">SCAN·OK·VAC·END</span>
+        </div>
+        <canvas id="wave-canvas"></canvas>
+      </div>
+
+      <div class="log-panel">
+        <div style="font-size:9.5px; color:var(--accent-cyan); font-weight:bold;">ATMC & Hi5a 실시간 통신 로그</div>
+        <div class="log-list" id="log-list"></div>
+      </div>
+    </div>
+
+    <!-- 우측 패널 (화면 하단 끝까지 풀 연장) -->
+    <div class="panel-right-full">
+      <div class="panel-header" id="right-panel-title">비전 PC 4-Port 네트워크 격리 설정</div>
       <div class="panel-body">
 
         <!-- 모드 1: 시퀀스 & Hi5a HR-BASIC 프로그램 추적 -->
-        <div id="mode-seq">
+        <div id="mode-seq" style="display:none;">
           <div class="sub-card" style="margin-bottom:7px;">
             <div class="sub-card-title">
               <span>Hi5a 티칭 펜던트 (0001.JOB)</span>
@@ -851,51 +1067,119 @@
           </div>
 
           <div class="sub-card">
-            <div class="sub-card-title"><span>시간차 동기화 및 NG 복구 로직</span></div>
+            <div class="sub-card-title"><span>3D 비전 보정(U5 → U6) 및 마스터 고스트 안내</span></div>
             <div style="font-size:10.3px; color:#cbd5e1; line-height:1.48;">
-              • <b>(7) 시간차 파지:</b> <code>PC → Robot</code> <code>PICK</code> 패킷 수신 완료 후 로봇이 부품대로 이동해 파지합니다.<br>
-              • <b>(10) 시간차 장착:</b> <code>S1</code> 보정으로 <b>차체가 먼저 정위치 정렬</b>된 후 로봇이 선루프를 장착합니다.<br>
-              • <b>NG 복구:</b> <code>S0 NG</code> 시 로봇 정지 종료 / <code>S1 NG</code> 시 부품을 부품대 원위치로 반납 후 종료.
+              • <b>고정 대상물 + 로봇 보정:</b> 실제 현장에서 부품과 차체는 비틀어진 자리에 그대로 있고, <b>로봇 그리퍼가 Shift 행렬(U6)만큼 자세를 틀어</b> 파지·장착합니다.<br>
+              • <b>마스터 고스트 표시 구간:</b> 스캔 실행(STEP 5, 9)부터 로봇 픽업/장착 완료(STEP 7, 10) 동안만 <b>최초 티칭 마스터 위치(연초록 반투명)</b>를 겹쳐 표시하여 편차를 보여줍니다.
             </div>
           </div>
         </div>
 
-        <!-- 모드 2: 4-Port 멀티 랜카드 IP 격리 설정 (1행 1항목 배열 수정) -->
-        <div id="mode-net" style="display:none;">
-          <div class="sub-card" style="margin-bottom:8px;">
+        <!-- 모드 2: 4-Port 멀티 랜카드 IP 격리 설정 + 실시간 진단 박스 (초기 기본 노출) -->
+        <div id="mode-net">
+          <div class="sub-card" style="margin-bottom:6px;">
             <div class="sub-card-title">
               <span>비전 PC 4-Port IP 격리 설정</span>
-              <button class="primary" style="padding:2px 7px; font-size:10px;" onclick="verifyNetworks()">연결 검증</button>
+              <div style="display:flex; gap:4px;">
+                <button class="warn-btn" style="padding:2px 6px; font-size:10px;" onclick="randomizeNetInputs()" title="새로운 랜덤 IP 오류 문제 출제">🎲 문제 출제</button>
+                <button class="primary" style="padding:2px 8px; font-size:10px;" onclick="verifyNetworks(true)">연결 검증</button>
+              </div>
             </div>
-            <p style="font-size:10.3px; color:var(--yellow-warn); margin-bottom:6px; line-height:1.4;">
-              * 4개 포트는 서로 다른 서브넷 대역으로 분리되어야 합니다. 현재 <b>LAN 3(S0)</b> 대역을 맞춰보세요.
-            </p>
 
-            <div class="port-group-title" style="color:#60a5fa;">[LAN 1] Hi5a Robot (HR-RPC)</div>
-            <div class="net-row-single"><label>Vision PC IP</label><input type="text" id="ip-pc-rob" value="10.10.10.100"></div>
-            <div class="net-row-single"><label>Hi5a Robot IP</label><input type="text" id="ip-dev-rob" value="10.10.10.55"></div>
+            <div class="port-group-title" style="color:#60a5fa;">
+              <span>[LAN 1] Hi5a Robot (HR-RPC)</span>
+              <span style="font-size:9px; color:#64748b;">대역: 10.10.x.x</span>
+            </div>
+            <div class="net-row-single"><label>Vision PC IP</label><input type="text" id="ip-pc-rob" value=""></div>
+            <div class="net-row-single"><label>Hi5a Robot IP 🔒</label><input type="text" id="ip-dev-rob" value="10.10.10.55" readonly></div>
 
-            <div class="port-group-title" style="color:#38bdf8;">[LAN 2] Melsec PLC (Port 5020)</div>
-            <div class="net-row-single"><label>Vision PC IP</label><input type="text" id="ip-pc-plc" value="192.168.0.111"></div>
-            <div class="net-row-single"><label>Melsec PLC IP</label><input type="text" id="ip-dev-plc" value="192.168.0.1"></div>
+            <div class="port-group-title" style="color:#38bdf8;">
+              <span>[LAN 2] Melsec PLC (Port 5020)</span>
+              <span style="font-size:9px; color:#64748b;">대역: 192.168.x.x</span>
+            </div>
+            <div class="net-row-single"><label>Vision PC IP</label><input type="text" id="ip-pc-plc" value=""></div>
+            <div class="net-row-single"><label>Melsec PLC IP 🔒</label><input type="text" id="ip-dev-plc" value="192.168.0.1" readonly></div>
 
-            <div class="port-group-title" style="color:#f59e0b;">[LAN 3] S0 [3DM] (Glass Rack)</div>
-            <div class="net-row-single"><label>Vision PC IP</label><input type="text" id="ip-pc-s0" value="192.168.10.100"></div>
-            <div class="net-row-single"><label>S0 Camera IP</label><input type="text" id="ip-cam-s0" value="192.168.1.135"></div>
-            <div class="net-row-single"><label>S0 Projector IP</label><input type="text" id="ip-prj-s0" value="192.168.10.10"></div>
+            <div class="port-group-title" style="color:#f59e0b;">
+              <span>[LAN 3] S0 [3DM] (Glass Rack)</span>
+              <span style="font-size:9px; color:#64748b;">Cam .135 / Prj .10</span>
+            </div>
+            <div class="net-row-single"><label>Vision PC IP</label><input type="text" id="ip-pc-s0" value=""></div>
+            <div class="net-row-single"><label>S0 Camera IP</label><input type="text" id="ip-cam-s0" value=""></div>
+            <div class="net-row-single"><label>S0 Projector IP</label><input type="text" id="ip-prj-s0" value=""></div>
 
-            <div class="port-group-title" style="color:#2ed573;">[LAN 4] S1 [3DM] (Car Body)</div>
-            <div class="net-row-single"><label>Vision PC IP</label><input type="text" id="ip-pc-s1" value="192.168.11.100"></div>
-            <div class="net-row-single"><label>S1 Camera IP</label><input type="text" id="ip-cam-s1" value="192.168.11.135"></div>
-            <div class="net-row-single"><label>S1 Projector IP</label><input type="text" id="ip-prj-s1" value="192.168.11.10"></div>
+            <div class="port-group-title" style="color:#2ed573;">
+              <span>[LAN 4] S1 [3DM] (Car Body)</span>
+              <span style="font-size:9px; color:#64748b;">Cam .135 / Prj .10</span>
+            </div>
+            <div class="net-row-single"><label>Vision PC IP</label><input type="text" id="ip-pc-s1" value=""></div>
+            <div class="net-row-single"><label>S1 Camera IP</label><input type="text" id="ip-cam-s1" value=""></div>
+            <div class="net-row-single"><label>S1 Projector IP</label><input type="text" id="ip-prj-s1" value=""></div>
           </div>
-          <button style="width:100%;" onclick="resetNetInputs()">출하 초기값(에러 상태)으로 복원</button>
+
+          <!-- 4-Port 실시간 연결 상태 진단 미니 박스 -->
+          <div class="sub-card">
+            <div class="sub-card-title">
+              <span>포트별 실시간 연결 상태 진단</span>
+              <span id="net-overall-badge" style="font-size:9.5px; color:var(--danger-red); font-weight:bold;">● 검증 미통과</span>
+            </div>
+
+            <div class="lan-status-grid">
+              <div class="lan-mini-box err" id="box-lan-1">
+                <div class="lan-mini-head">
+                  <span style="color:#60a5fa;">LAN 1 (Robot)</span>
+                  <span class="lan-badge err" id="badge-lan-1">ERROR</span>
+                </div>
+                <div class="lan-mini-desc" id="desc-lan-1">서브넷 불일치</div>
+              </div>
+
+              <div class="lan-mini-box err" id="box-lan-2">
+                <div class="lan-mini-head">
+                  <span style="color:#38bdf8;">LAN 2 (PLC)</span>
+                  <span class="lan-badge err" id="badge-lan-2">ERROR</span>
+                </div>
+                <div class="lan-mini-desc" id="desc-lan-2">서브넷 불일치</div>
+              </div>
+
+              <div class="lan-mini-box err" id="box-lan-3">
+                <div class="lan-mini-head">
+                  <span style="color:#f59e0b;">LAN 3 (S0)</span>
+                  <span class="lan-badge err" id="badge-lan-3">ERROR</span>
+                </div>
+                <div class="lan-mini-desc" id="desc-lan-3">서브넷 불일치</div>
+              </div>
+
+              <div class="lan-mini-box err" id="box-lan-4">
+                <div class="lan-mini-head">
+                  <span style="color:#2ed573;">LAN 4 (S1)</span>
+                  <span class="lan-badge err" id="badge-lan-4">ERROR</span>
+                </div>
+                <div class="lan-mini-desc" id="desc-lan-4">서브넷 불일치</div>
+              </div>
+            </div>
+
+            <!-- IP 수정 방법 안내 가이드 (5번 항목 포함) -->
+            <div class="ip-howto-box">
+              <b>[IP 수정 및 실습 잠금 해제 방법]</b><br>
+              1. 위 입력창의 IP 숫자를 클릭해 <b>키보드로 직접 수정</b>합니다.<br>
+              2. <b>동일 포트 내 장비끼리는 앞 세 자리(서브넷)</b>를 일치시키고, 마지막 호스트 번호는 중복되지 않게 설정합니다.<br>
+              3. <b>LAN 1~4는 서로 다른 서브넷 대역</b>으로 격리되어야 합니다.<br>
+              4. 수정 후 우측 상단 <b>[연결 검증]</b>을 눌러 4개 박스가 모두 <span style="color:var(--success-green); font-weight:bold;">OK</span>가 되면 11단계 공정 실습이 활성화됩니다.<br>
+              5. <b>카메라 IP의 네번째 숫자는 기본으로 135, 프로젝터 IP의 마지막 4번째 숫자는 '10'으로 고정</b> 바랍니다.
+            </div>
+
+            <!-- 우측 하단 여유 공간: 검증 완료 시 자동 전환 & 원클릭 공정 이동 카드 -->
+            <div class="next-action-box" id="net-next-action-box" onclick="goToSequenceTab()">
+              <div class="next-action-title" id="net-next-action-title">🔒 [1단계] 4-Port 연결 검증 대기 중</div>
+              <div class="next-action-sub" id="net-next-action-sub">모든 포트가 OK가 되면 자동으로 <b>1. 11단계 공정 핸드셰이크</b> 화면으로 이동합니다. (완료 후 클릭 시 즉시 이동)</div>
+            </div>
+          </div>
         </div>
 
-        <!-- 모드 3: 현장 트러블슈팅 가이드 (atm_error.pdf 요약 및 원본 PDF 링크) -->
+        <!-- 모드 3: 현장 트러블슈팅 가이드 (pdf/atm_error.pdf 요약 및 원본 PDF 링크) -->
         <div id="mode-guide" style="display:none;">
-          <a href="atm_error.pdf" target="_blank" class="pdf-link-btn" title="같은 폴더의 원본 트러블슈팅 매뉴얼(atm_error.pdf)을 새 탭에서 엽니다">
-            <span>📄 원본 매뉴얼 열기 (atm_error.pdf)</span>
+          <a href="pdf/atm_error.pdf" target="_blank" class="pdf-link-btn" title="하위 폴더(pdf/atm_error.pdf)의 원본 트러블슈팅 매뉴얼을 새 탭에서 엽니다">
+            <span>📄 원본 매뉴얼 열기 (pdf/atm_error.pdf)</span>
           </a>
 
           <div class="sub-card" style="padding:6px;">
@@ -904,7 +1188,6 @@
               <span style="font-size:9.5px; color:var(--text-muted);">항목 클릭 시 펼침</span>
             </div>
 
-            <!-- 1. 스캐너 LED 점등 상태 -->
             <details class="guide-acc" open>
               <summary><span>1. AITZ 3D 스캐너 LED 점등 확인 (p.4)</span><span>▾</span></summary>
               <div class="guide-content">
@@ -919,7 +1202,6 @@
               </div>
             </details>
 
-            <!-- 2. 통신 끊김 & 로그 분석 -->
             <details class="guide-acc" open>
               <summary><span>2. 하드웨어 연결 끊김 & 로그 조치 (p.8~13)</span><span>▾</span></summary>
               <div class="guide-content">
@@ -929,7 +1211,6 @@
               </div>
             </details>
 
-            <!-- 3. 네트워크 속도 및 랜포트 LED -->
             <details class="guide-acc">
               <summary><span>3. 네트워크 1.0Gbps 속도 & 랜카드 점검 (p.14)</span><span>▾</span></summary>
               <div class="guide-content">
@@ -939,7 +1220,6 @@
               </div>
             </details>
 
-            <!-- 4. 공정 NG (Fitness / Overlap / Limit 초과) -->
             <details class="guide-acc">
               <summary><span>4. 공정 판정 NG (FIT / OVL / Limit 초과) (p.20~25)</span><span>▾</span></summary>
               <div class="guide-content">
@@ -954,51 +1234,34 @@
       </div>
     </div>
 
-    <!-- 하단 좌측: 스캐너별 UF6 4x4 행렬 & 6-DOF 개별 점멸 박스 -->
-    <div class="bottom-left">
-      <div class="matrix-header">
-        <span class="matrix-source-badge" id="matrix-source-lbl">[대기] 보정 행렬 (T_Shift)</span>
-        <div style="display:flex; gap:3px;">
-          <button class="tiny-btn" id="btn-view-s0" onclick="selectMatrixView('S0')">S0 [3DM]</button>
-          <button class="tiny-btn" id="btn-view-s1" onclick="selectMatrixView('S1')">S1 [3DM]</button>
-        </div>
-      </div>
-
-      <div class="matrix-box" id="matrix-out">
-[1.0000, 0.0000, 0.0000,  0.00;
- 0.0000, 1.0000, 0.0000,  0.00;
- 0.0000, 0.0000, 1.0000,  0.00;
- 0.0000, 0.0000, 0.0000,  1.00]</div>
-
-      <div class="shift-6dof-grid" id="shift-6dof-box">
-        <div class="dof-box" id="box-dx"><span>ΔX</span><span>0.0mm</span></div>
-        <div class="dof-box" id="box-dy"><span>ΔY</span><span>0.0mm</span></div>
-        <div class="dof-box" id="box-dz"><span>ΔZ</span><span>0.0mm</span></div>
-        <div class="dof-box" id="box-rx"><span>ΔRx</span><span>0.0°</span></div>
-        <div class="dof-box" id="box-ry"><span>ΔRy</span><span>0.0°</span></div>
-        <div class="dof-box" id="box-rz"><span>ΔRz</span><span>0.0°</span></div>
-      </div>
-    </div>
-
-    <!-- 하단 우측: 슬림 디지털 타이밍 차트 + ATMC 로그 -->
-    <div class="bottom-right">
-      <div class="wave-panel">
-        <div style="display:flex; justify-content:space-between; font-size:9.5px; color:var(--accent-cyan); font-weight:bold; margin-bottom:2px;">
-          <span>신호 타이밍 파형 (Handshake)</span>
-          <span style="color:var(--text-muted);">SCAN · OK/NG · VAC · END</span>
-        </div>
-        <canvas id="wave-canvas"></canvas>
-      </div>
-
-      <div class="log-panel">
-        <div style="font-size:9.5px; color:var(--accent-cyan); font-weight:bold;">ATMC & Hi5a 실시간 통신 로그</div>
-        <div class="log-list" id="log-list"></div>
-      </div>
-    </div>
-
   </div>
 
   <script>
+    /* =========================================================
+       0. 네트워크 인터록(Network Interlock) 상태 변수
+       ========================================================= */
+    let isNetworkVerified = false;
+    let autoSwitchSeqTimer = null;
+
+    function goToSequenceTab() {
+      if (!isNetworkVerified) {
+        addLog('[안내] 먼저 4-Port IP 설정을 수정한 뒤 [연결 검증]을 통과해야 1번 공정 탭으로 이동할 수 있습니다.', 'err');
+        return;
+      }
+      if (autoSwitchSeqTimer) {
+        clearTimeout(autoSwitchSeqTimer);
+        autoSwitchSeqTimer = null;
+      }
+      const seqTabBtn = document.getElementById('tab-seq');
+      switchRightMode('mode-seq', seqTabBtn);
+    }
+    const portErrorState = {
+      VPC_ROB: true,
+      PLC_VPC: true,
+      VPC_S0: true,
+      VPC_S1: true
+    };
+
     /* =========================================================
        1. I/O 핀맵 데이터 & UI 렌더링
        ========================================================= */
@@ -1089,15 +1352,15 @@
       "S3   DO10 = 1                 ' (4~5) S0 [3DM] 스캔 지령",
       "S4   WAIT DI11 OR DI12        ' (6) S0 판정 및 T_S0 수신",
       "S5   IF DI12=1 GOTO *PICK_NG  ' S0 NG 시 정지 및 종료 선언",
-      "S6   WAIT DI11 : MOVE L (...) ' (7-1) PC PICK 지령 수신 대기",
-      "S7   DO11=1 : MOVE P(MID_WAIT)' (7-2) 부품 파지 후 중간 대기",
-      "S8   DO14 = 1                 ' (8~9) S1 [3DM] 차체 스캔",
-      "S9   WAIT DI15 OR DI16        ' (10) 차체 판정 및 T_S1 수신",
-      "S10  IF DI16=1 GOTO *RET_PART ' S1 NG 시 부품대 원위치 반납",
-      "S11  CALL *ALIGN_BODY_UF6     ' (10-1) 차체 정위치 보정 완료",
-      "S12  MOVE L (ROOF_INST)U6     ' (10-2) 보정 완료 후 선루프 장착",
-      "S13  DO12=1 : DO15=1 : DO45=1 ' (11) 진공 파기 및 작업 종료",
-      "END"
+      "S6   WAIT DI11 : UF6 = U5*T_S0' (7-1) 로봇 좌표계 U6 보정 수신",
+      "S7   MOVE L(PICK)U6 : DO11=1  ' (7-2) 비틀어진 부품 각도로 파지",
+      "S8   MOVE P(MID_WAIT)         ' (7-2) 리프트업 및 중간 대기",
+      "S9   DO14 = 1                 ' (8~9) S1 [3DM] 차체 스캔",
+      "S10  WAIT DI15 OR DI16        ' (10) 차체 판정 및 T_S1 수신",
+      "S11  IF DI16=1 GOTO *RET_PART ' S1 NG 시 부품대 원위치 반납",
+      "S12  UF6 = U5 * T_S1          ' (10-1) 차체 보정좌표 U6 갱신",
+      "S13  MOVE L(INST)U6 : DO12=1  ' (10-2) 비틀어진 차체 각도로 장착",
+      "S14  DO15=1 : DO45=1 : END    ' (11) 홈 복귀 및 작업 종료"
     ];
 
     function renderTpCode(activeIndices = []) {
@@ -1297,11 +1560,26 @@
     rackGroup.add(handleBar);
     scene.add(rackGroup);
 
-    // 파노라마 선루프 글라스
+    // 부품(선루프) 마스터 티칭 기준 고스트 (U5 Master Ghost)
+    const partGhostGroup = new THREE.Group();
+    partGhostGroup.position.set(rackPos.x, 39, rackPos.z);
+    const partGhostMesh = new THREE.Mesh(
+      new THREE.BoxGeometry(74, 2.5, 52),
+      new THREE.MeshBasicMaterial({ color: 0x2ed573, transparent: true, opacity: 0.25, depthWrite: false })
+    );
+    const partGhostEdge = new THREE.LineSegments(
+      new THREE.EdgesGeometry(new THREE.BoxGeometry(74, 2.8, 52)),
+      new THREE.LineBasicMaterial({ color: 0x2ed573 })
+    );
+    partGhostGroup.add(partGhostMesh, partGhostEdge);
+    partGhostGroup.visible = false;
+    scene.add(partGhostGroup);
+
+    // 실제 공급된 파노라마 선루프 글라스
     const sunroofGroup = new THREE.Group();
     const glassPane = new THREE.Mesh(
       new THREE.BoxGeometry(74, 2.5, 52),
-      new THREE.MeshPhongMaterial({ color: 0x0ea5e9, transparent: true, opacity: 0.74, shininess: 100 })
+      new THREE.MeshPhongMaterial({ color: 0x0ea5e9, transparent: true, opacity: 0.78, shininess: 100 })
     );
     const glassRim = new THREE.LineSegments(
       new THREE.EdgesGeometry(new THREE.BoxGeometry(74, 2.8, 52)),
@@ -1310,74 +1588,98 @@
     sunroofGroup.add(glassPane, glassRim);
     scene.add(sunroofGroup);
 
-    // 4. 자동차 모형 (세단 vs SUV + 입체 LED 전조등 + TLH 좌표계)
-    const carGroup = new THREE.Group();
-    carGroup.position.copy(carMasterPos);
-
-    const chassisLower = new THREE.Mesh(
-      new THREE.BoxGeometry(156, 26, 74),
-      new THREE.MeshLambertMaterial({ color: 0x64748b })
-    );
-    chassisLower.position.y = 21;
-    carGroup.add(chassisLower);
-
-    const frontGrill = new THREE.Mesh(new THREE.BoxGeometry(4, 14, 50), new THREE.MeshBasicMaterial({ color: 0x1e293b }));
-    frontGrill.position.set(78.5, 19, 0);
-    carGroup.add(frontGrill);
-
-    const ledHousingMat = new THREE.MeshLambertMaterial({ color: 0x0f172a });
-    const ledGlowMat = new THREE.MeshBasicMaterial({ color: 0xfef08a });
-    const ledBeamMat = new THREE.MeshBasicMaterial({ color: 0xfef08a, transparent: true, opacity: 0.25 });
-
-    [26, -26].forEach(zOffset => {
-      const housing = new THREE.Mesh(new THREE.BoxGeometry(6, 9, 16), ledHousingMat);
-      housing.position.set(79, 25, zOffset);
-      const lens = new THREE.Mesh(new THREE.BoxGeometry(2.5, 7, 14), ledGlowMat);
-      lens.position.set(81.5, 25, zOffset);
-      const beam = new THREE.Mesh(new THREE.BoxGeometry(16, 6, 13), ledBeamMat);
-      beam.position.set(90, 25, zOffset);
-      carGroup.add(housing, lens, beam);
-    });
-
-    const tireGeo = new THREE.CylinderGeometry(12, 12, 8, 20);
-    tireGeo.rotateX(Math.PI / 2);
-    const tireMat = new THREE.MeshLambertMaterial({ color: 0x0f172a });
-    [[-48, 37], [48, 37], [-48, -37], [48, -37]].forEach(([tx, tz]) => {
-      const tire = new THREE.Mesh(tireGeo, tireMat);
-      tire.position.set(tx, 12, tz);
-      carGroup.add(tire);
-    });
-
-    const carUpperGroup = new THREE.Group();
-    carGroup.add(carUpperGroup);
-
-    const roofOpening = new THREE.LineSegments(
-      new THREE.EdgesGeometry(new THREE.BoxGeometry(76, 2, 54)),
-      new THREE.LineBasicMaterial({ color: 0xf1c40f })
-    );
-    carGroup.add(roofOpening);
-
-    const carTlhAxis = createOrientedAxis(34, Math.PI, false);
-    carGroup.add(carTlhAxis);
-
+    // 4. 자동차 모형 구축 함수
     let currentRoofHeight = 56.5;
 
-    function buildCarCabinGeometry(modelType) {
-      while (carUpperGroup.children.length > 0) {
-        carUpperGroup.remove(carUpperGroup.children[0]);
+    function createCarAssembly(isGhost = false) {
+      const root = new THREE.Group();
+      const bodyMat = isGhost
+        ? new THREE.MeshBasicMaterial({ color: 0x2ed573, transparent: true, opacity: 0.16, depthWrite: false })
+        : new THREE.MeshLambertMaterial({ color: 0x64748b });
+      const cabinMat = isGhost
+        ? new THREE.MeshBasicMaterial({ color: 0x2ed573, transparent: true, opacity: 0.20, depthWrite: false })
+        : new THREE.MeshPhongMaterial({ color: 0x1e293b, transparent: true, opacity: 0.82 });
+      const tireMat = isGhost
+        ? new THREE.MeshBasicMaterial({ color: 0x2ed573, transparent: true, opacity: 0.14, depthWrite: false })
+        : new THREE.MeshLambertMaterial({ color: 0x0f172a });
+
+      const chassisLower = new THREE.Mesh(new THREE.BoxGeometry(156, 26, 74), bodyMat);
+      chassisLower.position.y = 21;
+      root.add(chassisLower);
+
+      if (isGhost) {
+        const wireEdge = new THREE.LineSegments(
+          new THREE.EdgesGeometry(new THREE.BoxGeometry(156, 26, 74)),
+          new THREE.LineBasicMaterial({ color: 0x2ed573, transparent: true, opacity: 0.45 })
+        );
+        wireEdge.position.y = 21;
+        root.add(wireEdge);
+      } else {
+        const frontGrill = new THREE.Mesh(new THREE.BoxGeometry(4, 14, 50), new THREE.MeshBasicMaterial({ color: 0x1e293b }));
+        frontGrill.position.set(78.5, 19, 0);
+        root.add(frontGrill);
+
+        const ledHousingMat = new THREE.MeshLambertMaterial({ color: 0x0f172a });
+        const ledGlowMat = new THREE.MeshBasicMaterial({ color: 0xfef08a });
+        const ledBeamMat = new THREE.MeshBasicMaterial({ color: 0xfef08a, transparent: true, opacity: 0.25 });
+
+        [26, -26].forEach(zOffset => {
+          const housing = new THREE.Mesh(new THREE.BoxGeometry(6, 9, 16), ledHousingMat);
+          housing.position.set(79, 25, zOffset);
+          const lens = new THREE.Mesh(new THREE.BoxGeometry(2.5, 7, 14), ledGlowMat);
+          lens.position.set(81.5, 25, zOffset);
+          const beam = new THREE.Mesh(new THREE.BoxGeometry(16, 6, 13), ledBeamMat);
+          beam.position.set(90, 25, zOffset);
+          root.add(housing, lens, beam);
+        });
       }
 
-      const cabinMat = new THREE.MeshPhongMaterial({ color: 0x1e293b, transparent: true, opacity: 0.82 });
-      const bodyUpperMat = new THREE.MeshLambertMaterial({ color: 0x475569 });
+      const tireGeo = new THREE.CylinderGeometry(12, 12, 8, 20);
+      tireGeo.rotateX(Math.PI / 2);
+      [[-48, 37], [48, 37], [-48, -37], [48, -37]].forEach(([tx, tz]) => {
+        const tire = new THREE.Mesh(tireGeo, tireMat);
+        tire.position.set(tx, 12, tz);
+        root.add(tire);
+      });
+
+      const upperGroup = new THREE.Group();
+      root.add(upperGroup);
+
+      const roofOpening = new THREE.LineSegments(
+        new THREE.EdgesGeometry(new THREE.BoxGeometry(76, 2, 54)),
+        new THREE.LineBasicMaterial({ color: isGhost ? 0x2ed573 : 0xf1c40f })
+      );
+      root.add(roofOpening);
+
+      const tlhAxis = isGhost ? null : createOrientedAxis(34, Math.PI, false);
+      if (tlhAxis) root.add(tlhAxis);
+
+      return { root, upperGroup, roofOpening, tlhAxis, cabinMat, bodyMat };
+    }
+
+    const carReal = createCarAssembly(false);
+    carReal.root.position.copy(carMasterPos);
+    scene.add(carReal.root);
+
+    const carGhost = createCarAssembly(true);
+    carGhost.root.position.copy(carMasterPos);
+    carGhost.root.rotation.set(0, 0, 0);
+    carGhost.root.visible = false;
+    scene.add(carGhost.root);
+
+    function applyCabinToAssembly(asm, modelType, isGhost) {
+      while (asm.upperGroup.children.length > 0) {
+        asm.upperGroup.remove(asm.upperGroup.children[0]);
+      }
 
       if (modelType === 'MODEL_A') {
-        const cabin = new THREE.Mesh(new THREE.BoxGeometry(92, 22, 64), cabinMat);
+        const cabin = new THREE.Mesh(new THREE.BoxGeometry(92, 22, 64), asm.cabinMat);
         cabin.position.set(-4, 45, 0);
-        carUpperGroup.add(cabin);
+        asm.upperGroup.add(cabin);
 
         currentRoofHeight = 56.5;
-        roofOpening.position.set(-4, currentRoofHeight, 0);
-        carTlhAxis.position.set(-4, currentRoofHeight + 0.5, 0);
+        asm.roofOpening.position.set(-4, currentRoofHeight, 0);
+        if (asm.tlhAxis) asm.tlhAxis.position.set(-4, currentRoofHeight + 0.5, 0);
       } else {
         const shape = new THREE.Shape();
         shape.moveTo(-78, 34);
@@ -1388,24 +1690,30 @@
 
         const extrudeGeo = new THREE.ExtrudeGeometry(shape, { depth: 64, bevelEnabled: false });
         extrudeGeo.translate(0, 0, -32);
-        const suvCabin = new THREE.Mesh(extrudeGeo, cabinMat);
+        const suvCabin = new THREE.Mesh(extrudeGeo, asm.cabinMat);
+        asm.upperGroup.add(suvCabin);
 
-        const rail1 = new THREE.Mesh(new THREE.BoxGeometry(92, 2, 2), bodyUpperMat);
-        rail1.position.set(-28, 64, 28);
-        const rail2 = new THREE.Mesh(new THREE.BoxGeometry(92, 2, 2), bodyUpperMat);
-        rail2.position.set(-28, 64, -28);
-
-        carUpperGroup.add(suvCabin, rail1, rail2);
+        if (!isGhost) {
+          const bodyUpperMat = new THREE.MeshLambertMaterial({ color: 0x475569 });
+          const rail1 = new THREE.Mesh(new THREE.BoxGeometry(92, 2, 2), bodyUpperMat);
+          rail1.position.set(-28, 64, 28);
+          const rail2 = new THREE.Mesh(new THREE.BoxGeometry(92, 2, 2), bodyUpperMat);
+          rail2.position.set(-28, 64, -28);
+          asm.upperGroup.add(rail1, rail2);
+        }
 
         currentRoofHeight = 63.5;
-        roofOpening.position.set(-26, currentRoofHeight, 0);
-        carTlhAxis.position.set(-26, currentRoofHeight + 0.5, 0);
+        asm.roofOpening.position.set(-26, currentRoofHeight, 0);
+        if (asm.tlhAxis) asm.tlhAxis.position.set(-26, currentRoofHeight + 0.5, 0);
       }
     }
 
-    scene.add(carGroup);
+    function buildCarCabinGeometry(modelType) {
+      applyCabinToAssembly(carReal, modelType, false);
+      applyCabinToAssembly(carGhost, modelType, true);
+    }
 
-    // 5. 고정형 3D 스캐너 S0 [3DM] & S1 [3DM] + 사각뿔대 구조광
+    // 5. 고정형 3D 스캐너 S0 [3DM] & S1 [3DM]
     function createFrustumScanner(posVec, labelText, targetY) {
       const grp = new THREE.Group();
       grp.position.copy(posVec);
@@ -1546,7 +1854,7 @@
     // 7. 유선 네트워크 케이블
     function createWiredChannel(pointsArr, labelName) {
       const curve = new THREE.CatmullRomCurve3(pointsArr, false, 'catmullrom', 0.05);
-      const tubeGeo = new THREE.TubeGeometry(curve, 56, 1.3, 8, false);
+      const tubeGeo = new THREE.TubeGeometry(curve, 56, 1.35, 8, false);
       const tubeMat = new THREE.MeshBasicMaterial({ color: 0x2c475c });
       scene.add(new THREE.Mesh(tubeGeo, tubeMat));
 
@@ -1607,51 +1915,67 @@
       w.sliderKnob.visible = true;
     }
 
+    let globalFrameTick = 0;
     function updateWireAnimations() {
-      Object.values(wires).forEach(w => {
-        if (!w.active) {
-          w.tubeMat.color.setHex(0x2c475c);
-          w.sliderKnob.visible = false;
-          return;
-        }
-        w.blinkTick++;
-        const isColorA = Math.floor(w.blinkTick / 6) % 2 === 0;
-        w.tubeMat.color.setHex(isColorA ? w.colorA : w.colorB);
-        w.sliderKnob.material.color.setHex(isColorA ? w.colorB : w.colorA);
+      globalFrameTick++;
+      Object.entries(wires).forEach(([key, w]) => {
+        if (w.active) {
+          w.blinkTick++;
+          const isColorA = Math.floor(w.blinkTick / 6) % 2 === 0;
+          w.tubeMat.color.setHex(isColorA ? w.colorA : w.colorB);
+          w.sliderKnob.material.color.setHex(isColorA ? w.colorB : w.colorA);
 
-        w.progress += 0.016;
-        if (w.progress >= 1) {
-          w.active = false;
-          w.sliderKnob.visible = false;
-          w.tubeMat.color.setHex(0x2c475c);
+          w.progress += 0.016;
+          if (w.progress >= 1) {
+            w.active = false;
+            w.sliderKnob.visible = false;
+          } else {
+            const u = w.reverse ? (1 - w.progress) : w.progress;
+            w.sliderKnob.position.copy(w.curve.getPointAt(u));
+          }
         } else {
-          const u = w.reverse ? (1 - w.progress) : w.progress;
-          w.sliderKnob.position.copy(w.curve.getPointAt(u));
+          w.sliderKnob.visible = false;
+          if (portErrorState[key]) {
+            const errBlink = Math.floor(globalFrameTick / 22) % 2 === 0;
+            w.tubeMat.color.setHex(errBlink ? 0xff4757 : 0x5c1a24);
+          } else {
+            w.tubeMat.color.setHex(0x1f8a70);
+          }
         }
       });
     }
 
     /* =========================================================
-       3. 11단계 작업 순서 & 시간차 연출 & OK/NG 랜덤 데모
+       3. 11단계 작업 순서 & 네트워크 인터록 검증
        ========================================================= */
     const poses = {
-      HOME:     { pos: new THREE.Vector3(0, 135, -60),               rot: new THREE.Euler(0, 0, 0) },
-      S0_PICK:  { pos: new THREE.Vector3(rackPos.x, 45, rackPos.z),  rot: new THREE.Euler(0, 0, 0) },
-      MID_WAIT: { pos: new THREE.Vector3(0, 152, 85),                rot: new THREE.Euler(0, 0, 0) }
+      HOME:     { pos: new THREE.Vector3(0, 135, -60), rot: new THREE.Euler(0, 0, 0) },
+      MID_WAIT: { pos: new THREE.Vector3(0, 152, 85),  rot: new THREE.Euler(0, 0, 0) }
     };
 
-    function getCarInstallPos() {
+    let skewedPartPos = new THREE.Vector3(rackPos.x + 8, 39, rackPos.z - 6);
+    let skewedPartRot = new THREE.Euler(0, 0.16, 0);
+
+    let skewedCarPos  = new THREE.Vector3(carMasterPos.x - 14, 0, carMasterPos.z + 15);
+    let skewedCarRot  = new THREE.Euler(0, -0.11, 0);
+
+    function getSkewedCarInstallTransform() {
       const m = document.getElementById('sel-model').value;
-      const xOffset = (m === 'MODEL_A') ? -4 : -26;
-      return new THREE.Vector3(carMasterPos.x + xOffset, currentRoofHeight + 7.5, carMasterPos.z);
+      const localX = (m === 'MODEL_A') ? -4 : -26;
+      const localRoofPos = new THREE.Vector3(localX, currentRoofHeight + 7.5, 0);
+      localRoofPos.applyEuler(skewedCarRot).add(skewedCarPos);
+      return {
+        gripperPos: localRoofPos,
+        gripperRot: skewedCarRot.clone(),
+        partPos: new THREE.Vector3(localX, currentRoofHeight + 1.2, 0).applyEuler(skewedCarRot).add(skewedCarPos),
+        partRot: skewedCarRot.clone()
+      };
     }
 
     let targetGripperPos = poses.HOME.pos.clone();
     let targetGripperRot = poses.HOME.rot.clone();
-    let targetPartPos = new THREE.Vector3(rackPos.x, 39, rackPos.z);
-    let targetPartRot = new THREE.Euler(0, 0, 0);
-    let targetCarPos = carMasterPos.clone();
-    let targetCarRot = new THREE.Euler(0, 0, 0);
+    let targetPartPos = skewedPartPos.clone();
+    let targetPartRot = skewedPartRot.clone();
 
     let isGlassAttached = false;
     let currentStep = 1;
@@ -1664,8 +1988,8 @@
     }
 
     const matrixHistory = {
-      S0: { title: '[S0 3DM] 부품 보정 행렬 (T_S0)', dx: 0, dy: 0, dz: 0, rx: 0, ry: 0, rz: 0, valid: false },
-      S1: { title: '[S1 3DM] 차체 보정 행렬 (T_S1)', dx: 0, dy: 0, dz: 0, rx: 0, ry: 0, rz: 0, valid: false }
+      S0: { title: '[S0 3DM] 부품 보정 행렬 (T_S0 → U6)', dx: 0, dy: 0, dz: 0, rx: 0, ry: 0, rz: 0, valid: false },
+      S1: { title: '[S1 3DM] 차체 보정 행렬 (T_S1 → U6)', dx: 0, dy: 0, dz: 0, rx: 0, ry: 0, rz: 0, valid: false }
     };
     let activeMatrixTab = 'S0';
 
@@ -1680,12 +2004,12 @@
     function generateShiftData(isNg) {
       if (!isNg) {
         return {
-          dx: Number(randRange(1.2, 5.5).toFixed(1)),
-          dy: Number(randRange(1.2, 5.5).toFixed(1)),
-          dz: Number(randRange(0.3, 2.2).toFixed(1)),
-          rx: Number(randRange(0.2, 1.5).toFixed(1)),
-          ry: Number(randRange(0.2, 1.5).toFixed(1)),
-          rz: Number(randRange(0.8, 3.2).toFixed(1)),
+          dx: Number(randRange(2.5, 8.5).toFixed(1)),
+          dy: Number(randRange(2.5, 8.5).toFixed(1)),
+          dz: Number(randRange(0.2, 1.8).toFixed(1)),
+          rx: Number(randRange(0.1, 1.2).toFixed(1)),
+          ry: Number(randRange(0.1, 1.2).toFixed(1)),
+          rz: Number(randRange(2.2, 4.6).toFixed(1)),
           valid: true
         };
       } else {
@@ -1750,19 +2074,14 @@
       gripperGroup.rotation.y += (targetGripperRot.y - gripperGroup.rotation.y) * 0.09;
       gripperGroup.rotation.z += (targetGripperRot.z - gripperGroup.rotation.z) * 0.09;
 
-      carGroup.position.lerp(targetCarPos, 0.095);
-      carGroup.rotation.x += (targetCarRot.x - carGroup.rotation.x) * 0.095;
-      carGroup.rotation.y += (targetCarRot.y - carGroup.rotation.y) * 0.095;
-      carGroup.rotation.z += (targetCarRot.z - carGroup.rotation.z) * 0.095;
-
       if (isGlassAttached) {
         sunroofGroup.position.copy(gripperGroup.position).add(new THREE.Vector3(0, -7.5, 0));
         sunroofGroup.rotation.copy(gripperGroup.rotation);
       } else {
-        sunroofGroup.position.lerp(targetPartPos, 0.09);
-        sunroofGroup.rotation.x += (targetPartRot.x - sunroofGroup.rotation.x) * 0.09;
-        sunroofGroup.rotation.y += (targetPartRot.y - sunroofGroup.rotation.y) * 0.09;
-        sunroofGroup.rotation.z += (targetPartRot.z - sunroofGroup.rotation.z) * 0.09;
+        sunroofGroup.position.lerp(targetPartPos, 0.12);
+        sunroofGroup.rotation.x += (targetPartRot.x - sunroofGroup.rotation.x) * 0.12;
+        sunroofGroup.rotation.y += (targetPartRot.y - sunroofGroup.rotation.y) * 0.12;
+        sunroofGroup.rotation.z += (targetPartRot.z - sunroofGroup.rotation.z) * 0.12;
       }
 
       const mid = shoulderPos.clone().lerp(gripperGroup.position, 0.5);
@@ -1788,7 +2107,42 @@
       syncIoLeds();
     }
 
-    function resetAll() {
+    /* 하단 [NET LOCK] / [NET ERROR] 배지 클릭 시 2번 탭(네트워크 설정창) 열기 */
+    function onStatusPillClick() {
+      if (!isNetworkVerified) {
+        const netTabBtn = document.getElementById('tab-net');
+        switchRightMode('mode-net', netTabBtn);
+        addLog('[안내] 4-Port 네트워크 IP 격리 설정창이 열렸습니다. 오류 포트의 서브넷을 맞춰주세요.', 'info');
+      }
+    }
+
+    /* 네트워크 인터록 차단 안내 함수 */
+    function triggerNetworkInterlockError() {
+      showPlcResultBanner(false, '[Network IP Setting Error] 4-Port 네트워크 IP 검증 미완료 — 우측 설정창에서 IP를 수정 후 [연결 검증]을 완료하세요!');
+      document.getElementById('overlay-state').style.color = '#ff4757';
+      document.getElementById('overlay-state').textContent = 'ALARM: Network IP Setting Error (실습 구동 차단됨 — 우측 4-Port IP 설정 확인)';
+      document.getElementById('step-text').textContent = '[실행 차단] Network IP Setting Error — 우측 4개 포트 상태 박스를 모두 OK로 맞추세요';
+      const pill = document.getElementById('judge-pill');
+      pill.className = 'judge-pill ng clickable-lock';
+      pill.textContent = 'NET ERROR';
+
+      addLog('[INTERLOCK 차단] Network IP Setting Error! 4-Port 서브넷 일치 및 격리 검증을 통과해야 공정을 구동할 수 있습니다.', 'err');
+
+      const netTabBtn = document.getElementById('tab-net');
+      switchRightMode('mode-net', netTabBtn);
+    }
+
+    /* 상단 [↺ 초기화] 버튼 클릭 시: 네트워크 설정부터 시작하는 완전 초기화 + 2번 탭(네트워크 설정) 우선 표시 */
+    function fullReset() {
+      randomizeNetInputs(false);
+      resetSequenceOnly();
+      const netTabBtn = document.getElementById('tab-net');
+      switchRightMode('mode-net', netTabBtn);
+      addLog('[완전 초기화] 네트워크 설정이 초기화되고 새로운 랜덤 IP 문제가 출제되었습니다.', 'err');
+    }
+
+    /* 시나리오 변경 또는 11단계 종료 후 재시작 시 공정 상태만 초기화 */
+    function resetSequenceOnly() {
       clearSubTimers();
       if (autoInterval) {
         clearInterval(autoInterval);
@@ -1797,22 +2151,28 @@
       }
       currentStep = 1;
       Object.keys(ioState).forEach(k => ioState[k] = 0);
-      ioState.W0 = 1;
+      ioState.W0 = isNetworkVerified ? 1 : 0;
+      ioState.W1 = isNetworkVerified ? 0 : 1;
       ioState.W15 = 1;
       onModelChange();
       syncIoLeds();
 
       isGlassAttached = false;
-      targetPartPos.set(rackPos.x + 6, 39, rackPos.z - 5);
-      targetPartRot.set(0, 0.12, 0);
-      sunroofGroup.position.copy(targetPartPos);
-      sunroofGroup.rotation.copy(targetPartRot);
+      skewedPartPos.set(rackPos.x + 8, 39, rackPos.z - 6);
+      skewedPartRot.set(0, 0.16, 0);
+      targetPartPos.copy(skewedPartPos);
+      targetPartRot.copy(skewedPartRot);
+      sunroofGroup.position.copy(skewedPartPos);
+      sunroofGroup.rotation.copy(skewedPartRot);
 
-      targetCarPos.set(carMasterPos.x - 14, 0, carMasterPos.z + 14);
-      targetCarRot.set(0, -0.09, 0);
-      carGroup.position.copy(targetCarPos);
-      carGroup.rotation.copy(targetCarRot);
-      roofOpening.material.color.setHex(0xf1c40f);
+      skewedCarPos.set(carMasterPos.x - 14, 0, carMasterPos.z + 15);
+      skewedCarRot.set(0, -0.11, 0);
+      carReal.root.position.copy(skewedCarPos);
+      carReal.root.rotation.copy(skewedCarRot);
+      carReal.roofOpening.material.color.setHex(0xf1c40f);
+
+      partGhostGroup.visible = false;
+      carGhost.root.visible = false;
 
       targetGripperPos.copy(poses.HOME.pos);
       targetGripperRot.copy(poses.HOME.rot);
@@ -1822,38 +2182,59 @@
       scannerS1.fovGroup.visible = false;
       Object.values(wires).forEach(w => w.active = false);
 
-      matrixHistory.S0 = { title: '[S0 3DM] 부품 보정 행렬 (T_S0)', dx: 0, dy: 0, dz: 0, rx: 0, ry: 0, rz: 0, valid: false };
-      matrixHistory.S1 = { title: '[S1 3DM] 차체 보정 행렬 (T_S1)', dx: 0, dy: 0, dz: 0, rx: 0, ry: 0, rz: 0, valid: false };
+      matrixHistory.S0 = { title: '[S0 3DM] 부품 보정 행렬 (T_S0 → U6)', dx: 0, dy: 0, dz: 0, rx: 0, ry: 0, rz: 0, valid: false };
+      matrixHistory.S1 = { title: '[S1 3DM] 차체 보정 행렬 (T_S1 → U6)', dx: 0, dy: 0, dz: 0, rx: 0, ry: 0, rz: 0, valid: false };
       selectMatrixView('S0');
 
       document.getElementById('plc-result-banner').className = 'plc-result-banner';
       renderTpCode([]);
-      document.getElementById('step-text').textContent = '(1) / (11) : 초기 상태 — 전체 시스템 초기화 및 대기';
-      document.getElementById('overlay-state').textContent = '(1) 초기 상태: READY = 1 (다음 스텝을 눌러 진행)';
+
       const pill = document.getElementById('judge-pill');
-      pill.className = 'judge-pill';
-      pill.textContent = 'STEP 1/11';
+      if (!isNetworkVerified) {
+        document.getElementById('step-text').textContent = '(1) / (11) : 네트워크 IP 검증 대기 — [NET LOCK] 또는 2번 탭에서 IP를 맞추세요';
+        document.getElementById('overlay-state').style.color = '#ff4757';
+        document.getElementById('overlay-state').textContent = '[INTERLOCK] 4-Port IP 설정 미검증 — 네트워크 설정 후 연결 검증 필요';
+        pill.className = 'judge-pill ng clickable-lock';
+        pill.textContent = 'NET LOCK';
+      } else {
+        document.getElementById('step-text').textContent = '(1) / (11) : 초기 상태 — 전체 시스템 초기화 및 대기 (READY = 1)';
+        document.getElementById('overlay-state').style.color = '#f1c40f';
+        document.getElementById('overlay-state').textContent = '(1) 초기 상태: READY = 1 (부품·차체 비틀림 진입 대기)';
+        pill.className = 'judge-pill';
+        pill.textContent = 'STEP 1/11';
+      }
 
       document.getElementById('log-list').innerHTML = '';
-      addLog('(1) 초기 상태: 전체 시스템 초기화 완료 (PCRUN=1, READY=1).', 'ok');
+      if (!isNetworkVerified) {
+        addLog('[시스템 대기] 초기 4-Port IP 설정에 오류가 있습니다. IP 수정 및 [연결 검증]을 통과해야 공정을 실행할 수 있습니다.', 'err');
+      } else {
+        addLog('(1) 초기 상태: 4-Port 네트워크 정상 & 시스템 초기화 완료. OK/NG 모드를 실행할 수 있습니다.', 'ok');
+      }
     }
 
+    // (2) ~ (11) 단계별 시퀀스 진행 (인터록 체크 포함)
     function nextStep() {
+      if (!isNetworkVerified) {
+        triggerNetworkInterlockError();
+        return;
+      }
+
       if (currentStep >= 11) {
-        resetAll();
+        resetSequenceOnly();
         return;
       }
       clearSubTimers();
       currentStep++;
       const scen = document.getElementById('sel-scenario').value;
       const pill = document.getElementById('judge-pill');
+      pill.classList.remove('clickable-lock');
       pill.textContent = `STEP ${currentStep}/11`;
 
       if (currentStep === 2) {
         ioState.DI10 = 1;
         renderTpCode([0]);
         document.getElementById('step-text').textContent = '(2) / (11) : 부품대 좌대에 선루프 글라스 안착 확인 (DI10=1)';
-        document.getElementById('overlay-state').textContent = '(2) 부품 안착: 좌측 대차 좌대 위 선루프 글라스 감지됨';
+        document.getElementById('overlay-state').textContent = '(2) 부품 안착: 대차 좌대 위 비틀어져 놓인 글라스 감지됨';
         addLog('(2) 부품대 좌대 글라스 안착 센서 확인 완료 (DI10=1).', 'info');
       }
       else if (currentStep === 3) {
@@ -1875,12 +2256,13 @@
         addLog('(4) [Vision PC → S0 3DM] 대차 부품 스캔 지령 송신.', 'info');
       }
       else if (currentStep === 5) {
+        partGhostGroup.visible = true;
         const isS0Ng = (scen === 'NG_S0');
         flashStructuredLight(scannerS0, isS0Ng);
         renderTpCode([2, 3]);
-        document.getElementById('step-text').textContent = '(5) / (11) : S0 [3DM] 부품 구조광 5회 점멸 스캔 중...';
-        document.getElementById('overlay-state').textContent = '(5) S0 [3DM] 스캔 실행: 사각뿔대 구조광 패턴 투사 중';
-        addLog('(5) [S0 3DM] 대차 위 선루프 글라스 3D 구조광 스캔 실행.', 'info');
+        document.getElementById('step-text').textContent = '(5) / (11) : S0 [3DM] 스캔 실행 — 마스터 위치(연초록) 대비 오차 계측 중';
+        document.getElementById('overlay-state').textContent = '(5) S0 [3DM] 스캔 중: 마스터 고스트(U5) 대비 부품 편차 계측';
+        addLog('(5) [S0 3DM] 부품 구조광 5회 스캔 실행 (티칭 마스터 위치 U5 표시).', 'info');
       }
       else if (currentStep === 6) {
         ioState.W14 = 0; ioState.R2 = 0; ioState.DO10 = 0;
@@ -1890,7 +2272,7 @@
         const isS0Ng = (scen === 'NG_S0');
         const shift = generateShiftData(isS0Ng);
         matrixHistory.S0 = {
-          title: isS0Ng ? '[S0 3DM] 부품 오차 초과 (PICK_NG)' : '[S0 3DM] 부품 보정 행렬 (T_S0)',
+          title: isS0Ng ? '[S0 3DM] 부품 오차 초과 (PICK_NG)' : '[S0 3DM] 부품 보정 행렬 (T_S0 → U6)',
           ...shift
         };
         selectMatrixView('S0');
@@ -1903,7 +2285,7 @@
           renderTpCode([3, 4]);
           pill.className = 'judge-pill ng';
           pill.textContent = 'PICK_NG';
-          document.getElementById('step-text').textContent = '(6) / (11) : [S0 NG] 부품 위치 오차 초과 → 로봇 정지 & Pick_NG 종료 선언';
+          document.getElementById('step-text').textContent = '(6) / (11) : [S0 NG] 부품 편차 초과 → 로봇 정지 & Pick_NG 종료 선언';
           document.getElementById('overlay-state').textContent = 'ALARM: S0_PICK_NG → 로봇 정지 및 작업 실패 종료';
           showPlcResultBanner(false, '[PLC 결과 알림 : NG] S0 [3DM] 부품 위치 한계 초과 (PICK_NG) — 로봇 정지 및 작업 종료');
           addLog('(6) [S0 → PC → Robot/PLC] 허용 공차 초과! 로봇 정지 및 Pick_NG 작업 종료 선언.', 'err');
@@ -1911,61 +2293,62 @@
           if (autoInterval) { clearInterval(autoInterval); autoInterval = null; document.getElementById('btn-auto').textContent = '⏩ 자동 연속'; }
         } else {
           ioState.W2 = 1; ioState.DI11 = 1;
-          targetPartPos.set(rackPos.x, 39, rackPos.z);
-          targetPartRot.set(0, 0, 0);
-
           renderTpCode([3]);
           pill.className = 'judge-pill ok';
           pill.textContent = 'S0 OK';
-          document.getElementById('step-text').textContent = '(6) / (11) : S0 스캔 완료 → 부품 위치 조정 & T_S0 행렬 PC 전송';
-          document.getElementById('overlay-state').textContent = '(6) S0 → PC 데이터 전송 완료 (T_S0 행렬 갱신)';
-          addLog(`(6) [S0 → Vision PC] 스캔 완료(ΔX=${shift.dx}, ΔY=${shift.dy}, ΔRz=${shift.rz}°). 부품 위치 보정 완료.`, 'ok');
+          document.getElementById('step-text').textContent = '(6) / (11) : S0 스캔 완료 → 부품 위치 고정, T_S0 보정 행렬 PC 전송';
+          document.getElementById('overlay-state').textContent = '(6) S0 → PC: T_S0 보정 데이터 전송 완료 (부품은 현위치 유지)';
+          addLog(`(6) [S0 → Vision PC] 편차 계측(ΔX=${shift.dx}, ΔY=${shift.dy}, ΔRz=${shift.rz}°) 완료. T_S0 행렬 전송.`, 'ok');
         }
       }
       else if (currentStep === 7) {
         activateWireSignal('VPC_ROB', false, 0x2ed573, 0x00ffff);
         renderTpCode([5]);
-        document.getElementById('step-text').textContent = '(7-1) / (11) : Vision PC → Hi5a Robot 부품 파지(PICK) 지령 송신 중...';
-        document.getElementById('overlay-state').textContent = '(7-1) PC → Robot: PICK 명령 전송 중 (로봇 수신 대기)';
-        addLog('(7-1) [Vision PC → Hi5a Robot] PICK 지령 패킷 송신 중...', 'info');
+        document.getElementById('step-text').textContent = '(7-1) / (11) : Vision PC → Hi5a Robot 보정 좌표(U6) 및 PICK 지령 송신 중...';
+        document.getElementById('overlay-state').textContent = '(7-1) PC → Robot: 보정된 U6 좌표 전송 중 (로봇 수신 대기)';
+        addLog('(7-1) [Vision PC → Hi5a Robot] T_S0 보정 행렬 및 PICK 지령 송신 중...', 'info');
 
         subTimers.push(setTimeout(() => {
           if (currentStep !== 7) return;
-          targetGripperPos.copy(poses.S0_PICK.pos);
-          targetGripperRot.copy(poses.S0_PICK.rot);
+          targetGripperPos.set(skewedPartPos.x, skewedPartPos.y + 6, skewedPartPos.z);
+          targetGripperRot.copy(skewedPartRot);
           ioState.DO11 = 1;
           ioState.DI13 = 1;
           padMat.color.setHex(0x2ed573);
           syncIoLeds();
           renderTpCode([6]);
-          document.getElementById('step-text').textContent = '(7-2) / (11) : Robot PICK 신호 수신 완료 → 부품 파지 및 중간 상공 대기';
-          document.getElementById('overlay-state').textContent = '(7-2) Robot: PICK 수신 후 선루프 흡착(DI13=1) → 중간 대기 이동';
-          addLog('(7-2) [Hi5a Robot] PC PICK 신호 수신 완료 → 부품 파지 후 중간 지점 대기 이동.', 'ok');
+          document.getElementById('step-text').textContent = '(7-2) / (11) : Robot 자세 보정(U6) → 비틀어진 부품 각도에 맞춰 파지!';
+          document.getElementById('overlay-state').textContent = '(7-2) Robot: 비틀어진 부품 위치/각도(U6)에 맞춰 흡착 파지';
+          addLog('(7-2) [Hi5a Robot] 로봇이 보정 좌표(U6)로 자세를 수정하여 부품을 파지했습니다.', 'ok');
 
           subTimers.push(setTimeout(() => {
             if (currentStep !== 7) return;
             isGlassAttached = true;
             ioState.DO13 = 1;
             targetGripperPos.copy(poses.MID_WAIT.pos);
+            targetGripperRot.copy(poses.MID_WAIT.rot);
+            partGhostGroup.visible = false;
+            renderTpCode([7]);
             syncIoLeds();
-          }, 550));
+          }, 650));
         }, 750));
       }
       else if (currentStep === 8) {
         ioState.DI14 = 1; ioState.DO14 = 1; ioState.R3 = 1;
         activateWireSignal('VPC_S1', false, 0x00ffff, 0xf1c40f);
-        renderTpCode([7]);
+        renderTpCode([8]);
         document.getElementById('step-text').textContent = '(8) / (11) : Vision PC → S1 [3DM] 차체 스캔 명령 전송';
         document.getElementById('overlay-state').textContent = '(8) PC → S1 [3DM]: S1_INST_SCAN = 1 트리거 송신';
-        addLog('(8) [Vision PC → S1 3DM] 차체 담당 스캐너 스캔 지령 송신.', 'info');
+        addLog('(8) [Vision PC → S1 3DM] 비틀어져 진입한 차체 루프 스캔 지령 송신.', 'info');
       }
       else if (currentStep === 9) {
+        carGhost.root.visible = true;
         const isS1Ng = (scen === 'NG_S1');
         flashStructuredLight(scannerS1, isS1Ng);
-        renderTpCode([7, 8]);
-        document.getElementById('step-text').textContent = '(9) / (11) : S1 [3DM] 차체 루프 개구부 구조광 5회 스캔 중...';
-        document.getElementById('overlay-state').textContent = '(9) S1 [3DM] 스캔 실행: 차체 지붕 개구부 계측 중';
-        addLog('(9) [S1 3DM] 자동차 루프 개구부 3D 구조광 스캔 실행.', 'info');
+        renderTpCode([8, 9]);
+        document.getElementById('step-text').textContent = '(9) / (11) : S1 [3DM] 스캔 실행 — 티칭 차체 마스터(연초록) 대비 오차 계측 중';
+        document.getElementById('overlay-state').textContent = '(9) S1 [3DM] 스캔 중: 티칭 기준 차체(U5) 대비 실제 차체 편차 계측';
+        addLog('(9) [S1 3DM] 차체 루프 구조광 5회 스캔 실행 (티칭 마스터 차체 U5 표시).', 'info');
       }
       else if (currentStep === 10) {
         ioState.R3 = 0; ioState.DO14 = 0;
@@ -1975,72 +2358,75 @@
         const isS1Ng = (scen === 'NG_S1');
         const shift = generateShiftData(isS1Ng);
         matrixHistory.S1 = {
-          title: isS1Ng ? '[S1 3DM] 차체 오차 초과 (INSTALL_NG)' : '[S1 3DM] 차체 보정 행렬 (T_S1)',
+          title: isS1Ng ? '[S1 3DM] 차체 오차 초과 (INSTALL_NG)' : '[S1 3DM] 차체 보정 행렬 (T_S1 → U6)',
           ...shift
         };
         selectMatrixView('S1');
 
         if (isS1Ng) {
           ioState.W5 = 1; ioState.DI16 = 1; ioState.DO13 = 0;
-          roofOpening.material.color.setHex(0xff4757);
+          carReal.roofOpening.material.color.setHex(0xff4757);
           activateWireSignal('VPC_ROB', false, 0xff4757, 0xf1c40f);
 
-          targetGripperPos.copy(poses.S0_PICK.pos);
+          targetGripperPos.set(skewedPartPos.x, skewedPartPos.y + 6, skewedPartPos.z);
+          targetGripperRot.copy(skewedPartRot);
           subTimers.push(setTimeout(() => {
             if (currentStep !== 10) return;
             isGlassAttached = false;
-            targetPartPos.set(rackPos.x, 39, rackPos.z);
-            targetPartRot.set(0, 0, 0);
+            targetPartPos.copy(skewedPartPos);
+            targetPartRot.copy(skewedPartRot);
             ioState.DO11 = 0; ioState.DO12 = 1;
             padMat.color.setHex(0x64748b);
+            carGhost.root.visible = false;
             syncIoLeds();
           }, 750));
 
-          renderTpCode([8, 9]);
+          renderTpCode([9, 10]);
           pill.className = 'judge-pill ng';
           pill.textContent = 'INSTALL_NG';
-          document.getElementById('step-text').textContent = '(10) / (11) : [S1 NG] 차체 오차 초과 → 로봇이 부품을 부품대로 원위치 반납!';
+          document.getElementById('step-text').textContent = '(10) / (11) : [S1 NG] 차체 편차 초과 → 로봇이 부품을 부품대로 원위치 반납!';
           document.getElementById('overlay-state').textContent = 'ALARM: S1_INST_NG → 선루프 부품을 부품대 좌대로 안전 회수';
           addLog('(10) [S1 NG → Robot] 차체 위치 한계 초과! 대기 중이던 선루프를 부품대로 원위치 반납.', 'err');
         } else {
           ioState.W4 = 1; ioState.DI15 = 1;
-          roofOpening.material.color.setHex(0x2ed573);
+          carReal.roofOpening.material.color.setHex(0x2ed573);
           activateWireSignal('VPC_ROB', false, 0x2ed573, 0x00ffff);
 
-          targetCarPos.copy(carMasterPos);
-          targetCarRot.set(0, 0, 0);
-
-          renderTpCode([8, 10]);
+          renderTpCode([9, 11]);
           pill.className = 'judge-pill ok';
-          pill.textContent = 'BODY ALIGNED';
-          document.getElementById('step-text').textContent = '(10-1) / (11) : S1 스캔 완료 → 차체 정위치 보정 정렬 중 (로봇 대기)';
-          document.getElementById('overlay-state').textContent = '(10-1) 차체 위치 보정(T_S1) 완료 중... (정렬 후 로봇 장착 시작)';
-          addLog(`(10-1) [S1 → PC] 차체 위치 보정(ΔX=${shift.dx}, ΔY=${shift.dy}, ΔRz=${shift.rz}°) 정렬 실행.`, 'ok');
+          pill.textContent = 'U6 UPDATED';
+          document.getElementById('step-text').textContent = '(10-1) / (11) : S1 스캔 완료 → 차체는 현위치 유지, Robot U6 보정 행렬 수신';
+          document.getElementById('overlay-state').textContent = '(10-1) PC → Robot: 비틀어진 차체 좌표계(U6) 전송 중...';
+          addLog(`(10-1) [S1 → PC → Robot] 차체 편차(ΔX=${shift.dx}, ΔY=${shift.dy}, ΔRz=${shift.rz}°) 반영 U6 전송.`, 'ok');
 
           subTimers.push(setTimeout(() => {
             if (currentStep !== 10) return;
             ioState.DO13 = 0;
-            const installTarget = getCarInstallPos();
-            targetGripperPos.copy(installTarget);
-            renderTpCode([11]);
-            pill.textContent = 'MOUNTING';
-            document.getElementById('step-text').textContent = '(10-2) / (11) : 차체 정위치 확인 완료 → 로봇 이동 및 파노라마 선루프 장착';
-            document.getElementById('overlay-state').textContent = '(10-2) Robot: 정위치된 차체 루프 개구부에 선루프 장착';
-            addLog('(10-2) [Hi5a Robot] 차체 정위치 정렬 확인 후 선루프 안착 실행.', 'ok');
+            const skewedInstall = getSkewedCarInstallTransform();
+            targetGripperPos.copy(skewedInstall.gripperPos);
+            targetGripperRot.copy(skewedInstall.gripperRot);
+            renderTpCode([12]);
+            pill.textContent = 'MOUNTING U6';
+            document.getElementById('step-text').textContent = '(10-2) / (11) : Robot 자세 보정(U6) → 비틀어진 차체 지붕 각도에 맞춰 장착!';
+            document.getElementById('overlay-state').textContent = '(10-2) Robot: 비틀어진 실제 차체 지붕 개구부에 선루프 정밀 안착';
+            addLog('(10-2) [Hi5a Robot] 로봇이 비틀어진 차체 자세(U6)에 맞춰 파노라마 선루프를 장착했습니다.', 'ok');
 
             subTimers.push(setTimeout(() => {
               if (currentStep !== 10) return;
               isGlassAttached = false;
-              targetPartPos.set(installTarget.x, currentRoofHeight + 1.2, carMasterPos.z);
-              targetPartRot.set(0, 0, 0);
+              targetPartPos.copy(skewedInstall.partPos);
+              targetPartRot.copy(skewedInstall.partRot);
               ioState.DO11 = 0; ioState.DO12 = 1;
               padMat.color.setHex(0x64748b);
               syncIoLeds();
             }, 650));
-          }, 950));
+          }, 850));
         }
       }
       else if (currentStep === 11) {
+        partGhostGroup.visible = false;
+        carGhost.root.visible = false;
+
         targetGripperPos.copy(poses.HOME.pos);
         targetGripperRot.copy(poses.HOME.rot);
         ioState.DO15 = 1;
@@ -2049,7 +2435,7 @@
 
         const isFailed = (scen === 'NG_S1');
         activateWireSignal('PLC_VPC', true, isFailed ? 0xff4757 : 0x2ed573, 0xffffff);
-        renderTpCode([12, 13]);
+        renderTpCode([13]);
 
         if (isFailed) {
           pill.className = 'judge-pill ng';
@@ -2061,9 +2447,9 @@
         } else {
           pill.className = 'judge-pill ok';
           pill.textContent = 'END (OK)';
-          document.getElementById('step-text').textContent = '(11) / (11) : 작업 종료 선언 — 파노라마 선루프 장착 성공 (OK)';
+          document.getElementById('step-text').textContent = '(11) / (11) : 작업 종료 선언 — 로봇 보정 장착 성공 (OK)';
           document.getElementById('overlay-state').textContent = 'END: 전체 11단계 공정 정상 완료 (WORK SUCCESS)';
-          showPlcResultBanner(true, '[PLC 결과 알림 : OK] S0 부품 보정 및 S1 차체 정위치 장착 성공 — 작업 종료');
+          showPlcResultBanner(true, '[PLC 결과 알림 : OK] S0·S1 3D 보정(U6) 기반 로봇 자세 수정 장착 성공 — 작업 종료');
           addLog('(11) [PC → PLC] 작업 성공(OK) 신호 전송 및 작업 종료 선언 완료.', 'ok');
         }
 
@@ -2078,13 +2464,18 @@
     }
 
     function toggleAuto() {
+      if (!isNetworkVerified) {
+        triggerNetworkInterlockError();
+        return;
+      }
+
       const btn = document.getElementById('btn-auto');
       if (autoInterval) {
         clearInterval(autoInterval);
         autoInterval = null;
         btn.textContent = '⏩ 자동 연속';
       } else {
-        if (currentStep >= 11) resetAll();
+        if (currentStep >= 11) resetSequenceOnly();
         btn.textContent = '⏸ 일시 정지';
         nextStep();
         autoInterval = setInterval(() => {
@@ -2105,7 +2496,7 @@
     const waveCanvas = document.getElementById('wave-canvas');
     const wCtx = waveCanvas.getContext('2d');
     const waveHistory = { SCAN: [], RES: [], VAC: [], END: [] };
-    const maxSamples = 130;
+    const maxSamples = 95;
     for (let i = 0; i < maxSamples; i++) {
       waveHistory.SCAN.push(0);
       waveHistory.RES.push(0);
@@ -2131,11 +2522,12 @@
 
       const w = waveCanvas.width;
       const h = waveCanvas.height;
+      if (w <= 0 || h <= 0) return;
       wCtx.clearRect(0, 0, w, h);
 
       wCtx.strokeStyle = '#132230';
       wCtx.lineWidth = 1;
-      for (let x = 0; x < w; x += 25) {
+      for (let x = 0; x < w; x += 22) {
         wCtx.beginPath(); wCtx.moveTo(x, 0); wCtx.lineTo(x, h); wCtx.stroke();
       }
 
@@ -2152,17 +2544,17 @@
         const highY = idx * rowH + 5;
 
         wCtx.fillStyle = ch.color;
-        wCtx.font = '9.5px Consolas, monospace';
-        wCtx.fillText(ch.label, 4, highY + 7);
+        wCtx.font = '9px Consolas, monospace';
+        wCtx.fillText(ch.label, 3, highY + 7);
 
         wCtx.strokeStyle = ch.color;
-        wCtx.lineWidth = 1.5;
+        wCtx.lineWidth = 1.4;
         wCtx.beginPath();
         const data = waveHistory[ch.key];
-        const stepX = (w - 48) / (maxSamples - 1);
+        const stepX = (w - 40) / (maxSamples - 1);
 
         for (let i = 0; i < data.length; i++) {
-          const x = 44 + i * stepX;
+          const x = 36 + i * stepX;
           const val = data[i];
           const y = val !== 0 ? highY : baseY;
           if (i === 0) wCtx.moveTo(x, y);
@@ -2178,74 +2570,269 @@
     setInterval(sampleAndDrawWave, 100);
 
     /* =========================================================
-       5. 우측 모드 전환 (시퀀스 / IP 설정 / 현장 트러블슈팅 가이드)
+       5. 우측 모드 전환 & 4-Port 랜덤 IP 출제 / 검증 로직
        ========================================================= */
     function switchRightMode(modeId, btn) {
       document.querySelectorAll('.nav-tab').forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
+      if (btn) btn.classList.add('active');
       ['mode-seq', 'mode-net', 'mode-guide'].forEach(id => {
         document.getElementById(id).style.display = (id === modeId) ? 'block' : 'none';
       });
       const titles = {
         'mode-seq': 'Hi5a 제어기 JOB 실행 & 11단계 공정',
         'mode-net': '비전 PC 4-Port 네트워크 격리 설정',
-        'mode-guide': '현장 트러블슈팅 가이드 (atm_error.pdf)'
+        'mode-guide': '현장 트러블슈팅 가이드 (pdf/atm_error.pdf)'
       };
       document.getElementById('right-panel-title').textContent = titles[modeId];
     }
 
-    function getSubnet(ip) {
+    function parseIpv4(ip) {
       const p = ip.trim().split('.');
-      if (p.length !== 4 || p.some(x => x === '' || isNaN(x) || x < 0 || x > 255)) return null;
-      return `${p[0]}.${p[1]}.${p[2]}`;
+      if (p.length !== 4 || p.some(x => x === '' || !/^\d+$/.test(x) || Number(x) < 0 || Number(x) > 255)) {
+        return null;
+      }
+      return p.map(Number);
     }
 
-    function verifyNetworks() {
+    function randInt(min, max, excludeArr = []) {
+      let v;
+      do {
+        v = Math.floor(Math.random() * (max - min + 1)) + min;
+      } while (excludeArr.includes(v));
+      return v;
+    }
+
+    /* 랜덤 IP 오류 출제 규칙 (V1.5):
+       - LAN 1: 로봇 IP(10.10.10.55) 고정, PC IP만 10.10.x.100 형태로 오류 출제
+       - LAN 2: PLC IP(192.168.0.1) 고정, PC IP만 192.168.x.111 형태로 오류 출제
+       - LAN 3 & LAN 4: 앞자리 192.168. 고정, 카메라 끝자리 135 고정, 프로젝터 끝자리 10 고정 + 3번째 서브넷 무작위 오류 부여 */
+    function randomizeNetInputs(alsoResetSeq = true) {
+      if (autoSwitchSeqTimer) {
+        clearTimeout(autoSwitchSeqTimer);
+        autoSwitchSeqTimer = null;
+      }
+      // LAN 1
+      const robWrongSub = randInt(20, 99, [10]);
+      document.getElementById('ip-pc-rob').value = `10.10.${robWrongSub}.100`;
+      document.getElementById('ip-dev-rob').value = '10.10.10.55';
+
+      // LAN 2
+      const plcWrongSub = randInt(2, 9, [0]);
+      document.getElementById('ip-pc-plc').value = `192.168.${plcWrongSub}.111`;
+      document.getElementById('ip-dev-plc').value = '192.168.0.1';
+
+      // LAN 3 (S0): 카메라는 192.168.xxx.135, 프로젝터는 192.168.xxx.10 기본 출하 끝자리 적용
+      const s0SubPc  = randInt(10, 25);
+      const s0SubCam = randInt(1, 25, [0, s0SubPc]);
+      const s0SubPrj = randInt(1, 25, [0, s0SubPc, s0SubCam]);
+      document.getElementById('ip-pc-s0').value  = `192.168.${s0SubPc}.${randInt(100, 130)}`;
+      document.getElementById('ip-cam-s0').value = `192.168.${s0SubCam}.135`;
+      document.getElementById('ip-prj-s0').value = `192.168.${s0SubPrj}.10`;
+
+      // LAN 4 (S1): 카메라는 192.168.xxx.135, 프로젝터는 192.168.xxx.10 기본 출하 끝자리 적용
+      const s1SubPc  = randInt(30, 60);
+      const s1SubCam = randInt(30, 60, [s1SubPc]);
+      const s1SubPrj = randInt(30, 60, [s1SubPc, s1SubCam]);
+      document.getElementById('ip-pc-s1').value  = `192.168.${s1SubPc}.${randInt(100, 130)}`;
+      document.getElementById('ip-cam-s1').value = `192.168.${s1SubCam}.135`;
+      document.getElementById('ip-prj-s1').value = `192.168.${s1SubPrj}.10`;
+
+      verifyNetworks(false);
+      if (alsoResetSeq) {
+        resetSequenceOnly();
+        addLog('[실습 출제] 새로운 랜덤 IP 오류 환경이 생성되었습니다. 4-Port IP를 수정 후 [연결 검증]을 실행하세요.', 'info');
+      }
+    }
+
+    function updateLanMiniBox(idx, isOk, reasonText) {
+      const box = document.getElementById(`box-lan-${idx}`);
+      const badge = document.getElementById(`badge-lan-${idx}`);
+      const desc = document.getElementById(`desc-lan-${idx}`);
+      box.className = 'lan-mini-box ' + (isOk ? 'ok' : 'err');
+      badge.className = 'lan-badge ' + (isOk ? 'ok' : 'err');
+      badge.textContent = isOk ? 'OK' : 'ERROR';
+      desc.textContent = reasonText;
+    }
+
+    function setInputsBorder(ids, isOk) {
+      ids.forEach(id => {
+        const el = document.getElementById(id);
+        if (!el || el.readOnly) return;
+        el.classList.remove('ip-ok', 'ip-err');
+        el.classList.add(isOk ? 'ip-ok' : 'ip-err');
+      });
+    }
+
+    function verifyNetworks(fromUserClick = true) {
       const groups = [
-        { name: 'LAN 1 (Hi5a)', dot: 'hw-rob', wire: 'VPC_ROB', ips: [document.getElementById('ip-pc-rob').value, document.getElementById('ip-dev-rob').value] },
-        { name: 'LAN 2 (PLC)',  dot: 'hw-plc', wire: 'PLC_VPC', ips: [document.getElementById('ip-pc-plc').value, document.getElementById('ip-dev-plc').value] },
-        { name: 'LAN 3 (S0)',   dot: 'hw-s0',  wire: 'VPC_S0',  ips: [document.getElementById('ip-pc-s0').value, document.getElementById('ip-cam-s0').value, document.getElementById('ip-prj-s0').value] },
-        { name: 'LAN 4 (S1)',   dot: 'hw-s1',  wire: 'VPC_S1',  ips: [document.getElementById('ip-pc-s1').value, document.getElementById('ip-cam-s1').value, document.getElementById('ip-prj-s1').value] }
+        {
+          idx: 1,
+          name: 'LAN 1 (Hi5a)',
+          dot: 'hw-rob',
+          wire: 'VPC_ROB',
+          ids: ['ip-pc-rob', 'ip-dev-rob'],
+          reqPrefix: '10.10',
+          isScanner: false
+        },
+        {
+          idx: 2,
+          name: 'LAN 2 (PLC)',
+          dot: 'hw-plc',
+          wire: 'PLC_VPC',
+          ids: ['ip-pc-plc', 'ip-dev-plc'],
+          reqPrefix: '192.168',
+          isScanner: false
+        },
+        {
+          idx: 3,
+          name: 'LAN 3 (S0)',
+          dot: 'hw-s0',
+          wire: 'VPC_S0',
+          ids: ['ip-pc-s0', 'ip-cam-s0', 'ip-prj-s0'],
+          reqPrefix: '192.168',
+          isScanner: true
+        },
+        {
+          idx: 4,
+          name: 'LAN 4 (S1)',
+          dot: 'hw-s1',
+          wire: 'VPC_S1',
+          ids: ['ip-pc-s1', 'ip-cam-s1', 'ip-prj-s1'],
+          reqPrefix: '192.168',
+          isScanner: true
+        }
       ];
 
       let allOk = true;
       const seenSubnets = new Set();
 
       groups.forEach(g => {
-        const subs = g.ips.map(getSubnet);
+        const rawIps = g.ids.map(id => document.getElementById(id).value.trim());
+        const parsed = rawIps.map(parseIpv4);
         const dotEl = document.getElementById(g.dot);
-        if (subs.includes(null) || new Set(subs).size > 1 || new Set(g.ips).size !== g.ips.length) {
-          allOk = false;
-          dotEl.classList.add('err');
-          addLog(`[Network Error] ${g.name}: 서브넷 불일치 또는 잘못된 IP 설정!`, 'err');
-        } else if (seenSubnets.has(subs[0])) {
-          allOk = false;
-          dotEl.classList.add('err');
-          addLog(`[Network Error] ${g.name}: 타 포트와 서브넷(${subs[0]}.x) 중복!`, 'err');
+
+        let ok = true;
+        let reason = '';
+
+        if (parsed.includes(null)) {
+          ok = false;
+          reason = 'IP 형식 오류 (0~255)';
         } else {
-          seenSubnets.add(subs[0]);
+          const prefixes = parsed.map(p => `${p[0]}.${p[1]}`);
+          const subnets = parsed.map(p => `${p[0]}.${p[1]}.${p[2]}`);
+          const uniqueIps = new Set(rawIps);
+
+          if (prefixes.some(pf => pf !== g.reqPrefix)) {
+            ok = false;
+            reason = `앞자리 ${g.reqPrefix}.x 유지 필요`;
+          } else if (g.isScanner && parsed[1][3] !== 135) {
+            ok = false;
+            reason = '카메라 4번째 자리 .135 고정 필요';
+          } else if (g.isScanner && parsed[2][3] !== 10) {
+            ok = false;
+            reason = '프로젝터 4번째 자리 .10 고정 필요';
+          } else if (new Set(subnets).size > 1) {
+            ok = false;
+            reason = '포트 내 서브넷(3번째 자리) 불일치';
+          } else if (uniqueIps.size !== rawIps.length) {
+            ok = false;
+            reason = '장비 간 IP 끝자리 중복';
+          } else if (seenSubnets.has(subnets[0])) {
+            ok = false;
+            reason = `타 포트와 대역(${subnets[0]}.x) 중복`;
+          } else {
+            seenSubnets.add(subnets[0]);
+            reason = `정상 격리 (${subnets[0]}.x)`;
+          }
+        }
+
+        portErrorState[g.wire] = !ok;
+        updateLanMiniBox(g.idx, ok, reason);
+        setInputsBorder(g.ids, ok);
+
+        if (!ok) {
+          allOk = false;
+          dotEl.classList.add('err');
+          if (fromUserClick) {
+            addLog(`[Network Error] ${g.name}: ${reason}`, 'err');
+          }
+        } else {
           dotEl.classList.remove('err');
-          activateWireSignal(g.wire, false, 0x2ed573, 0x00ffff);
+          if (fromUserClick) {
+            activateWireSignal(g.wire, false, 0x2ed573, 0x00ffff);
+          }
         }
       });
 
-      if (allOk) {
-        addLog('[Network OK] 4개 포트 서브넷 격리 및 유선 케이블 연결 검증 완료!', 'ok');
-      }
-    }
+      const wasVerified = isNetworkVerified;
+      isNetworkVerified = allOk;
 
-    function resetNetInputs() {
-      document.getElementById('ip-pc-rob').value = '10.10.10.100';
-      document.getElementById('ip-dev-rob').value = '10.10.10.55';
-      document.getElementById('ip-pc-plc').value = '192.168.0.111';
-      document.getElementById('ip-dev-plc').value = '192.168.0.1';
-      document.getElementById('ip-pc-s0').value = '192.168.10.100';
-      document.getElementById('ip-cam-s0').value = '192.168.1.135';
-      document.getElementById('ip-prj-s0').value = '192.168.10.10';
-      document.getElementById('ip-pc-s1').value = '192.168.11.100';
-      document.getElementById('ip-cam-s1').value = '192.168.11.135';
-      document.getElementById('ip-prj-s1').value = '192.168.11.10';
-      verifyNetworks();
+      const overallBadge = document.getElementById('net-overall-badge');
+      const btnNext = document.getElementById('btn-next');
+      const btnAuto = document.getElementById('btn-auto');
+      const actionBox = document.getElementById('net-next-action-box');
+      const actionTitle = document.getElementById('net-next-action-title');
+      const actionSub = document.getElementById('net-next-action-sub');
+
+      if (allOk) {
+        overallBadge.style.color = 'var(--success-green)';
+        overallBadge.textContent = '● 4-Port 검증 완료 (OK)';
+        btnNext.classList.remove('locked-sim');
+        btnAuto.classList.remove('locked-sim');
+
+        if (actionBox) {
+          actionBox.classList.add('ready');
+          actionTitle.textContent = '✅ 연결 검증 완료! ▶ 1. 11단계 공정 핸드셰이크로 이동';
+          actionSub.innerHTML = '잠시 후 <b>1번 공정 실행 화면</b>으로 자동 전환됩니다. (지금 클릭하면 즉시 이동)';
+        }
+
+        ioState.W0 = 1;
+        ioState.W1 = 0;
+        syncIoLeds();
+
+        document.getElementById('plc-result-banner').className = 'plc-result-banner';
+        document.getElementById('overlay-state').style.color = '#2ed573';
+        document.getElementById('overlay-state').textContent = '(1) 네트워크 검증 완료: READY = 1 (OK/NG 시뮬레이션 실행 가능)';
+        document.getElementById('step-text').textContent = '(1) / (11) : 네트워크 연결 정상 — 상단 [다음 스텝] 또는 [자동 연속]을 실행하세요';
+        const pill = document.getElementById('judge-pill');
+        pill.className = 'judge-pill ok';
+        pill.textContent = 'NET OK';
+
+        if (fromUserClick) {
+          showPlcResultBanner(true, '[Network OK] 4개 랜 포트 검증 통과! 1.2초 후 [1. 11단계 공정 핸드셰이크] 화면으로 자동 전환됩니다.');
+          addLog('[Network OK] 4-Port 네트워크 검증 통과! 1번 탭(11단계 공정 핸드셰이크)으로 자동 이동합니다.', 'ok');
+
+          if (autoSwitchSeqTimer) clearTimeout(autoSwitchSeqTimer);
+          autoSwitchSeqTimer = setTimeout(() => {
+            autoSwitchSeqTimer = null;
+            if (isNetworkVerified) {
+              const seqTabBtn = document.getElementById('tab-seq');
+              switchRightMode('mode-seq', seqTabBtn);
+            }
+          }, 1200);
+        }
+      } else {
+        overallBadge.style.color = 'var(--danger-red)';
+        overallBadge.textContent = '● 설정 오류 (인터록 잠금)';
+        btnNext.classList.add('locked-sim');
+        btnAuto.classList.add('locked-sim');
+
+        if (actionBox) {
+          actionBox.classList.remove('ready');
+          actionTitle.textContent = '🔒 [1단계] 4-Port 연결 검증 대기 중';
+          actionSub.innerHTML = '모든 포트가 OK가 되면 자동으로 <b>1. 11단계 공정 핸드셰이크</b> 화면으로 이동합니다. (완료 후 클릭 시 즉시 이동)';
+        }
+
+        ioState.W0 = 0;
+        ioState.W1 = 1;
+        syncIoLeds();
+
+        if (wasVerified && autoInterval) {
+          clearInterval(autoInterval);
+          autoInterval = null;
+          btnAuto.textContent = '⏩ 자동 연속';
+        }
+      }
     }
 
     /* =========================================================
@@ -2266,7 +2853,7 @@
     });
 
     buildIoLists();
-    resetAll();
+    fullReset();
     animate();
   </script>
 </body>
