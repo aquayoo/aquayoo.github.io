@@ -3,19 +3,22 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>3D 공통좌표계(CC) 설정 Simulator | V0.51 (Nov.20)</title>
+  <title>3D 공통좌표계(CC) 설정 Simulator | V1.0 (Nov.20)</title>
   <style>
     :root {
-      --bg-dark: #0a1117;
-      --panel-bg: #142330;
-      --panel-border: #233c4f;
-      --accent-cyan: #00adb5;
-      --accent-blue: #0066cc;
-      --text-main: #dce7ee;
-      --text-muted: #829aa8;
-      --danger-red: #ff4757;
-      --success-green: #2ed573;
-      --yellow-warn: #f1c40f;
+      --bg-app: #e2e8f0;
+      --panel-bg: #f8fafc;
+      --card-bg: #ffffff;
+      --panel-border: #cbd5e1;
+      --header-bg: #1e293b;
+      --subnav-bg: #f1f5f9;
+      --accent-blue: #005bb5;
+      --accent-teal: #007a87;
+      --text-main: #1e293b;
+      --text-muted: #475569;
+      --danger-red: #dc2626;
+      --success-green: #16a34a;
+      --yellow-warn: #d97706;
       --font-mono: 'Consolas', 'Monaco', 'Courier New', monospace;
     }
 
@@ -28,7 +31,7 @@
     }
 
     body {
-      background-color: var(--bg-dark);
+      background-color: var(--bg-app);
       color: var(--text-main);
       width: 100vw;
       height: 100vh;
@@ -40,8 +43,8 @@
 
     /* 상단 헤더: 좌측 [버전 배지 + 타이틀] → 중앙 [장비 상태 5종] → 우측 끝 [회사 로고 홈 복귀] */
     header {
-      background: #080d12;
-      border-bottom: 1px solid var(--panel-border);
+      background: var(--header-bg);
+      border-bottom: 1px solid #0f172a;
       height: 40px;
       padding: 0 14px;
       display: flex;
@@ -49,6 +52,7 @@
       align-items: center;
       flex-shrink: 0;
       gap: 10px;
+      color: #ffffff;
     }
 
     .header-left {
@@ -61,7 +65,7 @@
     .ver-badge {
       background-color: #0066cc;
       color: #ffffff;
-      border: 1px solid #3399ff;
+      border: 1px solid #60a5fa;
       font-family: var(--font-mono);
       font-weight: 800;
       padding: 3px 9px;
@@ -69,7 +73,7 @@
       font-size: 11px;
       letter-spacing: 0.4px;
       white-space: nowrap;
-      box-shadow: 0 0 8px rgba(0, 102, 204, 0.45);
+      box-shadow: 0 0 8px rgba(37, 99, 235, 0.45);
     }
 
     .title {
@@ -89,8 +93,9 @@
     }
 
     .hw-badge {
-      background: #0c161e;
-      border: 1px solid var(--panel-border);
+      background: #0f172a;
+      border: 1px solid #334155;
+      color: #e2e8f0;
       padding: 3px 7px;
       border-radius: 3px;
       font-family: var(--font-mono);
@@ -105,16 +110,16 @@
       width: 7px;
       height: 7px;
       border-radius: 50%;
-      background: var(--success-green);
-      box-shadow: 0 0 6px var(--success-green);
+      background: #22c55e;
+      box-shadow: 0 0 6px #22c55e;
     }
     .led-dot.warn {
-      background: var(--yellow-warn);
-      box-shadow: 0 0 6px var(--yellow-warn);
+      background: #f59e0b;
+      box-shadow: 0 0 6px #f59e0b;
     }
     .led-dot.err {
-      background: var(--danger-red);
-      box-shadow: 0 0 6px var(--danger-red);
+      background: #ef4444;
+      box-shadow: 0 0 6px #ef4444;
       animation: pulse 0.9s infinite;
     }
 
@@ -134,16 +139,16 @@
       justify-content: center;
       padding: 3px 8px;
       border-radius: 4px;
-      background: #101c26;
-      border: 1px solid #2a465c;
+      background: #ffffff;
+      border: 1px solid #94a3b8;
       transition: all 0.2s;
       cursor: pointer;
       text-decoration: none;
       height: 28px;
     }
     .logo-link:hover {
-      border-color: var(--danger-red);
-      background: rgba(255, 71, 87, 0.16);
+      border-color: #ef4444;
+      background: #fee2e2;
     }
     .logo-link img {
       height: 20px;
@@ -159,7 +164,7 @@
 
     /* 서브 내비게이션: 교육 단계 탭 및 제어 버튼 */
     .sub-nav {
-      background: #0e1923;
+      background: var(--subnav-bg);
       border-bottom: 1px solid var(--panel-border);
       height: 34px;
       padding: 0 14px;
@@ -188,11 +193,11 @@
       align-items: center;
       gap: 6px;
     }
-    .step-tab:hover { color: #ffffff; }
+    .step-tab:hover { color: #0f172a; }
     .step-tab.active {
-      color: var(--accent-cyan);
-      border-bottom-color: var(--accent-cyan);
-      background: rgba(0, 173, 181, 0.08);
+      color: var(--accent-blue);
+      border-bottom-color: var(--accent-blue);
+      background: rgba(0, 91, 181, 0.08);
     }
 
     .sim-controls {
@@ -202,29 +207,36 @@
     }
 
     button {
-      background: #1a3347;
-      border: 1px solid var(--panel-border);
-      color: #fff;
+      background: #ffffff;
+      border: 1px solid #94a3b8;
+      color: #1e293b;
       padding: 4px 10px;
       font-size: 11px;
+      font-weight: 600;
       cursor: pointer;
       border-radius: 3px;
-      transition: background 0.15s;
+      transition: all 0.15s;
     }
-    button:hover:not(:disabled) { background: #254964; }
+    button:hover:not(:disabled) {
+      background: #e2e8f0;
+      border-color: #64748b;
+    }
     button.primary {
-      background: #007799;
-      border-color: var(--accent-cyan);
+      background: #005bb5;
+      border-color: #004494;
+      color: #ffffff;
       font-weight: bold;
     }
-    button.primary:hover:not(:disabled) { background: #0099bb; }
+    button.primary:hover:not(:disabled) { background: #004a94; }
     button.success {
-      background: #1e7e48;
-      border-color: var(--success-green);
+      background: #15803d;
+      border-color: #166534;
+      color: #ffffff;
       font-weight: bold;
     }
+    button.success:hover:not(:disabled) { background: #166534; }
     button.locked-sim {
-      opacity: 0.65;
+      opacity: 0.78;
       border-color: var(--danger-red);
     }
     button.tiny-btn {
@@ -233,8 +245,9 @@
       border-radius: 2px;
     }
     button.tiny-btn.active {
-      background: var(--accent-cyan);
-      color: #080d12;
+      background: var(--accent-blue);
+      color: #ffffff;
+      border-color: var(--accent-blue);
       font-weight: bold;
     }
 
@@ -264,10 +277,10 @@
     }
 
     .panel-header {
-      background: #0e1923;
+      background: #e2e8f0;
       padding: 6px 10px;
       font-weight: bold;
-      color: var(--accent-cyan);
+      color: #0f172a;
       border-bottom: 1px solid var(--panel-border);
       font-size: 11px;
       display: flex;
@@ -286,18 +299,19 @@
     }
 
     .sub-card {
-      background: #0c161f;
+      background: var(--card-bg);
       border: 1px solid var(--panel-border);
       border-radius: 4px;
       padding: 6px 8px;
+      box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
     }
 
     .sub-card-title {
       font-size: 10.5px;
       font-weight: bold;
-      color: #8faec4;
+      color: #0f172a;
       margin-bottom: 5px;
-      border-bottom: 1px solid #1a2f3f;
+      border-bottom: 1px solid #e2e8f0;
       padding-bottom: 3px;
       display: flex;
       justify-content: space-between;
@@ -315,18 +329,20 @@
       display: flex;
       align-items: center;
       gap: 5px;
-      background: #080d12;
-      border: 1px solid #1e3446;
+      background: #f1f5f9;
+      border: 1px solid #cbd5e1;
       padding: 3px 6px;
       border-radius: 3px;
       cursor: pointer;
-      color: #cbd5e1;
+      color: #1e293b;
+      font-weight: 600;
     }
     .axis-chk:hover {
-      border-color: var(--accent-cyan);
+      border-color: var(--accent-blue);
+      background: #e0f2fe;
     }
     .axis-chk input[type="checkbox"] {
-      accent-color: var(--accent-cyan);
+      accent-color: var(--accent-blue);
       cursor: pointer;
     }
 
@@ -339,10 +355,10 @@
       text-align: right;
     }
     .coord-compare-table th {
-      background: #080d12;
-      color: #8faec4;
+      background: #f1f5f9;
+      color: #334155;
       padding: 4px 4px;
-      border-bottom: 1px solid #233c4f;
+      border-bottom: 1px solid #cbd5e1;
       font-weight: bold;
     }
     .coord-compare-table th:first-child,
@@ -350,68 +366,78 @@
       text-align: left;
       padding-left: 5px;
       font-weight: bold;
+      color: #0f172a;
     }
     .coord-compare-table td {
       padding: 4px 4px;
-      border-bottom: 1px solid #152533;
-      color: #e2e8f0;
+      border-bottom: 1px solid #e2e8f0;
+      color: #1e293b;
+      font-weight: 600;
     }
     .coord-compare-table tr:last-child td {
       border-bottom: none;
     }
-    .col-u10 { color: #00ffcc !important; }
-    .col-r1  { color: #f59e0b !important; }
-    .col-r2  { color: #facc15 !important; }
+    .col-u10 { color: #007a87 !important; font-weight: 700 !important; }
+    .col-r1  { color: #005bb5 !important; font-weight: 700 !important; }
+    .col-r2  { color: #b45309 !important; font-weight: 700 !important; }
 
     .vector-summary-badge {
       margin-top: 5px;
-      background: rgba(250, 204, 21, 0.1);
-      border: 1px dashed rgba(250, 204, 21, 0.45);
+      background: #fefce8;
+      border: 1px solid #fde047;
       border-radius: 3px;
       padding: 4px 6px;
       font-size: 9.6px;
-      color: #fef08a;
+      color: #854d0e;
       line-height: 1.38;
     }
 
     .matrix-box {
-      background: #070b0e;
-      border: 1px solid #1a2c3a;
+      background: #f1f5f9;
+      border: 1px solid #cbd5e1;
       padding: 5px 6px;
-      color: var(--yellow-warn);
+      color: #0f172a;
       font-family: var(--font-mono);
       font-size: 10.2px;
+      font-weight: 600;
       line-height: 1.35;
       white-space: pre;
       overflow-x: auto;
     }
 
     .code-box {
-      background: #070b0e;
-      border: 1px solid #1a2c3a;
+      background: #1e293b;
+      border: 1px solid #0f172a;
       padding: 6px;
-      color: #a4e57e;
+      color: #86efac;
       font-family: var(--font-mono);
       font-size: 9.8px;
       line-height: 1.4;
       white-space: pre;
       overflow-x: auto;
+      border-radius: 3px;
     }
 
     input[type="text"], input[type="number"], select {
-      background: #080d12;
-      border: 1px solid var(--panel-border);
-      color: #fff;
+      background: #ffffff;
+      border: 1px solid #94a3b8;
+      color: #0f172a;
       padding: 3px 6px;
       border-radius: 3px;
       font-size: 10.8px;
       font-family: var(--font-mono);
+      font-weight: 600;
       user-select: text;
       width: 100%;
     }
     input:focus, select:focus {
       outline: none;
-      border-color: var(--accent-cyan);
+      border-color: var(--accent-blue);
+      box-shadow: 0 0 0 2px rgba(0, 91, 181, 0.15);
+    }
+    input[readonly] {
+      background: #f1f5f9;
+      color: #475569;
     }
 
     .form-grid {
@@ -421,7 +447,10 @@
       align-items: center;
       font-size: 10.5px;
     }
-    .form-grid label { color: var(--text-muted); }
+    .form-grid label {
+      color: #334155;
+      font-weight: 600;
+    }
 
     .target-input-grid {
       display: grid;
@@ -430,23 +459,24 @@
       margin-bottom: 6px;
     }
     .target-cell {
-      background: #080d12;
-      border: 1px solid #1e3446;
+      background: #f8fafc;
+      border: 1px solid #cbd5e1;
       border-radius: 3px;
       padding: 4px;
     }
     .target-cell span {
       display: block;
       font-size: 9.5px;
-      color: #829aa8;
+      color: #334155;
+      font-weight: bold;
       margin-bottom: 2px;
       font-family: var(--font-mono);
     }
 
-    /* 중앙 3D 뷰포트 */
+    /* 중앙 3D 뷰포트 (밝은 스튜디오 배경) */
     #viewport-container {
       position: relative;
-      background: radial-gradient(circle at center, #152636 0%, #091016 100%);
+      background-color: #e8edf3;
       overflow: hidden;
     }
 
@@ -456,15 +486,15 @@
       left: 10px;
       font-family: var(--font-mono);
       font-size: 10.5px;
-      color: #00ffcc;
+      color: #0f172a;
       line-height: 1.48;
       pointer-events: none;
-      text-shadow: 1px 1px 2px #000;
       z-index: 5;
-      background: rgba(8, 13, 18, 0.76);
+      background: rgba(255, 255, 255, 0.9);
       padding: 7px 10px;
       border-radius: 4px;
-      border: 1px solid rgba(0, 173, 181, 0.3);
+      border: 1px solid #cbd5e1;
+      box-shadow: 0 2px 6px rgba(15, 23, 42, 0.08);
     }
 
     .cam-presets {
@@ -476,13 +506,13 @@
       z-index: 6;
     }
 
-    /* 점군(Point Cloud) 정합 비교 플로팅 컨트롤 바 */
+    /* 스캔 점군(Point Cloud) 정합 전/후 비교 플로팅 컨트롤 바 */
     .icp-toggle-bar {
       position: absolute;
       top: 40px;
       right: 10px;
-      background: rgba(8, 13, 18, 0.88);
-      border: 1px solid #2a465c;
+      background: rgba(255, 255, 255, 0.92);
+      border: 1px solid #cbd5e1;
       border-radius: 4px;
       padding: 5px 7px;
       display: flex;
@@ -490,16 +520,17 @@
       gap: 4px;
       z-index: 6;
       font-size: 10px;
+      box-shadow: 0 2px 6px rgba(15, 23, 42, 0.08);
     }
 
     .glare-banner {
       position: absolute;
-      top: 92px;
+      top: 94px;
       left: 50%;
       transform: translateX(-50%);
-      background: rgba(127, 29, 29, 0.94);
+      background: #fef2f2;
       border: 2px solid var(--danger-red);
-      color: #fecaca;
+      color: #991b1b;
       padding: 5px 14px;
       border-radius: 4px;
       font-family: var(--font-mono);
@@ -507,7 +538,7 @@
       font-weight: bold;
       z-index: 7;
       display: none;
-      box-shadow: 0 0 14px rgba(255, 71, 87, 0.65);
+      box-shadow: 0 4px 12px rgba(220, 38, 38, 0.25);
     }
 
     .bottom-status-bar {
@@ -515,18 +546,19 @@
       bottom: 10px;
       left: 50%;
       transform: translateX(-50%);
-      background: rgba(8, 13, 18, 0.92);
-      border: 1px solid var(--accent-cyan);
+      background: rgba(255, 255, 255, 0.95);
+      border: 1.5px solid var(--accent-blue);
       padding: 6px 14px;
       border-radius: 4px;
       font-size: 11px;
       font-weight: bold;
-      color: #fff;
+      color: #0f172a;
       display: flex;
       align-items: center;
       gap: 10px;
       z-index: 6;
       white-space: nowrap;
+      box-shadow: 0 2px 8px rgba(15, 23, 42, 0.12);
     }
 
     .judge-pill {
@@ -534,29 +566,33 @@
       border-radius: 3px;
       font-family: var(--font-mono);
       font-size: 10.5px;
-      background: #1b354b;
-      color: var(--accent-cyan);
+      background: #e2e8f0;
+      color: #0f172a;
+      font-weight: bold;
     }
-    .judge-pill.ok { background: var(--success-green); color: #080d12; }
-    .judge-pill.ng { background: var(--danger-red); color: #fff; }
+    .judge-pill.ok { background: var(--success-green); color: #ffffff; cursor: pointer; box-shadow: 0 0 8px rgba(22, 163, 74, 0.45); }
+    .judge-pill.ok:hover { background: #15803d; }
+    .judge-pill.ng { background: var(--danger-red); color: #ffffff; }
 
     .interlock-card {
-      border: 1px solid #2a465c;
-      background: #0a131b;
+      border: 1px solid #cbd5e1;
+      background: #f8fafc;
       border-radius: 4px;
       padding: 5px 8px;
       display: flex;
       justify-content: space-between;
       align-items: center;
       font-size: 10.2px;
+      font-weight: 600;
+      color: #1e293b;
     }
     .interlock-card.passed {
-      border-color: var(--success-green);
-      background: rgba(46, 213, 115, 0.1);
+      border-color: #22c55e;
+      background: #f0fdf4;
     }
     .interlock-card.locked {
-      border-color: var(--danger-red);
-      background: rgba(255, 71, 87, 0.1);
+      border-color: #ef4444;
+      background: #fef2f2;
     }
 
     .phase-tracker {
@@ -570,37 +606,39 @@
     .phase-item {
       padding: 3px 6px;
       border-radius: 3px;
-      background: #080d12;
-      color: #64748b;
-      border-left: 2px solid #334155;
+      background: #f1f5f9;
+      color: #475569;
+      border-left: 3px solid #94a3b8;
       line-height: 1.3;
     }
     .phase-item.active {
-      color: #00ffcc;
-      background: rgba(0, 173, 181, 0.15);
-      border-left-color: #00ffcc;
+      color: #005bb5;
+      background: #e0f2fe;
+      border-left-color: #005bb5;
       font-weight: bold;
     }
     .phase-item.done {
-      color: #2ed573;
-      border-left-color: #2ed573;
+      color: #15803d;
+      background: #f0fdf4;
+      border-left-color: #16a34a;
+      font-weight: 600;
     }
 
     .log-mini {
-      background: #060a0e;
-      border: 1px solid #1a2c3a;
+      background: #0f172a;
+      border: 1px solid #334155;
       border-radius: 3px;
       padding: 5px 6px;
       font-family: var(--font-mono);
       font-size: 9.6px;
       line-height: 1.38;
-      color: #9ab4c7;
+      color: #cbd5e1;
       height: 100px;
       overflow-y: auto;
     }
-    .log-ok { color: var(--success-green); }
-    .log-err { color: var(--danger-red); font-weight: bold; }
-    .log-info { color: var(--accent-cyan); }
+    .log-ok { color: #4ade80; }
+    .log-err { color: #f87171; font-weight: bold; }
+    .log-info { color: #38bdf8; }
   </style>
   <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
@@ -610,16 +648,16 @@
   <!-- 상단 헤더: 좌측 [버전 배지 + 타이틀] → 중앙 [장비 상태 5종] → 우측 끝 [회사 로고 홈 복귀] -->
   <header>
     <div class="header-left">
-      <span class="ver-badge">V0.51 (Nov.20)</span>
+      <span class="ver-badge">V1.0 (Nov.20)</span>
       <span class="title">3D 공통좌표계(CC) 설정 Simulator</span>
     </div>
 
     <div class="header-center">
       <div class="hw-badge"><span class="led-dot" id="led-r1"></span>R1: HYUNDAI HH020</div>
       <div class="hw-badge"><span class="led-dot" id="led-r2"></span>R2: FANUC (90°)</div>
-      <div class="hw-badge"><span class="led-dot warn" id="led-s1"></span>S1: R1-3DU (WD700)</div>
-      <div class="hw-badge"><span class="led-dot warn" id="led-s2"></span>S2: R2-3DU (WD700)</div>
-      <div class="hw-badge"><span class="led-dot warn" id="led-s3"></span>S3: 3DM (45°·WD1400)</div>
+      <div class="hw-badge"><span class="led-dot warn" id="led-s1"></span>S1: R1-3DU-12 (WD700)</div>
+      <div class="hw-badge"><span class="led-dot warn" id="led-s2"></span>S2: R2-3DU-12 (WD700)</div>
+      <div class="hw-badge"><span class="led-dot warn" id="led-s3"></span>S3: 3DM-16 (45°·WD1400)</div>
     </div>
 
     <div class="header-right">
@@ -640,6 +678,9 @@
     </div>
 
     <div class="sim-controls">
+      <a href="pdf/comm_uf.pdf" target="_blank" style="text-decoration:none;">
+        <button type="button" class="tiny-btn" style="border-color:#005bb5; color:#005bb5; background:#eff6ff; font-weight:bold;">📄 CC 매뉴얼 (comm_uf.pdf)</button>
+      </a>
       <button class="tiny-btn" onclick="toggleFovVisibility()">👁 FOV 사각뿔대 ON/OFF</button>
       <button class="primary locked-sim" id="btn-run-dual" onclick="runDualDoorSequence()">▶ 순차 협업 장착 실행</button>
       <button onclick="resetSimulator()">↺ 초기화</button>
@@ -671,8 +712,8 @@
             <label class="axis-chk"><input type="checkbox" id="chk-ax-s" checked onchange="syncAxisVisibility()">스캐너 {S1~S3}</label>
             <label class="axis-chk"><input type="checkbox" id="chk-ax-tcp" checked onchange="syncAxisVisibility()">툴 끝단 {TCP}</label>
           </div>
-          <div style="font-size:9.4px; color:#829aa8; margin-top:4px;">
-            <span style="color:#ff4757;">■ +X(T:진행반대)</span> · <span style="color:#2ed573;">■ +Y(L:조수석)</span> · <span style="color:#1e90ff;">■ +Z(H)</span>
+          <div style="font-size:9.4px; color:#475569; margin-top:4px; font-weight:600;">
+            <span style="color:#dc2626;">■ +X(T:진행반대)</span> · <span style="color:#16a34a;">■ +Y(L:조수석)</span> · <span style="color:#2563eb;">■ +Z(H)</span>
           </div>
         </div>
 
@@ -680,7 +721,7 @@
         <div class="sub-card">
           <div class="sub-card-title">
             <span>2. 공통좌표(U10) → 로봇별 Base 환산표</span>
-            <span style="font-size:9.5px; color:#00ffcc;">mm, °</span>
+            <span style="font-size:9.5px; color:#007a87; font-weight:bold;">mm, °</span>
           </div>
           <table class="coord-compare-table">
             <thead>
@@ -699,7 +740,7 @@
             </tbody>
           </table>
           <div class="vector-summary-badge" id="vector-diff-note">
-            💡 <b>축 회전 비교:</b> R2(FANUC)는 Base가 +90° 회전 설치되어 <b>X·Y 축 성분이 교차 및 부호 반전</b>됩니다. (3D 주황/노랑 벡터선 참조)
+            💡 <b>축 회전 비교:</b> R2(FANUC)는 Base가 +90° 회전 설치되어 <b>X·Y 축 성분이 교차 및 부호 반전</b>됩니다. (3D 주황/파랑 벡터선 참조)
           </div>
         </div>
 
@@ -725,9 +766,9 @@
     <!-- 중앙 3D 뷰포트 -->
     <div id="viewport-container">
       <div class="viewport-overlay">
-        [3D Common Coordinate Cell — Dual Eye-in-Hand 3DU + 45° Tilted 3DM]<br>
-        <span style="color:#ff4757;">X/T(Red)</span> · <span style="color:#2ed573;">Y/L(Green)</span> · <span style="color:#1e90ff;">Z/H(Blue)</span> | <span style="color:#ff00ff;">◆ U10 목표점</span><br>
-        <span id="overlay-guide" style="color:#f1c40f; font-weight:bold;">[INTERLOCK] 우측 패널에서 Step 1~3 셋업 검증을 완료하세요.</span>
+        <b>[3D Common Coordinate Cell — ATM, AITZ 3D Vision]</b><br>
+        <span style="color:#dc2626; font-weight:bold;">X/T(Red)</span> · <span style="color:#16a34a; font-weight:bold;">Y/L(Green)</span> · <span style="color:#2563eb; font-weight:bold;">Z/H(Blue)</span> | <span style="color:#c026d3; font-weight:bold;">◆ U10 목표점</span><br>
+        <span id="overlay-guide" style="color:#b45309; font-weight:bold;">[INTERLOCK] 우측 패널에서 Step 1~3 셋업 검증을 완료하세요.</span>
       </div>
 
       <!-- 시점 프리셋 -->
@@ -739,7 +780,7 @@
 
       <!-- 스캔 점군(Point Cloud) 정합 전/후 비교 토글 컨트롤 -->
       <div class="icp-toggle-bar">
-        <div style="font-weight:bold; color:#8faec4; margin-bottom:2px;">📡 스캔 점군(S1·S2·S3) 정합 비교</div>
+        <div style="font-weight:bold; color:#1e293b; margin-bottom:2px;">📡 스캔 점군(S1·S2·S3) 정합 비교</div>
         <div style="display:flex; gap:4px;">
           <button class="tiny-btn active" id="btn-pc-raw" onclick="setPointCloudMode('RAW')">변환 전 (개별좌표)</button>
           <button class="tiny-btn" id="btn-pc-aligned" onclick="setPointCloudMode('ALIGNED')">CC 변환 후 (U10 정합)</button>
@@ -753,8 +794,8 @@
       </div>
 
       <div class="bottom-status-bar">
-        <span id="status-msg">단계 1/4 : 양 로봇(R1·R2) 손목 3DU 스캐너, 수평 도어 지그, 상부 45° 경사 3DM 배치 확인</span>
-        <span class="judge-pill ng" id="interlock-pill">INTERLOCK LOCKED</span>
+        <span id="status-msg">단계 1/4 : 후방 지지 갠트리(ATM, AITZ 3D Vision), 정면 브랜드 각인, 코랄 뒷 도어 시인성 확인</span>
+        <span class="judge-pill ng" id="interlock-pill" onclick="handleInterlockPillClick()" title="인터락 해제 시 클릭하여 순차 장착 즉시 실행">INTERLOCK LOCKED</span>
       </div>
     </div>
 
@@ -762,7 +803,7 @@
     <div class="panel-right">
       <div class="panel-header">
         <span id="right-title">인터락 평가 및 CC 설정 제어</span>
-        <span style="font-size:9.5px; color:var(--yellow-warn);">교육 평가 모드</span>
+        <span style="font-size:9.5px; color:#b45309; font-weight:bold;">교육 평가 모드</span>
       </div>
       <div class="panel-body">
 
@@ -772,15 +813,15 @@
           <div style="display:flex; flex-direction:column; gap:4px;">
             <div class="interlock-card locked" id="ilk-1">
               <span>1. 스캐너 트랜스퍼 (S1·S2 → S3)</span>
-              <b style="color:#ff4757;" id="ilk-1-st">LOCK</b>
+              <b style="color:#dc2626;" id="ilk-1-st">LOCK</b>
             </div>
             <div class="interlock-card locked" id="ilk-2">
               <span>2. 공통좌표계(CC=TLH) 생성</span>
-              <b style="color:#ff4757;" id="ilk-2-st">LOCK</b>
+              <b style="color:#dc2626;" id="ilk-2-st">LOCK</b>
             </div>
             <div class="interlock-card locked" id="ilk-3">
               <span>3. R1·R2 MKUCRD U10 등록</span>
-              <b style="color:#ff4757;" id="ilk-3-st">LOCK</b>
+              <b style="color:#dc2626;" id="ilk-3-st">LOCK</b>
             </div>
           </div>
         </div>
@@ -813,10 +854,10 @@
 
         <!-- Stage 1 패널 -->
         <div id="stage-panel-1" class="sub-card">
-          <div class="sub-card-title"><span>[Step 1] 3대 스캐너 & 수평 도어 지그 확인</span></div>
-          <p style="font-size:10px; color:#cbd5e1; line-height:1.45; margin-bottom:8px;">
-            • <b>R1(현대)·R2(화낙) 양쪽 손목</b>에 <code>3DU(WD700)</code>가 장착되어 수평 지그 위의 앞문·뒷문을 상방에서 스캔·픽업합니다.<br>
-            • 천장 우측 갠트리의 <code>S3: 3DM(WD1400)</code>은 <b>약 45° 하방 경사</b>로 차체 도어 개구부를 광역 스캔합니다.
+          <div class="sub-card-title"><span>[Step 1] 시야 개방 갠트리 & 정면 각인 확인</span></div>
+          <p style="font-size:10px; color:#334155; line-height:1.45; margin-bottom:8px;">
+            • 상부 <code>3DM-16</code> 지지 기둥을 <b>차체 후방</b>으로 이동해 중앙 시야를 개방하고, 상단 보에 <b style="color:#dc2626;">ATM, AITZ 3D Vision</b> 명판을 부착했습니다.<br>
+            • 정면 뷰에서 <b>FANUC</b>·<b>HYUNDAI</b> 세로 각인과 스캐너 상태 LED, 스카이블루(앞문)·코랄오렌지(뒷문) 색상 대비를 확인하세요.
           </p>
           <button class="primary" style="width:100%;" onclick="confirmStage1()">✓ 기구·스캐너 배치 확인 → Step 2 이동</button>
         </div>
@@ -824,12 +865,12 @@
         <!-- Stage 2 패널: TransferCalib -->
         <div id="stage-panel-2" class="sub-card" style="display:none;">
           <div class="sub-card-title"><span>[Step 2] 캘리브레이션 트랜스퍼</span></div>
-          <p style="font-size:10px; color:var(--yellow-warn); line-height:1.4; margin-bottom:6px;">
+          <p style="font-size:10px; color:#b45309; font-weight:600; line-height:1.4; margin-bottom:6px;">
             * 규칙: 캘리브레이션 오브젝트 고정(NEVER MOVE) & 회전 오차 2° 이내
           </p>
           <div class="form-grid" style="margin-bottom:8px;">
-            <label>손목 스캐너</label><input type="text" value="S1(R1)·S2(R2): 3DU WD700" readonly>
-            <label>고정 스캐너</label><input type="text" value="S3: 3DM (45° Tilt WD1400)" readonly>
+            <label>손목 스캐너</label><input type="text" value="S1(R1)·S2(R2): 3DU-12" readonly>
+            <label>고정 스캐너</label><input type="text" value="S3: 3DM-16 (45° Tilt)" readonly>
             <label>오브젝트 고정</label>
             <select id="sel-obj-fixed">
               <option value="MOVED">미고정 (이동됨 - 오류)</option>
@@ -837,13 +878,14 @@
             </select>
             <label>로봇 자세 회전</label><input type="number" id="inp-rot-err" value="12.5" step="0.5">
           </div>
+          <div id="step2-diag-tip" style="font-size:9.6px; color:#b91c1c; background:#fef2f2; border:1px solid #fecaca; border-radius:3px; padding:4px 6px; margin-bottom:6px; display:none; line-height:1.35;"></div>
           <button class="primary" style="width:100%;" onclick="executeTransferCalib()">▶ S1·S2(3DU) → S3(3DM) TransferCalib 실행</button>
         </div>
 
         <!-- Stage 3 패널: CC 보드 생성 -->
         <div id="stage-panel-3" class="sub-card" style="display:none;">
           <div class="sub-card-title"><span>[Step 3] CC 보드(7×7) & 15° 기울기</span></div>
-          <p style="font-size:10px; color:#cbd5e1; line-height:1.4; margin-bottom:6px;">
+          <p style="font-size:10px; color:#334155; line-height:1.4; margin-bottom:6px;">
             * CC 보드 축을 <b>차량 TLH (T=+X, L=+Y)</b>와 일치시키고 정반사 방지를 위해 <b>15° 기울기</b>로 설정하세요.
           </p>
           <div class="form-grid" style="margin-bottom:8px;">
@@ -859,6 +901,7 @@
             </select>
             <label>보드 기울기(°)</label><input type="number" id="inp-tilt" value="0" min="0" max="45" oninput="previewBoardTilt()">
           </div>
+          <div id="step3-diag-tip" style="font-size:9.6px; color:#b91c1c; background:#fef2f2; border:1px solid #fecaca; border-radius:3px; padding:4px 6px; margin-bottom:6px; display:none; line-height:1.35;"></div>
           <button class="primary" style="width:100%;" onclick="generateCommonCoord()">▶ CC 보드 스캔 & U10 공통좌표계 생성</button>
         </div>
 
@@ -866,22 +909,22 @@
         <div id="stage-panel-4" class="sub-card" style="display:none;">
           <div class="sub-card-title"><span>[Step 4] U10 좌표계 & 순차 협업 시퀀스</span></div>
           <div class="code-box" style="margin-bottom:6px;">
-' [Robot 1: Hyundai HH020 + 3DU]
+' [Robot 1: HYUNDAI HH020 + 3DU-12]
 MKUCRD 10, P111, P112, P113
-SELUCRD 10 ' 앞문 선장착
+SELUCRD 10 ' 앞 도어 선장착
 
-' [Robot 2: FANUC 90° + 3DU]
+' [Robot 2: FANUC 90° + 3DU-12]
 UFRAME[10] = CC_TLH_MATRIX
-UFRAME_NUM = 10 ' 시간차 후 뒷문 장착</div>
+UFRAME_NUM = 10 ' 시간차 후 뒷 도어 장착</div>
 
           <button class="success" style="width:100%;" onclick="runDualDoorSequence()">▶ 6단계 순차 협업 장착 시퀀스 실행</button>
 
           <div class="phase-tracker" id="phase-tracker">
-            <div class="phase-item" id="ph-1">Phase 1: R1·R2 수평 지그 도어 S1·S2(3DU) 스캔</div>
-            <div class="phase-item" id="ph-2">Phase 2: 앞문·뒷문 진공 픽업 후 상공 대기</div>
-            <div class="phase-item" id="ph-3">Phase 3: 상부 45° S3(3DM) 차체 스캔 & U10 정합</div>
-            <div class="phase-item" id="ph-4">Phase 4: R1(현대) 앞문 개구부 선(先)장착</div>
-            <div class="phase-item" id="ph-5">Phase 5: 시간차 후 R2(화낙) 뒷문 개구부 후(後)장착</div>
+            <div class="phase-item" id="ph-1">Phase 1: R1·R2 컨투어 지그 도어 S1·S2(3DU) 스캔</div>
+            <div class="phase-item" id="ph-2">Phase 2: 앞 도어·뒷 도어 픽업 후 상공 대기</div>
+            <div class="phase-item" id="ph-3">Phase 3: 상부 45° S3(3DM) 세단 차체 스캔 & 정합</div>
+            <div class="phase-item" id="ph-4">Phase 4: R1(HYUNDAI) 앞 도어 개구부 선(先)장착</div>
+            <div class="phase-item" id="ph-5">Phase 5: 시간차 후 R2(FANUC) 뒷 도어 후(後)장착</div>
             <div class="phase-item" id="ph-6">Phase 6: 양 로봇 홈(HOME) 안전 복귀 완료</div>
           </div>
         </div>
@@ -916,7 +959,7 @@ UFRAME_NUM = 10 ' 시간차 후 뒷문 장착</div>
       const now = new Date().toTimeString().split(' ')[0];
       const line = document.createElement('div');
       line.className = cls;
-      line.innerHTML = `<span style="color:#5c768d;">[${now}]</span> ${msg}`;
+      line.innerHTML = `<span style="color:#64748b;">[${now}]</span> ${msg}`;
       box.appendChild(line);
       box.scrollTop = box.scrollHeight;
     }
@@ -945,14 +988,16 @@ UFRAME_NUM = 10 ' 시간차 후 뒷문 장착</div>
     }
 
     /* =========================================================
-       2. Three.js 3D 공간 구성
+       2. Three.js 3D 공간 구성 (Bright Engineering Theme)
        ========================================================= */
     const vp = document.getElementById('viewport-container');
     const scene = new THREE.Scene();
-    const camera = new THREE.PerspectiveCamera(42, vp.clientWidth / vp.clientHeight, 1, 4000);
-    camera.position.set(-220, 320, 445);
+    scene.background = new THREE.Color(0xe8edf3);
 
-    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+    const camera = new THREE.PerspectiveCamera(42, vp.clientWidth / vp.clientHeight, 1, 4000);
+    camera.position.set(-215, 305, 445);
+
+    const renderer = new THREE.WebGLRenderer({ antialias: true });
     renderer.setSize(vp.clientWidth, vp.clientHeight);
     vp.appendChild(renderer.domElement);
 
@@ -968,29 +1013,66 @@ UFRAME_NUM = 10 ' 시간차 후 뒷문 장착</div>
         camera.position.set(-480, 165, 10);
         controls.target.set(0, 65, 10);
       } else {
-        camera.position.set(-220, 320, 445);
+        camera.position.set(-215, 305, 445);
         controls.target.set(0, 60, 15);
       }
       controls.update();
     }
 
-    const grid = new THREE.GridHelper(860, 43, 0x274156, 0x162633);
+    // 밝은 바닥 작업장 플레이트 + 그리드
+    const floorPlane = new THREE.Mesh(
+      new THREE.PlaneGeometry(940, 940),
+      new THREE.MeshLambertMaterial({ color: 0xdce4ee })
+    );
+    floorPlane.rotation.x = -Math.PI / 2;
+    floorPlane.position.y = -0.3;
+    scene.add(floorPlane);
+
+    const grid = new THREE.GridHelper(860, 43, 0x94a3b8, 0xcbd5e1);
     scene.add(grid);
 
-    scene.add(new THREE.AmbientLight(0xffffff, 0.78));
-    const dirLight = new THREE.DirectionalLight(0xffffff, 0.85);
-    dirLight.position.set(180, 420, 260);
+    scene.add(new THREE.AmbientLight(0xffffff, 0.72));
+    const dirLight = new THREE.DirectionalLight(0xffffff, 0.75);
+    dirLight.position.set(200, 450, 280);
     scene.add(dirLight);
+    const backLight = new THREE.DirectionalLight(0xe2e8f0, 0.35);
+    backLight.position.set(-220, 260, -240);
+    scene.add(backLight);
 
-    // 3축 좌표계 기즈모 생성 (R: +X/T, G: +Y/L, B: +Z/H)
-    function createAxisGizmo(len, yawRad = 0) {
+    // 3D 플로팅 텍스트 스프라이트 생성 (+X(T), +Y(L), +Z(H) 축 라벨용)
+    function createAxisTextSprite(text, colorHex) {
+      const cvs = document.createElement('canvas');
+      cvs.width = 160;
+      cvs.height = 48;
+      const ctx = cvs.getContext('2d');
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.88)';
+      ctx.beginPath();
+      ctx.roundRect(4, 4, 152, 40, 8);
+      ctx.fill();
+      ctx.strokeStyle = colorHex;
+      ctx.lineWidth = 3;
+      ctx.stroke();
+
+      ctx.fillStyle = colorHex;
+      ctx.font = '900 22px Consolas, Arial';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(text, 80, 25);
+
+      const spr = new THREE.Sprite(new THREE.SpriteMaterial({ map: new THREE.CanvasTexture(cvs), depthTest: false }));
+      spr.scale.set(22, 6.6, 1);
+      return spr;
+    }
+
+    // 3축 좌표계 기즈모 생성 (R: +X/T, G: +Y/L, B: +Z/H, 선택적 축 라벨 포함)
+    function createAxisGizmo(len, yawRad = 0, withLabels = false) {
       const g = new THREE.Group();
       g.rotation.y = yawRad;
-      const shaft = new THREE.CylinderGeometry(1.3, 1.3, len, 10);
-      const cone = new THREE.ConeGeometry(3.2, 8, 10);
+      const shaft = new THREE.CylinderGeometry(1.4, 1.4, len, 10);
+      const cone = new THREE.ConeGeometry(3.4, 8.5, 10);
 
       // +X (Red) -> Three.js -X (차량 진행 반대 T축)
-      const matX = new THREE.MeshBasicMaterial({ color: 0xff4757 });
+      const matX = new THREE.MeshBasicMaterial({ color: 0xdc2626 });
       const axX = new THREE.Mesh(shaft, matX);
       axX.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), new THREE.Vector3(-1, 0, 0));
       axX.position.x = -len / 2;
@@ -999,7 +1081,7 @@ UFRAME_NUM = 10 ' 시간차 후 뒷문 장착</div>
       tipX.position.x = -len;
 
       // +Y (Green) -> Three.js +Z (차량 조수석/우측 L축)
-      const matY = new THREE.MeshBasicMaterial({ color: 0x2ed573 });
+      const matY = new THREE.MeshBasicMaterial({ color: 0x16a34a });
       const axY = new THREE.Mesh(shaft, matY);
       axY.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), new THREE.Vector3(0, 0, 1));
       axY.position.z = len / 2;
@@ -1008,20 +1090,31 @@ UFRAME_NUM = 10 ' 시간차 후 뒷문 장착</div>
       tipY.position.z = len;
 
       // +Z (Blue) -> Three.js +Y (차량 상단 H축)
-      const matZ = new THREE.MeshBasicMaterial({ color: 0x1e90ff });
+      const matZ = new THREE.MeshBasicMaterial({ color: 0x2563eb });
       const axZ = new THREE.Mesh(shaft, matZ);
       axZ.position.y = len / 2;
       const tipZ = new THREE.Mesh(cone, matZ);
       tipZ.position.y = len;
 
       g.add(axX, tipX, axY, tipY, axZ, tipZ);
+
+      if (withLabels) {
+        const lblX = createAxisTextSprite('+X (T)', '#dc2626');
+        lblX.position.set(-len - 13, 0, 0);
+        const lblY = createAxisTextSprite('+Y (L)', '#16a34a');
+        lblY.position.set(0, 0, len + 13);
+        const lblZ = createAxisTextSprite('+Z (H)', '#2563eb');
+        lblZ.position.set(0, len + 9, 0);
+        g.add(lblX, lblY, lblZ);
+      }
       return g;
     }
 
-    // 4:3 비율 사각뿔대(Frustum) 공간 FOV 생성 함수
-    function createFrustum4to3(wdNear, wdFar, fovHalfAngleRad, colorHex) {
+    // 4:3 비율 사각뿔대(Frustum) — 전체 높이의 하단 1/3만 유효 측정 볼륨(DOF)
+    function createFrustumBottomThird(wdFar, fovHalfAngleRad, colorHex) {
       const grp = new THREE.Group();
       const aspect = 4 / 3;
+      const wdNear = wdFar * (2 / 3);
 
       const hNear = Math.tan(fovHalfAngleRad) * wdNear;
       const wNear = hNear * aspect;
@@ -1048,8 +1141,7 @@ UFRAME_NUM = 10 ' 시간차 후 뒷문 장착</div>
       const lineGeo = new THREE.BufferGeometry();
       lineGeo.setAttribute('position', new THREE.BufferAttribute(edges, 3));
       const lineMat = new THREE.LineBasicMaterial({ color: colorHex });
-      const wireSeg = new THREE.LineSegments(lineGeo, lineMat);
-      grp.add(wireSeg);
+      grp.add(new THREE.LineSegments(lineGeo, lineMat));
 
       const apexLines = new Float32Array([
         0, 0, 0, -wNear, -wdNear, -hNear,
@@ -1059,7 +1151,16 @@ UFRAME_NUM = 10 ' 시간차 후 뒷문 장착</div>
       ]);
       const apexGeo = new THREE.BufferGeometry();
       apexGeo.setAttribute('position', new THREE.BufferAttribute(apexLines, 3));
-      grp.add(new THREE.LineSegments(apexGeo, new THREE.LineBasicMaterial({ color: colorHex, transparent: true, opacity: 0.32 })));
+      const dashMat = new THREE.LineDashedMaterial({
+        color: colorHex,
+        dashSize: 4,
+        gapSize: 3,
+        transparent: true,
+        opacity: 0.52
+      });
+      const apexSeg = new THREE.LineSegments(apexGeo, dashMat);
+      apexSeg.computeLineDistances();
+      grp.add(apexSeg);
 
       const sideVerts = new Float32Array([
         -wNear,-wdNear,-hNear,  -wFar,-wdFar,-hFar,   wFar,-wdFar,-hFar,
@@ -1073,73 +1174,306 @@ UFRAME_NUM = 10 ' 시간차 후 뒷문 장착</div>
       ]);
       const polyGeo = new THREE.BufferGeometry();
       polyGeo.setAttribute('position', new THREE.BufferAttribute(sideVerts, 3));
-      const polyMat = new THREE.MeshBasicMaterial({ color: colorHex, transparent: true, opacity: 0.18, side: THREE.DoubleSide });
+      const polyMat = new THREE.MeshBasicMaterial({ color: colorHex, transparent: true, opacity: 0.16, side: THREE.DoubleSide });
       grp.add(new THREE.Mesh(polyGeo, polyMat));
 
       return { grp, lineMat, polyMat };
     }
 
-    // A. 중앙 차체 (Car Body)
+    // [V0.7 보강] AITZ 3DU-12 & 3DM-16 실물 비례 모델링 + 전면 PWR/LNK/TRX 상태 LED 추가
+    function createAitzScannerMesh(type) {
+      const grp = new THREE.Group();
+      const is3DM = (type === '3DM');
+
+      const w = is3DM ? 54 : 26;
+      const h = 6.5;
+      const d = is3DM ? 16 : 15;
+
+      const bodyGeo = new THREE.BoxGeometry(w, h, d);
+      const bodyMat = new THREE.MeshLambertMaterial({ color: 0x1e242b });
+      const bodyMesh = new THREE.Mesh(bodyGeo, bodyMat);
+      const edgeLine = new THREE.LineSegments(
+        new THREE.EdgesGeometry(bodyGeo),
+        new THREE.LineBasicMaterial({ color: 0x475569 })
+      );
+      grp.add(bodyMesh, edgeLine);
+
+      if (is3DM) {
+        const subBar = new THREE.Mesh(
+          new THREE.BoxGeometry(24, 1.5, 3),
+          new THREE.MeshLambertMaterial({ color: 0x0f172a })
+        );
+        subBar.position.set(0, -h / 2 - 0.5, d / 2 - 1.5);
+        grp.add(subBar);
+      }
+
+      // 하단(투사면) 좌우 원형 듀얼 렌즈
+      const lensOffsetX = is3DM ? 20.5 : 8.2;
+      [-lensOffsetX, lensOffsetX].forEach((lx, idx) => {
+        const bezel = new THREE.Mesh(
+          new THREE.CylinderGeometry(2.6, 2.8, 1.4, 18),
+          new THREE.MeshLambertMaterial({ color: 0x334155 })
+        );
+        bezel.position.set(lx, -h / 2 - 0.3, 0);
+
+        const glass = new THREE.Mesh(
+          new THREE.CylinderGeometry(1.7, 1.7, 1.6, 18),
+          new THREE.MeshBasicMaterial({ color: idx === 0 ? 0xdc2626 : 0x0284c7 })
+        );
+        glass.position.set(lx, -h / 2 - 0.35, 0);
+        grp.add(bezel, glass);
+      });
+
+      // [V0.7 신규] 전면 베젤 상태 LED 3구 (PWR 녹색, LNK 녹색, TRX 작동 점멸용)
+      const pwrLed = new THREE.Mesh(new THREE.SphereGeometry(0.65, 10, 10), new THREE.MeshBasicMaterial({ color: 0x22c55e }));
+      pwrLed.position.set(-3, 0, d / 2 + 0.15);
+      const lnkLed = new THREE.Mesh(new THREE.SphereGeometry(0.65, 10, 10), new THREE.MeshBasicMaterial({ color: 0x22c55e }));
+      lnkLed.position.set(0, 0, d / 2 + 0.15);
+      const trxLedMat = new THREE.MeshBasicMaterial({ color: 0xf59e0b });
+      const trxLed = new THREE.Mesh(new THREE.SphereGeometry(0.75, 10, 10), trxLedMat);
+      trxLed.position.set(3, 0, d / 2 + 0.15);
+      grp.add(pwrLed, lnkLed, trxLed);
+
+      // 상판 우측 코너 붉은색 ATM 로고 텍스처 라벨
+      const cvs = document.createElement('canvas');
+      cvs.width = 256;
+      cvs.height = 128;
+      const ctx = cvs.getContext('2d');
+      ctx.fillStyle = '#1e242b';
+      ctx.fillRect(0, 0, 256, 128);
+      ctx.fillStyle = '#ef4444';
+      ctx.font = '900 44px Arial';
+      ctx.textAlign = 'right';
+      ctx.fillText('ATM', 240, 52);
+      ctx.fillStyle = '#94a3b8';
+      ctx.font = 'bold 22px Consolas';
+      ctx.fillText(is3DM ? '3DM-16' : '3DU-12', 240, 105);
+
+      const topLabel = new THREE.Mesh(
+        new THREE.PlaneGeometry(w * 0.92, d * 0.88),
+        new THREE.MeshBasicMaterial({ map: new THREE.CanvasTexture(cvs) })
+      );
+      topLabel.rotation.x = -Math.PI / 2;
+      topLabel.position.y = h / 2 + 0.08;
+      grp.add(topLabel);
+
+      return { grp, trxLedMat };
+    }
+
+    // 실제 자동차 도어 외형(앞 도어: 스카이블루 / 뒷 도어: 코랄 오렌지 + 외곽 엣지 라인 보강)
+    // [V0.9 핵심] 차량 전면·후면 유리 및 좌·우 4개 도어 창문 6곳 전체에 동일하게 적용되는 단일 글라스 재질
+    const unifiedCarGlassMat = new THREE.MeshPhongMaterial({
+      color: 0x38bdf8,
+      emissive: 0x0c4a6e,
+      emissiveIntensity: 0.25,
+      transparent: true,
+      opacity: 0.56,
+      shininess: 120,
+      side: THREE.DoubleSide
+    });
+
+    function createFrontDoorMesh(isWireFrameOnly = false) {
+      const shape = new THREE.Shape();
+      shape.moveTo(-28, -17);
+      shape.lineTo(28, -17);
+      shape.lineTo(28, -1);
+      shape.lineTo(10, 17);
+      shape.lineTo(-28, 17);
+      shape.closePath();
+
+      const winHole = new THREE.Path();
+      winHole.moveTo(-24, 1);
+      winHole.lineTo(22, 1);
+      winHole.lineTo(8, 14);
+      winHole.lineTo(-24, 14);
+      winHole.closePath();
+      shape.holes.push(winHole);
+
+      if (isWireFrameOnly) {
+        const pts = shape.getPoints().map(p => new THREE.Vector3(p.x, p.y, 0));
+        const geo = new THREE.BufferGeometry().setFromPoints(pts);
+        return new THREE.LineLoop(geo, new THREE.LineBasicMaterial({ color: 0xd97706 }));
+      }
+
+      const grp = new THREE.Group();
+      const geo = new THREE.ExtrudeGeometry(shape, { depth: 2.2, bevelEnabled: true, bevelThickness: 0.3, bevelSize: 0.3, bevelSegments: 2 });
+      geo.translate(0, 0, -1.1);
+      const mat = new THREE.MeshPhongMaterial({ color: 0x0284c7, shininess: 65 });
+      const mesh = new THREE.Mesh(geo, mat);
+
+      // 앞 도어 창틀 내부 통일 유리 패널 (전·후면 유리 및 4개 도어 공통 재질)
+      const glassShape = new THREE.Shape();
+      glassShape.moveTo(-24, 1);
+      glassShape.lineTo(22, 1);
+      glassShape.lineTo(8, 14);
+      glassShape.lineTo(-24, 14);
+      glassShape.closePath();
+      const glassGeo = new THREE.ShapeGeometry(glassShape);
+      const glassMesh = new THREE.Mesh(glassGeo, unifiedCarGlassMat);
+
+      const edge = new THREE.LineSegments(
+        new THREE.EdgesGeometry(geo, 22),
+        new THREE.LineBasicMaterial({ color: 0x0f172a })
+      );
+
+      const handle = new THREE.Mesh(new THREE.BoxGeometry(6.5, 1.8, 1.2), new THREE.MeshLambertMaterial({ color: 0x0f172a }));
+      handle.position.set(-21, -3.5, 1.3);
+      const mirrorBase = new THREE.Mesh(new THREE.BoxGeometry(5, 4, 2.4), new THREE.MeshLambertMaterial({ color: 0x1e293b }));
+      mirrorBase.position.set(22, 1.5, 1.4);
+
+      grp.add(mesh, glassMesh, edge, handle, mirrorBase);
+      return grp;
+    }
+
+    function createRearDoorMesh(isWireFrameOnly = false) {
+      const shape = new THREE.Shape();
+      shape.moveTo(-14, -17);
+      shape.lineTo(28, -17);
+      shape.lineTo(28, 17);
+      shape.lineTo(-10, 17);
+      shape.lineTo(-28, 0);
+      shape.lineTo(-28, -7);
+      shape.quadraticCurveTo(-17, -8, -14, -17);
+      shape.closePath();
+
+      const winHole = new THREE.Path();
+      winHole.moveTo(-23, 1);
+      winHole.lineTo(24, 1);
+      winHole.lineTo(24, 14);
+      winHole.lineTo(-8, 14);
+      winHole.closePath();
+      shape.holes.push(winHole);
+
+      if (isWireFrameOnly) {
+        const pts = shape.getPoints().map(p => new THREE.Vector3(p.x, p.y, 0));
+        const geo = new THREE.BufferGeometry().setFromPoints(pts);
+        return new THREE.LineLoop(geo, new THREE.LineBasicMaterial({ color: 0xd97706 }));
+      }
+
+      const grp = new THREE.Group();
+      const geo = new THREE.ExtrudeGeometry(shape, { depth: 2.2, bevelEnabled: true, bevelThickness: 0.3, bevelSize: 0.3, bevelSegments: 2 });
+      geo.translate(0, 0, -1.1);
+      const mat = new THREE.MeshPhongMaterial({ color: 0xea580c, shininess: 65 });
+      const mesh = new THREE.Mesh(geo, mat);
+
+      // 뒷 도어 창틀 내부 통일 유리 패널 (전·후면 유리 및 4개 도어 공통 재질)
+      const glassShape = new THREE.Shape();
+      glassShape.moveTo(-23, 1);
+      glassShape.lineTo(24, 1);
+      glassShape.lineTo(24, 14);
+      glassShape.lineTo(-8, 14);
+      glassShape.closePath();
+      const glassGeo = new THREE.ShapeGeometry(glassShape);
+      const glassMesh = new THREE.Mesh(glassGeo, unifiedCarGlassMat);
+
+      const edge = new THREE.LineSegments(
+        new THREE.EdgesGeometry(geo, 22),
+        new THREE.LineBasicMaterial({ color: 0x0f172a })
+      );
+
+      const handle = new THREE.Mesh(new THREE.BoxGeometry(6.5, 1.8, 1.2), new THREE.MeshLambertMaterial({ color: 0x0f172a }));
+      handle.position.set(-20, -3.5, 1.3);
+
+      grp.add(mesh, glassMesh, edge, handle);
+      return grp;
+    }
+
+    // A. 중앙 차체 (사다리꼴 캐빈 세단 Sedan)
     const carGroup = new THREE.Group();
     const carBasePos = new THREE.Vector3(0, 0, -55);
     carGroup.position.copy(carBasePos);
 
-    const chassis = new THREE.Mesh(new THREE.BoxGeometry(240, 32, 96), new THREE.MeshLambertMaterial({ color: 0x475569 }));
-    chassis.position.y = 26;
-    const cabin = new THREE.Mesh(new THREE.BoxGeometry(132, 32, 84), new THREE.MeshPhongMaterial({ color: 0x1e293b, transparent: true, opacity: 0.85 }));
-    cabin.position.set(-12, 58, 0);
+    const sedanShape = new THREE.Shape();
+    sedanShape.moveTo(-122, 16);
+    sedanShape.lineTo(124, 16);
+    sedanShape.lineTo(126, 32);
+    sedanShape.lineTo(118, 43);
+    sedanShape.lineTo(54, 45);
+    sedanShape.lineTo(32, 66);
+    sedanShape.lineTo(-42, 66);
+    sedanShape.lineTo(-68, 46);
+    sedanShape.lineTo(-118, 44);
+    sedanShape.lineTo(-124, 30);
+    sedanShape.closePath();
 
-    // 전면 라디에이터 그릴 & LED 헤드라이트 (+X 방향이 차량 전방)
-    const frontGrill = new THREE.Mesh(new THREE.BoxGeometry(4, 15, 54), new THREE.MeshBasicMaterial({ color: 0x0f172a }));
-    frontGrill.position.set(121, 24, 0);
+    const sedanGeo = new THREE.ExtrudeGeometry(sedanShape, {
+      depth: 92,
+      bevelEnabled: true,
+      bevelThickness: 2.0,
+      bevelSize: 1.5,
+      bevelSegments: 2
+    });
+    sedanGeo.translate(0, 0, -46);
+    const sedanMat = new THREE.MeshPhongMaterial({ color: 0x475569, shininess: 45 });
+    const sedanBody = new THREE.Mesh(sedanGeo, sedanMat);
+    carGroup.add(sedanBody);
+
+    const frontGrill = new THREE.Mesh(new THREE.BoxGeometry(3, 12, 50), new THREE.MeshBasicMaterial({ color: 0x0f172a }));
+    frontGrill.position.set(125.5, 26, 0);
 
     const headLampMat = new THREE.MeshBasicMaterial({ color: 0xfef08a });
-    const headBeamMat = new THREE.MeshBasicMaterial({ color: 0xfef08a, transparent: true, opacity: 0.22 });
-    [32, -32].forEach(zPos => {
-      const lamp = new THREE.Mesh(new THREE.BoxGeometry(3, 8, 16), headLampMat);
-      lamp.position.set(121.5, 29, zPos);
-      const beam = new THREE.Mesh(new THREE.BoxGeometry(22, 7, 15), headBeamMat);
-      beam.position.set(133, 29, zPos);
+    const headBeamMat = new THREE.MeshBasicMaterial({ color: 0xfef08a, transparent: true, opacity: 0.25 });
+    [31, -31].forEach(zPos => {
+      const lamp = new THREE.Mesh(new THREE.BoxGeometry(3, 7, 15), headLampMat);
+      lamp.position.set(125.2, 31, zPos);
+      const beam = new THREE.Mesh(new THREE.BoxGeometry(20, 6, 14), headBeamMat);
+      beam.position.set(136, 31, zPos);
       carGroup.add(lamp, beam);
     });
 
-    // 후면 테일램프 (-X 방향이 차량 후방 = +T 방향)
-    const tailLampMat = new THREE.MeshBasicMaterial({ color: 0xff4757 });
-    [34, -34].forEach(zPos => {
-      const tLamp = new THREE.Mesh(new THREE.BoxGeometry(3, 8, 16), tailLampMat);
-      tLamp.position.set(-121.5, 30, zPos);
+    const tailLampMat = new THREE.MeshBasicMaterial({ color: 0xdc2626 });
+    [32, -32].forEach(zPos => {
+      const tLamp = new THREE.Mesh(new THREE.BoxGeometry(3, 7, 15), tailLampMat);
+      tLamp.position.set(-124.2, 33, zPos);
       carGroup.add(tLamp);
     });
 
-    // 4개 바퀴(휠)
-    const wheelGeo = new THREE.CylinderGeometry(14, 14, 10, 20);
+    const wheelGeo = new THREE.CylinderGeometry(14.5, 14.5, 10, 24);
     wheelGeo.rotateX(Math.PI / 2);
+    const rimGeo = new THREE.CylinderGeometry(8.5, 8.5, 10.4, 16);
+    rimGeo.rotateX(Math.PI / 2);
     const wheelMat = new THREE.MeshLambertMaterial({ color: 0x0f172a });
-    [[74, 48], [74, -48], [-74, 48], [-74, -48]].forEach(([wx, wz]) => {
+    const rimMat = new THREE.MeshLambertMaterial({ color: 0xcbd5e1 });
+    [[76, 46], [76, -46], [-76, 46], [-76, -46]].forEach(([wx, wz]) => {
       const wh = new THREE.Mesh(wheelGeo, wheelMat);
-      wh.position.set(wx, 14, wz);
-      carGroup.add(wh);
+      wh.position.set(wx, 14.5, wz);
+      const rim = new THREE.Mesh(rimGeo, rimMat);
+      rim.position.set(wx, 14.5, wz);
+      carGroup.add(wh, rim);
     });
 
-    // 조수석(+Z = +L) 앞문 / 뒷문 개구부 프레임
-    const frontOpening = new THREE.LineSegments(
-      new THREE.EdgesGeometry(new THREE.BoxGeometry(56, 30, 2)),
-      new THREE.LineBasicMaterial({ color: 0xf1c40f })
-    );
-    frontOpening.position.set(22, 43, 48.5);
+    // 전면 앞유리(Windshield) & 후면 뒷유리(Rear Glass): 차체 경사면 바깥쪽 법선으로 돌출 배치하여 Z-fighting 방지 + 도어와 100% 동일 재질 적용
+    const frontWindshield = new THREE.Mesh(new THREE.BoxGeometry(28.0, 1.2, 82), unifiedCarGlassMat);
+    frontWindshield.position.set(44.3, 56.8, 0);
+    frontWindshield.rotation.z = Math.atan2(21, -22);
 
-    const rearOpening = new THREE.LineSegments(
-      new THREE.EdgesGeometry(new THREE.BoxGeometry(52, 30, 2)),
-      new THREE.LineBasicMaterial({ color: 0xf1c40f })
-    );
-    rearOpening.position.set(-36, 43, 48.5);
+    const rearWindshield = new THREE.Mesh(new THREE.BoxGeometry(30.0, 1.2, 82), unifiedCarGlassMat);
+    rearWindshield.position.set(-56.1, 57.3, 0);
+    rearWindshield.rotation.z = Math.atan2(20, 26);
 
-    const carTlhAxis = createAxisGizmo(44, 0);
-    carTlhAxis.position.set(0, 75, 0);
-    carGroup.add(chassis, cabin, frontGrill, frontOpening, rearOpening, carTlhAxis);
+    carGroup.add(frontWindshield, rearWindshield);
+
+    // 조수석(+Z) 및 반대편 운전석(-Z) 양측 도어 개구부 프레임
+    const frontOpening = createFrontDoorMesh(true);
+    frontOpening.position.set(22, 45, 48.2);
+
+    const rearOpening = createRearDoorMesh(true);
+    rearOpening.position.set(-34, 45, 48.2);
+
+    const frontOpeningOpp = createFrontDoorMesh(true);
+    frontOpeningOpp.position.set(22, 45, -48.2);
+
+    const rearOpeningOpp = createRearDoorMesh(true);
+    rearOpeningOpp.position.set(-34, 45, -48.2);
+    carGroup.add(frontOpeningOpp, rearOpeningOpp);
+
+    // 차체 TLH 좌표계 (+X(T), +Y(L), +Z(H) 라벨 포함)
+    const carTlhAxis = createAxisGizmo(42, 0, true);
+    carTlhAxis.position.set(0, 72, 0);
+    carGroup.add(frontGrill, frontOpening, rearOpening, carTlhAxis);
     scene.add(carGroup);
 
-    // B. 공통좌표계 (CC) 기준 7x7 캘리브레이션 보드 & 정반사 글레어 연출
+    // B. 공통좌표계 (CC) 기준 7x7 캘리브레이션 보드
     const ccBoardGroup = new THREE.Group();
     ccBoardGroup.position.set(0, 14, 34);
 
@@ -1152,12 +1486,12 @@ UFRAME_NUM = 10 ' 시간차 후 뒷문 장착</div>
       const step = cvs.width / cells;
       for (let r = 0; r < cells; r++) {
         for (let c = 0; c < cells; c++) {
-          ctx.fillStyle = (r + c) % 2 === 0 ? '#f8fafc' : '#1e293b';
+          ctx.fillStyle = (r + c) % 2 === 0 ? '#ffffff' : '#1e293b';
           ctx.fillRect(c * step, r * step, step, step);
         }
       }
-      ctx.strokeStyle = '#00adb5';
-      ctx.lineWidth = 6;
+      ctx.strokeStyle = '#005bb5';
+      ctx.lineWidth = 7;
       ctx.strokeRect(3, 3, cvs.width - 6, cvs.height - 6);
       return new THREE.CanvasTexture(cvs);
     }
@@ -1166,119 +1500,228 @@ UFRAME_NUM = 10 ' 시간차 후 뒷문 장착</div>
     const boardMesh = new THREE.Mesh(new THREE.BoxGeometry(44, 2, 44), boardMat);
     const glareOverlay = new THREE.Mesh(
       new THREE.PlaneGeometry(42, 42),
-      new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.78, side: THREE.DoubleSide })
+      new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.85, side: THREE.DoubleSide })
     );
     glareOverlay.rotation.x = -Math.PI / 2;
     glareOverlay.position.y = 1.3;
     glareOverlay.visible = false;
 
-    const ccAxisGizmo = createAxisGizmo(48, 0);
-    ccBoardGroup.add(boardMesh, glareOverlay, ccAxisGizmo);
+    const ccAxisGizmo = createAxisGizmo(44, 0, true);
+
+    // CC 보드 꼭짓점 기준 마커 (ORG 원점, XX +T 방향, XY +L 방향)
+    function createBoardCornerTag(txt, bgHex) {
+      const c = document.createElement('canvas');
+      c.width = 96; c.height = 36;
+      const cx = c.getContext('2d');
+      cx.fillStyle = bgHex;
+      cx.beginPath(); cx.roundRect(2, 2, 92, 32, 6); cx.fill();
+      cx.fillStyle = '#ffffff';
+      cx.font = 'bold 18px Consolas, Arial';
+      cx.textAlign = 'center'; cx.textBaseline = 'middle';
+      cx.fillText(txt, 48, 19);
+      const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: new THREE.CanvasTexture(c), depthTest: false }));
+      s.scale.set(13, 4.8, 1);
+      return s;
+    }
+    const tagOrg = createBoardCornerTag('ORG', '#0f172a');
+    tagOrg.position.set(17, 3.5, -17);
+    const tagXx = createBoardCornerTag('XX(+T)', '#dc2626');
+    tagXx.position.set(-17, 3.5, -17);
+    const tagXy = createBoardCornerTag('XY(+L)', '#16a34a');
+    tagXy.position.set(17, 3.5, 17);
+
+    ccBoardGroup.add(boardMesh, glareOverlay, ccAxisGizmo, tagOrg, tagXx, tagXy);
     scene.add(ccBoardGroup);
 
-    // 공통좌표계(U10) 기준 목표점 3D 마커 & R1/R2 벡터 연결선
     const targetMarker = new THREE.Mesh(
       new THREE.OctahedronGeometry(6.5, 0),
-      new THREE.MeshBasicMaterial({ color: 0xff00ff })
+      new THREE.MeshBasicMaterial({ color: 0xc026d3 })
     );
     ccBoardGroup.add(targetMarker);
 
     const vecLine1Geo = new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(), new THREE.Vector3()]);
-    const vecLine1 = new THREE.Line(vecLine1Geo, new THREE.LineBasicMaterial({ color: 0xf59e0b }));
+    const vecLine1 = new THREE.Line(vecLine1Geo, new THREE.LineBasicMaterial({ color: 0x005bb5 }));
     const vecLine2Geo = new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(), new THREE.Vector3()]);
-    const vecLine2 = new THREE.Line(vecLine2Geo, new THREE.LineBasicMaterial({ color: 0xfacc15 }));
+    const vecLine2 = new THREE.Line(vecLine2Geo, new THREE.LineBasicMaterial({ color: 0xd97706 }));
     scene.add(vecLine1, vecLine2);
 
-    // C. 이기종 로봇 2대 생성 (V0.5: 양 로봇 모두 손목에 3DU Eye-in-Hand WD700 스캐너 탑재!)
-    function createRobotUnit(bodyColorHex, baseYawRad, fovColorHex) {
-      const root = new THREE.Group();
-      const basePed = new THREE.Mesh(new THREE.CylinderGeometry(20, 25, 30, 20), new THREE.MeshLambertMaterial({ color: bodyColorHex }));
-      basePed.position.y = 15;
+    // C. [V0.7 수정] 원통형 암 정면(+Z 기본 뷰)에 정확히 읽히는 세로 영문 브랜드 각인 텍스처
+    function createVerticalBrandTexture(bgHex, textStr, textHex) {
+      const cvs = document.createElement('canvas');
+      cvs.width = 512;
+      cvs.height = 512;
+      const ctx = cvs.getContext('2d');
+      ctx.fillStyle = bgHex;
+      ctx.fillRect(0, 0, 512, 512);
 
-      const harnessBox = new THREE.Mesh(new THREE.BoxGeometry(14, 16, 12), new THREE.MeshLambertMaterial({ color: 0x111827 }));
+      // Three.js CylinderGeometry 기본 UV u=0.5(중앙 X=256)가 +Z 정면을 향함
+      ctx.fillStyle = textHex;
+      ctx.font = '900 46px "Segoe UI", Arial, sans-serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+
+      const chars = textStr.split('');
+      const startY = 98;
+      const stepY = 316 / Math.max(1, chars.length - 1);
+      chars.forEach((ch, idx) => {
+        ctx.fillText(ch, 256, startY + idx * stepY);
+      });
+
+      return new THREE.CanvasTexture(cvs);
+    }
+
+    // D. 이기종 로봇 2대 생성 (정면 뷰에서 HYUNDAI / FANUC 로고 선명 표출)
+    function createRobotUnit(opts) {
+      const { bodyHex, darkHex, baseYawRad, brandText, brandTextHex, fovColorHex } = opts;
+      const root = new THREE.Group();
+
+      const baseBottom = new THREE.Mesh(new THREE.CylinderGeometry(24, 26, 12, 24), new THREE.MeshLambertMaterial({ color: darkHex }));
+      baseBottom.position.y = 6;
+      const basePed = new THREE.Mesh(new THREE.CylinderGeometry(20, 24, 18, 24), new THREE.MeshLambertMaterial({ color: bodyHex }));
+      basePed.position.y = 21;
+
+      const harnessBox = new THREE.Mesh(new THREE.BoxGeometry(14, 15, 12), new THREE.MeshLambertMaterial({ color: 0x1e293b }));
       harnessBox.position.set(18, 16, 0);
       harnessBox.rotation.y = baseYawRad;
 
-      const baseAxis = createAxisGizmo(46, baseYawRad);
+      const baseAxis = createAxisGizmo(46, baseYawRad, false);
       baseAxis.position.y = 31;
 
       const shoulder = new THREE.Vector3(0, 36, 0);
-      const elbow = new THREE.Mesh(new THREE.SphereGeometry(9, 14, 14), new THREE.MeshLambertMaterial({ color: 0x1f2937 }));
-      const upperArm = new THREE.Mesh(new THREE.CylinderGeometry(6, 7.5, 1, 12), new THREE.MeshLambertMaterial({ color: bodyColorHex }));
-      const foreArm = new THREE.Mesh(new THREE.CylinderGeometry(5, 6, 1, 12), new THREE.MeshLambertMaterial({ color: bodyColorHex }));
+      const elbow = new THREE.Mesh(new THREE.SphereGeometry(9.5, 16, 16), new THREE.MeshLambertMaterial({ color: darkHex }));
+
+      // [V0.7 수정] 불필요한 -Math.PI/2 회전을 제거하여 UV 중앙(u=0.5)이 정면(+Z 카메라 쪽)을 정확히 향함
+      const armTex = createVerticalBrandTexture(bodyHex, brandText, brandTextHex);
+      const upperArmMat = new THREE.MeshLambertMaterial({ map: armTex });
+      const upperArm = new THREE.Mesh(new THREE.CylinderGeometry(6.8, 8.2, 1, 24), upperArmMat);
+      upperArm.geometry.rotateY(Math.PI); // 정면(+Z 카메라) 뷰에 브랜드 각인이 정중앙으로 오도록 180도 정렬
+
+      const foreArm = new THREE.Mesh(new THREE.CylinderGeometry(5.4, 6.6, 1, 18), new THREE.MeshLambertMaterial({ color: bodyHex }));
 
       const wrist = new THREE.Group();
-      const toolPlate = new THREE.Mesh(new THREE.BoxGeometry(26, 5, 18), new THREE.MeshLambertMaterial({ color: 0x64748b }));
-      const tcpAxis = createAxisGizmo(24, baseYawRad);
+      const toolPlate = new THREE.Mesh(new THREE.BoxGeometry(26, 5, 18), new THREE.MeshLambertMaterial({ color: 0x475569 }));
+      const tcpAxis = createAxisGizmo(24, baseYawRad, false);
       wrist.add(toolPlate, tcpAxis);
 
-      // 양 로봇 공통: 손목 부착형 3DU (Eye-in-Hand, WD=700mm, 수직 하방 스캔 정렬)
-      const sHead = new THREE.Mesh(new THREE.BoxGeometry(16, 10, 22), new THREE.MeshLambertMaterial({ color: 0x0f172a }));
-      sHead.position.set(0, 7, 10);
-      const handScannerAxis = createAxisGizmo(22, 0);
+      // 양 로봇 공통: 손목 부착형 AITZ 3DU-12 (하단 1/3 유효 사각뿔대 FOV)
+      const sModel = createAitzScannerMesh('3DU');
+      sModel.grp.position.set(0, 6.5, 10);
+      const handScannerAxis = createAxisGizmo(22, 0, false);
       handScannerAxis.position.set(0, 7, 10);
-      const handScannerObj = createFrustum4to3(28, 66, 0.23, fovColorHex);
-      handScannerObj.grp.position.set(0, 3, 10);
-      // 수평 지그 위의 도어를 수직 상방에서 내려다보도록 기본 수직 하방 정렬
-      wrist.add(sHead, handScannerAxis, handScannerObj.grp);
+      const handScannerObj = createFrustumBottomThird(66, 0.23, fovColorHex);
+      handScannerObj.grp.position.set(0, 3.2, 10);
+      wrist.add(sModel.grp, handScannerAxis, handScannerObj.grp);
 
-      root.add(basePed, harnessBox, baseAxis, elbow, upperArm, foreArm, wrist);
+      root.add(baseBottom, basePed, harnessBox, baseAxis, elbow, upperArm, foreArm, wrist);
       scene.add(root);
-      return { root, baseAxis, tcpAxis, shoulder, elbow, upperArm, foreArm, wrist, handScannerObj, handScannerAxis };
+      return {
+        root, baseAxis, tcpAxis, shoulder, elbow, upperArm, foreArm, wrist,
+        handScannerObj, handScannerAxis, scannerTrxMat: sModel.trxLedMat
+      };
     }
 
-    const robot1 = createRobotUnit(0xe8dec8, 0, 0x00ffff);
+    const robot1 = createRobotUnit({
+      bodyHex: '#cbd5e1',
+      darkHex: '#334155',
+      baseYawRad: 0,
+      brandText: 'HYUNDAI',
+      brandTextHex: '#002c5f',
+      fovColorHex: 0x0284c7
+    });
     robot1.root.position.set(78, 0, 125);
     const r1Home = new THREE.Vector3(58, 98, 86);
     const r1Target = r1Home.clone();
 
-    const robot2 = createRobotUnit(0xfacc15, Math.PI / 2, 0x2ed573);
+    const robot2 = createRobotUnit({
+      bodyHex: '#facc15',
+      darkHex: '#1e293b',
+      baseYawRad: Math.PI / 2,
+      brandText: 'FANUC',
+      brandTextHex: '#dc2626',
+      fovColorHex: 0x16a34a
+    });
     robot2.root.position.set(-88, 0, 125);
     const r2Home = new THREE.Vector3(-68, 98, 86);
     const r2Target = r2Home.clone();
 
-    // D. [V0.5 핵심] 상부 갠트리 고정형 S3: 3DM (FixedEye, WD=1400mm, 약 45도 하방 경사 설치)
+    // E. [V0.7 핵심] 상부 고정형 S3(3DM-16) 캔틸레버 갠트리를 차체 후방(Z = -135)으로 이동 + 레드 명판 각인!
     const gantryGroup = new THREE.Group();
-    const gantryBeam = new THREE.Mesh(new THREE.BoxGeometry(18, 8, 96), new THREE.MeshLambertMaterial({ color: 0x334155 }));
-    gantryBeam.position.set(-10, 178, 128);
-    const gantryPost = new THREE.Mesh(new THREE.CylinderGeometry(5, 6, 178, 12), new THREE.MeshLambertMaterial({ color: 0x1e293b }));
-    gantryPost.position.set(-10, 89, 172);
-    gantryGroup.add(gantryBeam, gantryPost);
+
+    // 차체 뒤쪽(Z = -135) 바닥 베이스 플레이트 & 후방 수직 기둥 (화면 중앙 시야 방해 완벽 제거)
+    const gantryFoot = new THREE.Mesh(new THREE.BoxGeometry(36, 4, 36), new THREE.MeshLambertMaterial({ color: 0x1e293b }));
+    gantryFoot.position.set(-10, 2, -135);
+
+    const gantryPost = new THREE.Mesh(new THREE.CylinderGeometry(6, 7.5, 184, 16), new THREE.MeshLambertMaterial({ color: 0x334155 }));
+    gantryPost.position.set(-10, 92, -135);
+
+    // 차체 루프 상공을 가로질러 Z = +95까지 뻗어 나오는 상단 캔틸레버 암
+    const gantryBeam = new THREE.Mesh(new THREE.BoxGeometry(16, 9, 238), new THREE.MeshLambertMaterial({ color: 0x334155 }));
+    gantryBeam.position.set(-10, 184, -20);
+
+    // 전면 경사 마운트 브라켓 & 정면 명판 플레이트 ("ATM, AITZ 3D Vision" 레드 각인)
+    const signCvs = document.createElement('canvas');
+    signCvs.width = 512;
+    signCvs.height = 128;
+    const sCtx = signCvs.getContext('2d');
+    sCtx.fillStyle = '#0f172a';
+    sCtx.fillRect(0, 0, 512, 128);
+    sCtx.strokeStyle = '#ef4444';
+    sCtx.lineWidth = 6;
+    sCtx.strokeRect(4, 4, 504, 120);
+    sCtx.fillStyle = '#ef4444';
+    sCtx.font = '900 42px "Segoe UI", Arial, sans-serif';
+    sCtx.textAlign = 'center';
+    sCtx.textBaseline = 'middle';
+    sCtx.fillText('ATM, AITZ 3D Vision', 256, 66);
+
+    const signBoard = new THREE.Mesh(
+      new THREE.BoxGeometry(74, 16, 4),
+      [
+        new THREE.MeshLambertMaterial({ color: 0x0f172a }),
+        new THREE.MeshLambertMaterial({ color: 0x0f172a }),
+        new THREE.MeshLambertMaterial({ color: 0x0f172a }),
+        new THREE.MeshLambertMaterial({ color: 0x0f172a }),
+        new THREE.MeshBasicMaterial({ map: new THREE.CanvasTexture(signCvs) }), // +Z 정면 방향
+        new THREE.MeshLambertMaterial({ color: 0x0f172a })
+      ]
+    );
+    signBoard.position.set(-10, 188, 99);
+
+    gantryGroup.add(gantryFoot, gantryPost, gantryBeam, signBoard);
     scene.add(gantryGroup);
 
     const s3Group = new THREE.Group();
-    // 차체 조수석 측면 상부(Z=+95, Y=174)에서 차체 개구부(Z=-6.5, Y=43)를 향해 약 45도 하방 경사 투사 (+Math.PI/4 = -Z 차체 방향)
     s3Group.position.set(-10, 174, 95);
-    s3Group.rotation.x = Math.PI / 4; // +45도 경사 (차체 측면 도어 개구부 정면 응시)
-    const s3Body = new THREE.Mesh(new THREE.BoxGeometry(38, 15, 48), new THREE.MeshLambertMaterial({ color: 0x0f172a }));
-    const s3Axis = createAxisGizmo(28, 0);
-    const s3ScannerObj = createFrustum4to3(62, 168, 0.25, 0x38bdf8);
-    s3Group.add(s3Body, s3Axis, s3ScannerObj.grp);
+    s3Group.rotation.x = Math.PI / 4; // +45도 하방 경사 (-Z 차체 측면 정면 응시)
+    const s3Model = createAitzScannerMesh('3DM');
+    const s3Axis = createAxisGizmo(28, 0, false);
+    const s3ScannerObj = createFrustumBottomThird(172, 0.25, 0x005bb5);
+    s3Group.add(s3Model.grp, s3Axis, s3ScannerObj.grp);
     scene.add(s3Group);
 
-    // E. 스캔 점군(Point Cloud) 정합 전/후 비교 데이터 생성 (S1 녹색, S2 청록, S3 주황)
+    // F. 스캔 점군(Point Cloud) 정합 전/후 비교 데이터 생성
     function buildDoorPointCloud(colorHex, offsetVec, rotY) {
       const pts = [];
-      for (let x = -58; x <= 52; x += 4) {
-        pts.push(x, 58, 49);
-        pts.push(x, 28, 49);
+      for (let x = -58; x <= 50; x += 4) {
+        pts.push(x, 62, 48.5);
+        pts.push(x, 28, 48.5);
       }
-      for (let y = 28; y <= 58; y += 3) {
-        pts.push(52, y, 49);
-        pts.push(-5, y, 49);
-        pts.push(-58, y, 49);
+      for (let y = 28; y <= 62; y += 3) {
+        pts.push(50, y, 48.5);
+        pts.push(-6, y, 48.5);
+        pts.push(-58, y, 48.5);
       }
       const geo = new THREE.BufferGeometry();
       geo.setAttribute('position', new THREE.Float32BufferAttribute(pts, 3));
-      const mat = new THREE.PointsMaterial({ color: colorHex, size: 3.4 });
+      const mat = new THREE.PointsMaterial({ color: colorHex, size: 3.6 });
       const cloud = new THREE.Points(geo, mat);
       cloud.userData = { rawPos: offsetVec.clone(), rawRotY: rotY };
       return cloud;
     }
 
-    const s1PointCloud = buildDoorPointCloud(0x2ed573, new THREE.Vector3(24, 14, 18), 0.16);
-    const s2PointCloud = buildDoorPointCloud(0x00ffff, new THREE.Vector3(14, -12, 26), 0.10);
-    const s3PointCloud = buildDoorPointCloud(0xf97316, new THREE.Vector3(-22, -10, 22), -0.14);
+    const s1PointCloud = buildDoorPointCloud(0x16a34a, new THREE.Vector3(24, 14, 18), 0.16);
+    const s2PointCloud = buildDoorPointCloud(0x0284c7, new THREE.Vector3(14, -12, 26), 0.10);
+    const s3PointCloud = buildDoorPointCloud(0xea580c, new THREE.Vector3(-22, -10, 22), -0.14);
     carGroup.add(s1PointCloud, s2PointCloud, s3PointCloud);
 
     function setPointCloudMode(mode) {
@@ -1305,34 +1748,40 @@ UFRAME_NUM = 10 ' 시간차 후 뒷문 장착</div>
       }
     }
 
-    // F. [V0.5 핵심] 수평 도어 공급 지그(Jig) & 눕혀진 앞문/뒷문 부품 (3DU 상방 스캔 최적화)
-    function createHorizontalDoorJig(xPos, zPos) {
+    // G. [V0.7 보강] 앞/뒷 도어 실제 외곽 내부에 정확히 맞춘 4점 컨투어 지그(Jig)
+    function createContourDoorJig(xPos, zPos, pinOffsets) {
       const jig = new THREE.Group();
       jig.position.set(xPos, 0, zPos);
-      const baseFrame = new THREE.Mesh(new THREE.BoxGeometry(64, 4, 42), new THREE.MeshLambertMaterial({ color: 0x1e293b }));
+      const baseFrame = new THREE.Mesh(new THREE.BoxGeometry(64, 4, 42), new THREE.MeshLambertMaterial({ color: 0x334155 }));
       baseFrame.position.y = 2;
       jig.add(baseFrame);
 
-      const postMat = new THREE.MeshLambertMaterial({ color: 0x475569 });
-      const padMat = new THREE.MeshBasicMaterial({ color: 0xf1c40f });
-      [[-24, -14], [24, -14], [-24, 14], [24, 14]].forEach(([px, pz]) => {
+      const postMat = new THREE.MeshLambertMaterial({ color: 0x64748b });
+      const padMat = new THREE.MeshBasicMaterial({ color: 0xd97706 });
+      pinOffsets.forEach(([px, pz]) => {
         const post = new THREE.Mesh(new THREE.CylinderGeometry(2, 2.5, 16, 10), postMat);
         post.position.set(px, 12, pz);
-        const pad = new THREE.Mesh(new THREE.BoxGeometry(6, 2, 6), padMat);
+        const pad = new THREE.Mesh(new THREE.BoxGeometry(5.5, 2, 5.5), padMat);
         pad.position.set(px, 21, pz);
         jig.add(post, pad);
       });
       scene.add(jig);
-      return new THREE.Vector3(xPos, 23.5, zPos);
+      return new THREE.Vector3(xPos, 23.2, zPos);
     }
 
-    const doorFrontStand = createHorizontalDoorJig(138, 132);
-    const doorRearStand  = createHorizontalDoorJig(-148, 132);
+    // 앞 도어 윤곽 내부 4점 로케이터 핀 (A필러 경사 고려)
+    const doorFrontStand = createContourDoorJig(138, 132, [[-21, 11], [21, 11], [-21, -11], [6, -11]]);
+    // 뒷 도어 윤곽 내부 4점 로케이터 핀 (휠 아치 컷아웃 & C필러 경사 고려)
+    const doorRearStand  = createContourDoorJig(-148, 132, [[-8, 11], [21, 11], [-18, -8], [21, -11]]);
 
-    // 도어 부품: 초기 지그 위에서는 수평(rotation.x = -Math.PI/2)으로 눕혀져 배치됨
-    const doorFront = new THREE.Mesh(new THREE.BoxGeometry(52, 28, 3), new THREE.MeshPhongMaterial({ color: 0x38bdf8, transparent: true, opacity: 0.85 }));
-    const doorRear  = new THREE.Mesh(new THREE.BoxGeometry(48, 28, 3), new THREE.MeshPhongMaterial({ color: 0x2ed573, transparent: true, opacity: 0.85 }));
-    scene.add(doorFront, doorRear);
+    const doorFront = createFrontDoorMesh(false);
+    const doorRear  = createRearDoorMesh(false);
+    // 반대편(운전석 -Z 측) 대칭 도어 (Z축 반전하여 핸들·미러가 바깥쪽 -Z를 향하도록 구성)
+    const doorFrontOpp = createFrontDoorMesh(false);
+    doorFrontOpp.scale.z = -1;
+    const doorRearOpp  = createRearDoorMesh(false);
+    doorRearOpp.scale.z = -1;
+    scene.add(doorFront, doorRear, doorFrontOpp, doorRearOpp);
 
     /* =========================================================
        3. 좌표계 ON/OFF 필터 & 실시간 좌표 환산 비교 엔진
@@ -1436,16 +1885,19 @@ UFRAME_NUM = 10 ' 시간차 후 뒷문 장착</div>
       updateVectorLines();
     }
 
-    function flashScannerBeam(scannerObj, finalHex) {
+    function flashScannerBeam(scannerObj, finalHex, trxLedMat = null) {
       let tick = 0;
       const timer = setInterval(() => {
         tick++;
-        scannerObj.grp.visible = (tick % 2 === 0);
+        const on = (tick % 2 === 0);
+        scannerObj.grp.visible = on;
+        if (trxLedMat) trxLedMat.color.setHex(on ? 0x38bdf8 : 0xf59e0b);
         if (tick >= 8) {
           clearInterval(timer);
           scannerObj.grp.visible = state.fovVisible;
           scannerObj.lineMat.color.setHex(finalHex);
           scannerObj.polyMat.color.setHex(finalHex);
+          if (trxLedMat) trxLedMat.color.setHex(0x22c55e);
         }
       }, 140);
     }
@@ -1455,7 +1907,7 @@ UFRAME_NUM = 10 ' 시간차 후 뒷문 장착</div>
         const c = document.getElementById(id);
         const s = document.getElementById(stId);
         c.className = 'interlock-card ' + (ok ? 'passed' : 'locked');
-        s.style.color = ok ? '#2ed573' : '#ff4757';
+        s.style.color = ok ? '#16a34a' : '#dc2626';
         s.textContent = ok ? 'OK' : 'LOCK';
       };
       setCard('ilk-1', 'ilk-1-st', state.transferOk);
@@ -1469,9 +1921,9 @@ UFRAME_NUM = 10 ' 시간차 후 뒷문 장착</div>
       if (allReady) {
         runBtn.classList.remove('locked-sim');
         pill.className = 'judge-pill ok';
-        pill.textContent = 'SYSTEM READY (U10)';
-        document.getElementById('overlay-guide').style.color = '#2ed573';
-        document.getElementById('overlay-guide').textContent = '[READY] 공통좌표계(U10) 설정 완료 — 6단계 순차 협업 장착을 실행할 수 있습니다.';
+        pill.textContent = '▶ SYSTEM READY (클릭: 순차 장착 실행)';
+        document.getElementById('overlay-guide').style.color = '#15803d';
+        document.getElementById('overlay-guide').textContent = '[READY] 공통좌표계(U10) 설정 완료 — 하단 초록 배지 또는 상단 실행 버튼을 누르세요.';
       } else {
         runBtn.classList.add('locked-sim');
         pill.className = 'judge-pill ng';
@@ -1479,10 +1931,18 @@ UFRAME_NUM = 10 ' 시간차 후 뒷문 장착</div>
       }
     }
 
+    function handleInterlockPillClick() {
+      if (state.transferOk && state.ccCreated) {
+        runDualDoorSequence();
+      } else {
+        addLog('[안내] 우측 패널에서 Step 2(TransferCalib)와 Step 3(CC 생성) 인터락을 먼저 해제하세요.', 'err');
+      }
+    }
+
     function confirmStage1() {
       state.step1Checked = true;
-      addLog('[Step 1 완료] 양 로봇 손목 3DU(WD700), 수평 도어 지그, 상부 45° 3DM(WD1400) 구성을 확인했습니다.', 'ok');
-      document.getElementById('status-msg').textContent = '단계 2/4 : S1·S2(3DU) → S3(45° 경사 3DM) 캘리브레이션 데이터 트랜스퍼를 수행하세요.';
+      addLog('[Step 1 완료] 후방 지지 갠트리(ATM, AITZ 3D Vision), 정면 로고 및 도어 색상 대비를 확인했습니다.', 'ok');
+      document.getElementById('status-msg').textContent = '단계 2/4 : S1·S2(3DU-12) → S3(45° 경사 3DM-16) 캘리브레이션 트랜스퍼를 수행하세요.';
       switchStage(2, document.getElementById('tab-step2'));
     }
 
@@ -1490,28 +1950,33 @@ UFRAME_NUM = 10 ' 시간차 후 뒷문 장착</div>
       const isFixed = document.getElementById('sel-obj-fixed').value === 'FIXED';
       const rotErr = Math.abs(parseFloat(document.getElementById('inp-rot-err').value) || 0);
 
+      const tip2 = document.getElementById('step2-diag-tip');
       if (!isFixed) {
+        tip2.style.display = 'block';
+        tip2.innerHTML = '⚠️ <b>NEVER MOVE 위반:</b> 3DU→3DM 데이터 이관 중 보드가 움직이면 기준점이 어긋납니다. [고정 완료]로 변경하세요.';
         addLog('[TransferCalib 실패] 캘리브레이션 오브젝트가 이동했습니다! NEVER MOVE 원칙을 준수하세요.', 'err');
         return;
       }
       if (rotErr > 2.0) {
+        tip2.style.display = 'block';
+        tip2.innerHTML = `⚠️ <b>회전 오차 초과(${rotErr}°):</b> 스캐너 간 이관 시 자세 회전은 2.0° 이내(예: 1.0°)로 설정해야 정합 오차가 최소화됩니다.`;
         addLog(`[TransferCalib 경고] 회전량(${rotErr}°)이 과다합니다. 직교 이동 위주로 2.0° 이내로 맞추세요.`, 'err');
         return;
       }
+      tip2.style.display = 'none';
 
-      // R1·R2 양 로봇 손목 스캐너(S1, S2)를 CC 보드 상부로 이동해 S3(45° 3DM)와 공통 시야 투사 연출
       r1Target.set(16, 78, 42);
       r2Target.set(-16, 78, 42);
-      flashScannerBeam(robot1.handScannerObj, 0x2ed573);
-      flashScannerBeam(robot2.handScannerObj, 0x2ed573);
-      flashScannerBeam(s3ScannerObj, 0x2ed573);
+      flashScannerBeam(robot1.handScannerObj, 0x16a34a, robot1.scannerTrxMat);
+      flashScannerBeam(robot2.handScannerObj, 0x16a34a, robot2.scannerTrxMat);
+      flashScannerBeam(s3ScannerObj, 0x16a34a, s3Model.trxLedMat);
 
       state.transferOk = true;
       document.getElementById('led-s1').className = 'led-dot';
       document.getElementById('led-s2').className = 'led-dot';
       document.getElementById('led-s3').className = 'led-dot';
       updateInterlockUI();
-      addLog('[TransferCalib 성공] S1·S2(3DU) → S3(45° 3DM) 3자 캘리브레이션 이관 및 정합 완료!', 'ok');
+      addLog('[TransferCalib 성공] S1·S2(3DU-12) → S3(45° 3DM-16) 3자 캘리브레이션 이관 및 정합 완료!', 'ok');
       document.getElementById('status-msg').textContent = '단계 3/4 : CC 보드(7×7)를 차량 TLH 축과 15° 기울기로 설정하세요.';
       switchStage(3, document.getElementById('tab-step3'));
     }
@@ -1525,15 +1990,21 @@ UFRAME_NUM = 10 ' 시간차 후 뒷문 장착</div>
       const yAxis = document.getElementById('sel-cc-y').value;
       const tilt = parseFloat(document.getElementById('inp-tilt').value) || 0;
 
+      const tip3 = document.getElementById('step3-diag-tip');
       if (xAxis !== 'T' || yAxis !== 'L') {
+        tip3.style.display = 'block';
+        tip3.innerHTML = '⚠️ <b>TLH 축 불일치:</b> CC 보드의 <b>XX(+X)는 차량 +T</b>, <b>XY(+Y)는 차량 +L</b>과 일치하도록 선택하세요.';
         addLog('[CC 축 오류] 공통좌표계 +X는 차량 +T(진행반대), +Y는 차량 +L(조수석)과 일치해야 합니다.', 'err');
         return;
       }
       if (tilt < 10 || tilt > 20) {
         previewBoardTilt();
+        tip3.style.display = 'block';
+        tip3.innerHTML = `⚠️ <b>정반사(Glare) 위험(${tilt}°):</b> 0° 평면 배치 시 프로젝터 광원이 카메라에 정반사됩니다. <b>15°</b>로 설정하세요.`;
         addLog(`[광학 반사 경고] 보드 기울기(${tilt}°)로 인해 정반사가 발생합니다. 약 15°로 설정하세요.`, 'err');
         return;
       }
+      tip3.style.display = 'none';
 
       state.ccCreated = true;
       previewBoardTilt();
@@ -1552,7 +2023,7 @@ UFRAME_NUM = 10 ' 시간차 후 뒷문 장착</div>
 
       updateInterlockUI();
       addLog('[CC 생성 완료] TLH 기준 공통좌표계(U10) 생성 및 S1·S2·S3 점군 정합 완료!', 'ok');
-      document.getElementById('status-msg').textContent = '단계 4/4 : [순차 협업 장착] R1·R2 부품 스캔·픽업 대기 → 상부 3DM 차체 스캔 → 앞문→뒷문 순차 장착';
+      document.getElementById('status-msg').textContent = '단계 4/4 : [순차 협업 장착] 부품 스캔·픽업 대기 → 상부 3DM 세단 스캔 → 앞 도어→뒷 도어 순차 장착';
       switchStage(4, document.getElementById('tab-step4'));
     }
 
@@ -1565,29 +2036,37 @@ UFRAME_NUM = 10 ' 시간차 후 뒷문 장착</div>
       state.r1HoldingDoor = false;
       state.r2HoldingDoor = false;
 
-      // 초기화: 수평 지그 위에 눕혀진 도어
       doorFront.position.copy(doorFrontStand);
       doorRear.position.copy(doorRearStand);
       doorFront.rotation.set(-Math.PI / 2, 0, 0);
       doorRear.rotation.set(-Math.PI / 2, 0, 0);
 
-      // 비틀어진 차체 진입 위치 대기
+      // 반대편 도어는 초기 대기 위치(차체 후방 대칭 지그 위치)에서 장착 대기
+      doorFrontOpp.position.set(138, 23.2, -165);
+      doorFrontOpp.rotation.set(-Math.PI / 2, 0, 0);
+      doorRearOpp.position.set(-148, 23.2, -165);
+      doorRearOpp.rotation.set(-Math.PI / 2, 0, 0);
+
       carGroup.rotation.y = 0.06;
       carGroup.position.set(8, 0, -55);
-      frontOpening.material.color.setHex(0xf1c40f);
-      rearOpening.material.color.setHex(0xf1c40f);
+      frontOpening.material.color.setHex(0xd97706);
+      rearOpening.material.color.setHex(0xd97706);
+      frontOpeningOpp.material.color.setHex(0xd97706);
+      rearOpeningOpp.material.color.setHex(0xd97706);
+      frontOpeningOpp.material.color.setHex(0xd97706);
+      rearOpeningOpp.material.color.setHex(0xd97706);
 
-      // [Phase 1] R1·R2 손목 3DU 스캐너가 수평 지그 상방(WD700 위치)으로 이동하여 도어 선스캔
+      // [Phase 1] R1·R2 손목 3DU-12 스캐너가 컨투어 지그 상방으로 이동하여 도어 선스캔
       setPhaseUI(1);
       r1Target.set(138, 76, 122);
       r2Target.set(-148, 76, 122);
-      document.getElementById('status-msg').textContent = 'Phase 1/6 : R1·R2 손목 3DU(WD700) 스캐너로 수평 지그 위 앞문·뒷문 사전 스캔 중...';
-      addLog('[Phase 1] R1(S1)·R2(S2) Eye-in-Hand 3DU 스캐너가 수평 적재된 도어 위치 오차 선스캔 실행.', 'info');
+      document.getElementById('status-msg').textContent = 'Phase 1/6 : R1·R2 손목 AITZ 3DU-12 스캐너로 수평 지그 위 앞 도어·뒷 도어 사전 스캔 중...';
+      addLog('[Phase 1] R1(S1)·R2(S2) 3DU-12 스캐너가 수평 적재된 도어 외곽 및 힌지 홀 선스캔 실행.', 'info');
 
       state.seqTimers.push(setTimeout(() => {
-        flashScannerBeam(robot1.handScannerObj, 0x2ed573);
-        flashScannerBeam(robot2.handScannerObj, 0x2ed573);
-        addLog('[Phase 1 완료] 앞문·뒷문 파지 보정량 계측 완료 → 픽업 접근 시작.', 'ok');
+        flashScannerBeam(robot1.handScannerObj, 0x16a34a, robot1.scannerTrxMat);
+        flashScannerBeam(robot2.handScannerObj, 0x16a34a, robot2.scannerTrxMat);
+        addLog('[Phase 1 완료] 앞 도어·뒷 도어 파지 보정량 계측 완료 → 픽업 접근 시작.', 'ok');
       }, 1100));
 
       // [Phase 2] 도어 흡착 픽업 후 상공 중간 대기 위치에서 홀딩
@@ -1601,55 +2080,62 @@ UFRAME_NUM = 10 ' 시간차 후 뒷문 장착</div>
       state.seqTimers.push(setTimeout(() => {
         state.r1HoldingDoor = true;
         state.r2HoldingDoor = true;
-        // 수직 장착 자세로 세워서 상공 대기
         doorFront.rotation.set(0, 0, 0);
         doorRear.rotation.set(0, 0, 0);
         r1Target.set(78, 92, 85);
         r2Target.set(-82, 92, 85);
-        addLog('[Phase 2 완료] 앞문·뒷문 픽업 완료 → 양 로봇 상공 대기 상태에서 차체 스캔 대기.', 'ok');
+        addLog('[Phase 2 완료] 앞 도어·뒷 도어 픽업 완료 → 양 로봇 상공 대기 상태에서 차체 스캔 대기.', 'ok');
       }, 3300));
 
-      // [Phase 3] 천장 45° 경사 S3(3DM, WD1400)가 차체 도어 개구부 광역 스캔 & U10 정합
+      // [Phase 3] 천장 45° 경사 S3(3DM-16)가 세단 도어 개구부 광역 스캔 & U10 정합
       state.seqTimers.push(setTimeout(() => {
         setPhaseUI(3);
-        flashScannerBeam(s3ScannerObj, 0x2ed573);
-        document.getElementById('status-msg').textContent = 'Phase 3/6 : 상부 45° 경사 S3(3DM, WD1400) 차체 도어 개구부 스캔 & U10 공통좌표 정합';
-        addLog('[Phase 3] 45° 경사 S3(3DM) 광역 스캔 완료 → 차체 편차(ΔX=+8mm, ΔRz=+3.4°) U10 보정 행렬 반영.', 'info');
+        flashScannerBeam(s3ScannerObj, 0x16a34a, s3Model.trxLedMat);
+        document.getElementById('status-msg').textContent = 'Phase 3/6 : 상부 45° 경사 S3(3DM-16) 세단 도어 개구부 스캔 & U10 공통좌표 정합';
+        addLog('[Phase 3] 45° 경사 S3(3DM-16) 스캔 완료 → 차체 편차(ΔX=+8mm, ΔRz=+3.4°) U10 보정 행렬 반영.', 'info');
       }, 4600));
 
-      // [Phase 4] R1(현대 HH020) 앞문 개구부 선(先)장착
+      // [Phase 4] R1(HYUNDAI) 앞 도어 개구부 선(先)장착
       state.seqTimers.push(setTimeout(() => {
         setPhaseUI(4);
         setPresetTarget(-220, -450, 320);
-        r1Target.set(30, 43, -5);
-        document.getElementById('status-msg').textContent = 'Phase 4/6 : R1(현대 HH020) 앞문 개구부 선(先)장착 진행 (R2 뒷문 대기)';
-        addLog('[Phase 4] R1(Hyundai) 앞문 먼저 U10 보정 위치로 접근 및 장착 중...', 'info');
+        r1Target.set(30, 45, -5);
+        document.getElementById('status-msg').textContent = 'Phase 4/6 : R1(HYUNDAI) 앞 도어 개구부 선(先)장착 진행 (R2 뒷 도어 대기)';
+        addLog('[Phase 4] R1(HYUNDAI) 앞 도어 먼저 U10 보정 위치로 접근 및 장착 중...', 'info');
       }, 6100));
 
       state.seqTimers.push(setTimeout(() => {
         state.r1HoldingDoor = false;
-        doorFront.position.set(30, 43, -6.5);
+        // [V0.9 핵심] 차체 보디 외판과 단차 없이(Flush) 정밀 밀착되는 회전 보정 좌표 적용
+        doorFront.position.set(32.76, 45, -9.75);
         doorFront.rotation.set(0, 0.06, 0);
-        frontOpening.material.color.setHex(0x2ed573);
-        r1Target.set(55, 85, 55); // 간섭 회피 이격
-        addLog('[Phase 4 완료] 앞문 안착 및 클램핑 완료! (시간차 후 뒷문 장착 개시)', 'ok');
+        doorFrontOpp.position.set(27.16, 45, -102.89);
+        doorFrontOpp.rotation.set(0, 0.06, 0);
+        frontOpening.material.color.setHex(0x16a34a);
+        frontOpeningOpp.material.color.setHex(0x16a34a);
+        r1Target.set(55, 85, 55);
+        addLog('[Phase 4 완료] 양측(조수석·운전석) 앞 도어 안착 및 클램핑 완료! (시간차 후 뒷 도어 장착 개시)', 'ok');
       }, 7500));
 
-      // [Phase 5] 약간의 시간차 후 R2(FANUC 90°) 뒷문 개구부 후(後)장착
+      // [Phase 5] 약간의 시간차 후 R2(FANUC) 뒷 도어 개구부 후(後)장착
       state.seqTimers.push(setTimeout(() => {
         setPhaseUI(5);
         setPresetTarget(320, -450, 320);
-        r2Target.set(-28, 43, -5);
-        document.getElementById('status-msg').textContent = 'Phase 5/6 : 시간차 후 R2(FANUC 90°) 뒷문 개구부 후(後)장착 진행';
-        addLog('[Phase 5] R2(FANUC 90° Axis) 동일 U10 좌표계 기준으로 뒷문 장착 접근 중...', 'info');
+        r2Target.set(-26, 45, -5);
+        document.getElementById('status-msg').textContent = 'Phase 5/6 : 시간차 후 R2(FANUC 90°) 뒷 도어 개구부 후(後)장착 진행';
+        addLog('[Phase 5] R2(FANUC 90° Axis) 동일 U10 좌표계 기준으로 뒷 도어 장착 접근 중...', 'info');
       }, 8400));
 
       state.seqTimers.push(setTimeout(() => {
         state.r2HoldingDoor = false;
-        doorRear.position.set(-28, 43, -6.5);
+        // [V0.9 핵심] 뒷 도어 역시 앞 도어와 100% 동일한 Flush 기준 적용 (차체 파묻힘/과다돌출 제거)
+        doorRear.position.set(-23.14, 45, -6.39);
         doorRear.rotation.set(0, 0.06, 0);
-        rearOpening.material.color.setHex(0x2ed573);
-        addLog('[Phase 5 완료] 뒷문 안착 및 클램핑 완료!', 'ok');
+        doorRearOpp.position.set(-28.74, 45, -99.53);
+        doorRearOpp.rotation.set(0, 0.06, 0);
+        rearOpening.material.color.setHex(0x16a34a);
+        rearOpeningOpp.material.color.setHex(0x16a34a);
+        addLog('[Phase 5 완료] 양측(조수석·운전석) 뒷 도어 안착 및 클램핑 완료!', 'ok');
       }, 9800));
 
       // [Phase 6] 양 로봇 홈(HOME) 안전 복귀 완료
@@ -1658,7 +2144,7 @@ UFRAME_NUM = 10 ' 시간차 후 뒷문 장착</div>
         r1Target.copy(r1Home);
         r2Target.copy(r2Home);
         document.getElementById('status-msg').textContent = 'Phase 6/6 : 순차 협업 장착 사이클 완료 — 양 로봇 홈(HOME) 안전 복귀 완료';
-        addLog('[Phase 6 완료] 부품 스캔→픽업 대기→45° 차체 스캔→앞문→뒷문 순차 장착 완료 (WORK SUCCESS).', 'ok');
+        addLog('[Phase 6 완료] 부품 스캔→픽업 대기→45° 차체 스캔→앞 도어→뒷 도어 순차 장착 완료 (WORK SUCCESS).', 'ok');
       }, 10700));
     }
 
@@ -1683,24 +2169,33 @@ UFRAME_NUM = 10 ' 시간차 후 뒷문 장착</div>
 
       carGroup.position.copy(carBasePos);
       carGroup.rotation.set(0, 0, 0);
-      frontOpening.material.color.setHex(0xf1c40f);
-      rearOpening.material.color.setHex(0xf1c40f);
+      frontOpening.material.color.setHex(0xd97706);
+      rearOpening.material.color.setHex(0xd97706);
+      frontOpeningOpp.material.color.setHex(0xd97706);
+      rearOpeningOpp.material.color.setHex(0xd97706);
 
-      robot1.handScannerObj.lineMat.color.setHex(0x00ffff);
-      robot1.handScannerObj.polyMat.color.setHex(0x00ffff);
-      robot2.handScannerObj.lineMat.color.setHex(0x2ed573);
-      robot2.handScannerObj.polyMat.color.setHex(0x2ed573);
-      s3ScannerObj.lineMat.color.setHex(0x38bdf8);
-      s3ScannerObj.polyMat.color.setHex(0x38bdf8);
+      robot1.handScannerObj.lineMat.color.setHex(0x0284c7);
+      robot1.handScannerObj.polyMat.color.setHex(0x0284c7);
+      robot2.handScannerObj.lineMat.color.setHex(0x16a34a);
+      robot2.handScannerObj.polyMat.color.setHex(0x16a34a);
+      s3ScannerObj.lineMat.color.setHex(0x005bb5);
+      s3ScannerObj.polyMat.color.setHex(0x005bb5);
+
+      robot1.scannerTrxMat.color.setHex(0xf59e0b);
+      robot2.scannerTrxMat.color.setHex(0xf59e0b);
+      s3Model.trxLedMat.color.setHex(0xf59e0b);
 
       r1Target.copy(r1Home);
       r2Target.copy(r2Home);
 
-      // 수평 지그 위에 눕혀진 상태로 초기화
       doorFront.position.copy(doorFrontStand);
       doorFront.rotation.set(-Math.PI / 2, 0, 0);
       doorRear.position.copy(doorRearStand);
       doorRear.rotation.set(-Math.PI / 2, 0, 0);
+      doorFrontOpp.position.set(138, 23.2, -165);
+      doorFrontOpp.rotation.set(-Math.PI / 2, 0, 0);
+      doorRearOpp.position.set(-148, 23.2, -165);
+      doorRearOpp.rotation.set(-Math.PI / 2, 0, 0);
 
       document.getElementById('led-s1').className = 'led-dot warn';
       document.getElementById('led-s2').className = 'led-dot warn';
@@ -1712,7 +2207,11 @@ UFRAME_NUM = 10 ' 시간차 후 뒷문 장착</div>
       resetTargetPoint();
       updateInterlockUI();
       switchStage(1, document.getElementById('tab-step1'));
-      addLog('[V0.51 초기화] 양 로봇 3DU(WD700), 수평 도어 지그, 천장 45° 경사 3DM(WD1400) 구성을 로드했습니다.', 'info');
+      const t2 = document.getElementById('step2-diag-tip');
+      const t3 = document.getElementById('step3-diag-tip');
+      if (t2) t2.style.display = 'none';
+      if (t3) t3.style.display = 'none';
+      addLog('[V1.0 초기화] ATM, AITZ 3D Vision 공통좌표계(CC) 시뮬레이터 정식 버전이 준비되었습니다.', 'info');
     }
 
     /* =========================================================
