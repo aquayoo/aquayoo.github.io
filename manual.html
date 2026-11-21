@@ -1,0 +1,1221 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ATM Manual Collection | V1.0 (Nov.21)</title>
+  <style>
+    :root {
+      --bg-dark: #0a1117;
+      --panel-bg: #142330;
+      --panel-sub: #0e1923;
+      --card-bg: #0c161f;
+      --panel-border: #233c4f;
+      --accent-cyan: #00adb5;
+      --accent-blue: #1e88e5;
+      --text-main: #e2ecf3;
+      --text-muted: #88a0b0;
+      --danger-red: #ff4757;
+      --success-green: #2ed573;
+      --yellow-warn: #f1c40f;
+      --purple-tag: #a55eea;
+      --font-mono: 'Consolas', 'Monaco', 'Courier New', monospace;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, "Noto Sans KR", sans-serif;
+    }
+
+    body {
+      background-color: var(--bg-dark);
+      color: var(--text-main);
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      font-size: 13px;
+    }
+
+    /* 상단 헤더 (스케치 반영: V1.0 (Nov.21) + ATM Manual Collection + 홈 로고 버튼) */
+    header {
+      background: #080d12;
+      border-bottom: 1px solid var(--panel-border);
+      padding: 10px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-shrink: 0;
+      gap: 12px;
+    }
+
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .ver-badge {
+      background: #1565c0;
+      color: #ffffff;
+      border: 1px solid #42a5f5;
+      font-family: var(--font-mono);
+      font-weight: 800;
+      padding: 4px 10px;
+      border-radius: 4px;
+      font-size: 12px;
+      letter-spacing: 0.4px;
+      white-space: nowrap;
+      box-shadow: 0 2px 6px rgba(21, 101, 192, 0.35);
+    }
+
+    .main-title {
+      font-size: 17px;
+      font-weight: 800;
+      color: #ffffff;
+      letter-spacing: 0.4px;
+    }
+
+    .sub-caption {
+      font-size: 11.5px;
+      color: var(--text-muted);
+      border-left: 1px solid var(--panel-border);
+      padding-left: 12px;
+    }
+
+    .home-btn {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 5px 12px;
+      border-radius: 6px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--panel-border);
+      color: #ffffff;
+      text-decoration: none;
+      font-weight: 700;
+      font-size: 12px;
+      transition: all 0.2s ease;
+    }
+    .home-btn:hover {
+      border-color: var(--danger-red);
+      background: rgba(255, 71, 87, 0.14);
+      transform: translateY(-1px);
+    }
+    .home-btn img {
+      height: 22px;
+      width: auto;
+      display: block;
+    }
+    .logo-fallback {
+      color: #ff4757;
+      font-weight: 900;
+      font-size: 14px;
+      letter-spacing: 1px;
+    }
+
+    /* 메인 3단 레이아웃: 좌측 File list / 중앙 내용 창 / 우측 액션 패널 */
+    .workspace {
+      display: grid;
+      grid-template-columns: 340px 1fr 175px;
+      flex: 1;
+      overflow: hidden;
+    }
+
+    /* 좌측 사이드바: File List */
+    .sidebar {
+      background: var(--panel-bg);
+      border-right: 1px solid var(--panel-border);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .panel-header {
+      background: var(--panel-sub);
+      padding: 10px 14px;
+      font-weight: 700;
+      color: var(--accent-cyan);
+      border-bottom: 1px solid var(--panel-border);
+      font-size: 12.5px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-shrink: 0;
+    }
+
+    .search-wrap {
+      padding: 10px 12px;
+      background: #101d28;
+      border-bottom: 1px solid var(--panel-border);
+      flex-shrink: 0;
+    }
+
+    .search-input {
+      width: 100%;
+      background: #080d12;
+      border: 1px solid var(--panel-border);
+      color: #ffffff;
+      padding: 7px 10px;
+      border-radius: 5px;
+      font-size: 12px;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    .search-input:focus {
+      border-color: var(--accent-cyan);
+    }
+
+    .filter-chips {
+      display: flex;
+      gap: 4px;
+      margin-top: 7px;
+      flex-wrap: wrap;
+    }
+
+    .chip {
+      background: #0c161f;
+      border: 1px solid var(--panel-border);
+      color: var(--text-muted);
+      padding: 3px 7px;
+      border-radius: 4px;
+      font-size: 10.5px;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .chip:hover { color: #fff; border-color: #3d6380; }
+    .chip.active {
+      background: rgba(0, 173, 181, 0.18);
+      border-color: var(--accent-cyan);
+      color: var(--accent-cyan);
+      font-weight: 700;
+    }
+
+    .file-list-scroll {
+      flex: 1;
+      overflow-y: auto;
+      padding: 8px;
+    }
+
+    .cat-header {
+      font-size: 11px;
+      font-weight: 700;
+      color: #7ea3bd;
+      padding: 8px 6px 4px 6px;
+      margin-top: 4px;
+      border-bottom: 1px dashed #223b4e;
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .file-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      padding: 8px 10px;
+      margin-top: 4px;
+      border-radius: 5px;
+      background: rgba(12, 22, 31, 0.65);
+      border: 1px solid transparent;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .file-item:hover {
+      background: #1a3042;
+      border-color: #2e526e;
+    }
+    .file-item.active {
+      background: rgba(0, 173, 181, 0.16);
+      border-color: var(--accent-cyan);
+      box-shadow: inset 3px 0 0 var(--accent-cyan);
+    }
+
+    .file-name {
+      font-size: 12px;
+      color: #e6eff5;
+      line-height: 1.35;
+      word-break: keep-all;
+      flex: 1;
+    }
+    .file-item.active .file-name {
+      color: #ffffff;
+      font-weight: 700;
+    }
+
+    .ext-badge {
+      font-family: var(--font-mono);
+      font-size: 9.5px;
+      font-weight: 800;
+      padding: 2px 5px;
+      border-radius: 3px;
+      flex-shrink: 0;
+    }
+    .ext-pdf  { background: rgba(255, 71, 87, 0.2);  color: #ff6b81; border: 1px solid rgba(255, 71, 87, 0.45); }
+    .ext-pptx { background: rgba(241, 196, 15, 0.2); color: #f1c40f; border: 1px solid rgba(241, 196, 15, 0.45); }
+    .ext-docx { background: rgba(30, 144, 255, 0.2); color: #54a0ff; border: 1px solid rgba(30, 144, 255, 0.45); }
+    .ext-hwpx { background: rgba(46, 213, 115, 0.2); color: #2ed573; border: 1px solid rgba(46, 213, 115, 0.45); }
+
+    /* 중앙 메인 뷰어: 내용 창 */
+    .content-area {
+      background: radial-gradient(circle at top right, #12212e 0%, #0a1117 75%);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .viewer-scroll {
+      flex: 1;
+      overflow-y: auto;
+      padding: 22px 28px;
+    }
+
+    .doc-container {
+      max-width: 920px;
+      margin: 0 auto;
+    }
+
+    .doc-hero {
+      background: var(--panel-bg);
+      border: 1px solid var(--panel-border);
+      border-radius: 8px;
+      padding: 18px 22px;
+      margin-bottom: 16px;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.28);
+    }
+
+    .doc-meta-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-bottom: 8px;
+    }
+
+    .meta-pill {
+      font-size: 11px;
+      padding: 2px 8px;
+      border-radius: 4px;
+      background: #0c161f;
+      border: 1px solid var(--panel-border);
+      color: var(--accent-cyan);
+      font-weight: 600;
+    }
+
+    .doc-title {
+      font-size: 20px;
+      font-weight: 800;
+      color: #ffffff;
+      margin-bottom: 6px;
+      line-height: 1.35;
+    }
+
+    .doc-filename {
+      font-family: var(--font-mono);
+      font-size: 11.5px;
+      color: var(--text-muted);
+    }
+
+    .summary-card {
+      background: var(--card-bg);
+      border: 1px solid var(--panel-border);
+      border-radius: 8px;
+      padding: 16px 20px;
+      margin-bottom: 14px;
+    }
+
+    .card-title {
+      font-size: 13.5px;
+      font-weight: 700;
+      color: var(--accent-cyan);
+      margin-bottom: 10px;
+      padding-bottom: 6px;
+      border-bottom: 1px solid #1b3142;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .overview-text {
+      font-size: 13.5px;
+      line-height: 1.65;
+      color: #d8e5ee;
+    }
+
+    .step-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 9px;
+    }
+
+    .step-list li {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      background: rgba(20, 35, 48, 0.55);
+      border: 1px solid #1d3547;
+      padding: 10px 12px;
+      border-radius: 6px;
+      line-height: 1.55;
+      font-size: 13px;
+    }
+
+    .step-num {
+      background: var(--accent-cyan);
+      color: #080d12;
+      font-family: var(--font-mono);
+      font-weight: 800;
+      font-size: 11px;
+      padding: 2px 7px;
+      border-radius: 4px;
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+
+    .warn-card {
+      background: rgba(241, 196, 15, 0.08);
+      border: 1px solid rgba(241, 196, 15, 0.4);
+      border-left: 4px solid var(--yellow-warn);
+      border-radius: 6px;
+      padding: 14px 18px;
+      margin-bottom: 14px;
+    }
+
+    .warn-title {
+      font-size: 13px;
+      font-weight: 800;
+      color: var(--yellow-warn);
+      margin-bottom: 6px;
+    }
+
+    .warn-list {
+      padding-left: 18px;
+      color: #f3e9c6;
+      font-size: 12.8px;
+      line-height: 1.6;
+    }
+
+    .sim-link-box {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      background: linear-gradient(90deg, rgba(0, 173, 181, 0.14), rgba(21, 101, 192, 0.14));
+      border: 1px solid var(--accent-cyan);
+      border-radius: 8px;
+      padding: 12px 18px;
+      margin-top: 6px;
+    }
+
+    .sim-link-btn {
+      background: var(--accent-cyan);
+      color: #080d12;
+      font-weight: 800;
+      padding: 7px 14px;
+      border-radius: 5px;
+      text-decoration: none;
+      font-size: 12px;
+      white-space: nowrap;
+      transition: background 0.15s;
+    }
+    .sim-link-btn:hover {
+      background: #26d0d9;
+    }
+
+    /* 우측 액션 패널 (스케치 우측의 다운로드 / 새창열기 버튼) */
+    .action-sidebar {
+      background: var(--panel-bg);
+      border-left: 1px solid var(--panel-border);
+      display: flex;
+      flex-direction: column;
+    }
+
+    .action-body {
+      padding: 24px 14px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 20px;
+      flex: 1;
+    }
+
+    .circle-action-btn {
+      width: 118px;
+      height: 118px;
+      border-radius: 50%;
+      border: 2px solid var(--accent-cyan);
+      background: radial-gradient(circle at 30% 30%, #1b384f, #0c1722);
+      color: #ffffff;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      cursor: pointer;
+      text-decoration: none;
+      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.4);
+      transition: all 0.2s ease;
+      text-align: center;
+      padding: 8px;
+    }
+    .circle-action-btn:hover {
+      transform: translateY(-3px) scale(1.03);
+      background: radial-gradient(circle at 30% 30%, #008c94, #0f293a);
+      box-shadow: 0 8px 24px rgba(0, 173, 181, 0.35);
+    }
+
+    .circle-action-btn.open-win {
+      border-color: var(--success-green);
+    }
+    .circle-action-btn.open-win:hover {
+      background: radial-gradient(circle at 30% 30%, #1f8a4c, #0f293a);
+      box-shadow: 0 8px 24px rgba(46, 213, 115, 0.35);
+    }
+
+    .btn-icon {
+      font-size: 26px;
+      line-height: 1;
+    }
+
+    .btn-label {
+      font-size: 13px;
+      font-weight: 800;
+      letter-spacing: 0.3px;
+    }
+
+    .btn-sub {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      color: #9ec0d6;
+    }
+
+    .action-note {
+      margin-top: auto;
+      background: #0c161f;
+      border: 1px solid var(--panel-border);
+      border-radius: 6px;
+      padding: 10px;
+      font-size: 11px;
+      color: var(--text-muted);
+      line-height: 1.5;
+      width: 100%;
+    }
+
+    /* 스크롤바 커스텀 */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: #091016; }
+    ::-webkit-scrollbar-thumb { background: #264359; border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: #37607d; }
+
+    /* 태블릿 / 모바일 반응형 (아이패드 가로/세로 대응) */
+    @media (max-width: 1024px) {
+      body { height: auto; overflow-y: auto; }
+      .workspace {
+        grid-template-columns: 280px 1fr;
+        grid-template-rows: auto auto;
+        overflow: visible;
+      }
+      .action-sidebar {
+        grid-column: 1 / 3;
+        border-left: none;
+        border-top: 1px solid var(--panel-border);
+      }
+      .action-body {
+        flex-direction: row;
+        justify-content: center;
+        padding: 16px;
+      }
+      .circle-action-btn {
+        width: 135px;
+        height: 68px;
+        border-radius: 12px;
+        flex-direction: row;
+      }
+      .action-note { display: none; }
+    }
+
+    @media (max-width: 720px) {
+      .workspace { grid-template-columns: 1fr; }
+      .action-sidebar { grid-column: 1 / 2; }
+      .sub-caption { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- 상단 헤더 -->
+  <header>
+    <div class="header-left">
+      <span class="ver-badge">V1.0 (Nov.21)</span>
+      <span class="main-title">ATM Manual Collection</span>
+      <span class="sub-caption">3D Vision · Robot Calibration · Troubleshooting 기술 자료실</span>
+    </div>
+
+    <a href="index.html" class="home-btn" title="메인 교육 포털(index.html)로 돌아가기">
+      <img src="image/atm_red.png" alt="ATM" onerror="this.style.display='none'; this.nextElementSibling.style.display='inline';">
+      <span class="logo-fallback" style="display:none;">ATM</span>
+      <span>홈으로</span>
+    </a>
+  </header>
+
+  <!-- 메인 3단 워크스페이스 -->
+  <div class="workspace">
+
+    <!-- 1. 좌측 패널: File List -->
+    <aside class="sidebar">
+      <div class="panel-header">
+        <span>📁 File list (기술 매뉴얼 목록)</span>
+        <span id="file-count" style="font-family:var(--font-mono); font-size:11px; color:#8faec4;">22개</span>
+      </div>
+
+      <div class="search-wrap">
+        <input type="text" id="search-box" class="search-input" placeholder="🔍 파일명, 키워드 검색 (예: TCP, 원점, 에러)..." oninput="renderFileList()">
+        <div class="filter-chips">
+          <button class="chip active" onclick="setCatFilter('ALL', this)">전체</button>
+          <button class="chip" onclick="setCatFilter('BASIC', this)">기초/세팅</button>
+          <button class="chip" onclick="setCatFilter('CALIB', this)">캘리브레이션</button>
+          <button class="chip" onclick="setCatFilter('COORD', this)">좌표계/로봇</button>
+          <button class="chip" onclick="setCatFilter('MODEL', this)">모델/에러</button>
+        </div>
+      </div>
+
+      <div class="file-list-scroll" id="file-list-container"></div>
+    </aside>
+
+    <!-- 2. 중앙 패널: 내용 창 (요약본 뷰어) -->
+    <main class="content-area">
+      <div class="panel-header">
+        <span>📄 내용 (핵심 요약 및 작업 절차 가이드)</span>
+        <span id="viewer-path" style="font-family:var(--font-mono); font-size:11px; color:#8faec4;">pdf/...</span>
+      </div>
+
+      <div class="viewer-scroll">
+        <div class="doc-container" id="doc-viewer"></div>
+      </div>
+    </main>
+
+    <!-- 3. 우측 패널: 다운로드 / 새창열기 버튼 -->
+    <aside class="action-sidebar">
+      <div class="panel-header">
+        <span>⚡ 원문 제어</span>
+      </div>
+
+      <div class="action-body">
+        <a id="btn-download" class="circle-action-btn" href="#" download>
+          <span class="btn-icon">📥</span>
+          <div>
+            <div class="btn-label">다운로드</div>
+            <div class="btn-sub" id="dl-ext">원본 저장</div>
+          </div>
+        </a>
+
+        <a id="btn-open" class="circle-action-btn open-win" href="#" target="_blank" rel="noopener noreferrer">
+          <span class="btn-icon">🗗</span>
+          <div>
+            <div class="btn-label" id="open-label">새창열기</div>
+            <div class="btn-sub" id="open-sub">원문 뷰어</div>
+          </div>
+        </a>
+
+        <div class="action-note" id="action-guide">
+          • <b>PDF 파일</b>은 '새창열기' 클릭 시 브라우저 새 탭에서 즉시 열람할 수 있습니다.<br>
+          • <b>PPTX / DOCX / HWPX</b> 파일은 '다운로드' 후 전용 프로그램으로 열어주세요.
+        </div>
+      </div>
+    </aside>
+
+  </div>
+
+  <script>
+    /* =========================================================================
+       1번 사진(pdf 폴더 내 22개 문서) 메타데이터 및 핵심 요약본 데이터베이스
+       ========================================================================= */
+    const manualDocs = [
+      // --- 카테고리 1: 기초 & 하드웨어/OS 세팅 (BASIC) ---
+      {
+        id: 0,
+        cat: 'BASIC',
+        catName: '1. 기초 & 하드웨어/OS 세팅',
+        file: '0. ATM_Vision_3D 구조광 패턴과 스캔.pdf',
+        ext: 'PDF',
+        level: '입문 필수',
+        tags: ['구조광(Structured Light)', '3D 스캔 원리', '포인트 클라우드'],
+        overview: 'ATM 3D 비전 시스템의 핵심인 구조광(Structured Light) 패턴 투사 원리와 3차원 점군(Point Cloud) 데이터 획득 과정을 다룬 기초 이론 매뉴얼입니다.',
+        steps: [
+          '프로젝터에서 순차적으로 투사되는 Gray-code 및 위상 천이(Phase-Shift) 광학 패턴의 원리를 이해합니다.',
+          '카메라 이미지 센서로 취득된 변형 패턴으로부터 삼각측량(Triangulation) 기반 Z-높이 값을 복원하는 과정을 확인합니다.',
+          '작업거리(WD)와 시야각(FOV)에 따른 스캐너 기종(3Du / 3Dm) 선정 기준 및 표면 반사율 대응법을 학습합니다.'
+        ],
+        warnings: [
+          '강한 외부 직사광선이나 용접 아크 광원이 스캔 영역에 유입되면 패턴 대비가 저하될 수 있습니다.',
+          '스캐너 유리창(LPF) 오염 시 3D 노이즈가 급증하므로 지정된 전용 렌즈 와이프로 관리해야 합니다.'
+        ],
+        simLink: { label: '3D 스캔 원리 시뮬레이터 실행', url: '3D_scan.html' }
+      },
+      {
+        id: 9,
+        cat: 'BASIC',
+        catName: '1. 기초 & 하드웨어/OS 세팅',
+        file: '9. 컴퓨터 관련 교육 영상_(유투브 영상 링크).pdf',
+        ext: 'PDF',
+        level: '입문 참고',
+        tags: ['비전 PC 세팅', '네트워크 기초', '영상 강의'],
+        overview: '비전 제어용 산업용 PC의 기본 환경 구성, 멀티 랜카드 IP 대역 분리, 방화벽 해제 등 필수 설정 과정을 담은 교육 영상 링크 모음집입니다.',
+        steps: [
+          '문서 내 정리된 주제별 YouTube 교육 링크를 클릭해 PC 네트워크 및 드라이버 설정 시연을 시청합니다.',
+          '4-Port 랜카드(로봇·PLC·스캐너 S0/S1) 각각의 고정 IP 할당 및 1.0Gbps 링크 속도 확인 절차를 숙지합니다.',
+          'Windows 방화벽 및 전원 관리(절전 모드 해제) 필수 점검 항목을 체크리스트로 확인합니다.'
+        ],
+        warnings: [
+          '사내 보안망 환경에서는 외부 YouTube 접속이 제한될 수 있으므로 모바일 또는 사외망 환경에서 시청을 권장합니다.'
+        ],
+        simLink: { label: 'PLC-Robot 네트워크 시뮬레이터 실행', url: 'net_comm.html' }
+      },
+      {
+        id: 10,
+        cat: 'BASIC',
+        catName: '1. 기초 & 하드웨어/OS 세팅',
+        file: '10.ATM_3D와 Abeoscan 셋팅.pdf',
+        ext: 'PDF',
+        level: '초기 셋업',
+        tags: ['ATM_3D', 'AbeoSCAN', '초기 환경설정'],
+        overview: '비전 PC에 설치되는 메인 런타임 프로그램(ATM_3D / ATMC)과 3D 형상 정합 소프트웨어(AbeoSCAN)의 연동 및 초기 파라미터 세팅 가이드입니다.',
+        steps: [
+          'Basler Pylon 카메라 드라이버 및 프로젝터 제어 모듈 정상 인식 여부를 장치 관리자에서 확인합니다.',
+          'AbeoSCAN과 ATM_3D 간의 실행 경로, 모델 폴더(REF.ply), 통신 포트 번호를 일치시킵니다.',
+          '테스트 스캔을 수행하여 3D 뷰어에 포인트 클라우드가 정상 렌더링되는지 검증합니다.'
+        ],
+        warnings: [
+          '설치 경로에 한글이나 특수문자가 포함되면 외부 라이브러리(DLL) 호출 오류가 발생할 수 있습니다.'
+        ],
+        simLink: null
+      },
+      {
+        id: 17,
+        cat: 'BASIC',
+        catName: '1. 기초 & 하드웨어/OS 세팅',
+        file: '윈도우 11 재인증 매뉴얼.pptx',
+        ext: 'PPTX',
+        level: '유지보수',
+        tags: ['Windows 11', '정품 인증', '비전 PC 유지보수'],
+        overview: '현장 산업용 비전 PC 출하 또는 메인보드 교체 후 Windows 11 라이선스 재인증 및 시스템 복구 절차를 안내하는 프레젠테이션 자료입니다.',
+        steps: [
+          '윈도우 설정 → 시스템 → 정품 인증 메뉴에서 현재 라이선스 상태 및 오류 코드를 확인합니다.',
+          '오프라인 현장 환경일 경우 전화 인증 또는 사내 라이선스 키 재입력 절차를 단계별로 진행합니다.',
+          '인증 완료 후 Windows 자동 업데이트 일시 중지(현장 공정 중 재부팅 방지) 설정을 재확인합니다.'
+        ],
+        warnings: [
+          '현장 가동 중인 비전 PC에 임의로 OS 대규모 업데이트를 진행하면 드라이버 호환성이 깨질 수 있습니다.'
+        ],
+        simLink: null
+      },
+
+      // --- 카테고리 2: 캘리브레이션 & 원점 보정 (CALIB) ---
+      {
+        id: 1,
+        cat: 'CALIB',
+        catName: '2. 캘리브레이션 & 원점 보정',
+        file: '1. 작업표준서[스캐너캘리브레이션]240702ver.pdf',
+        ext: 'PDF',
+        level: '현장 표준',
+        tags: ['작업표준서', '스캐너 캘리브레이션', '체커보드'],
+        overview: '3D 스캐너 내부 카메라·프로젝터 광학 파라미터 정밀 보정을 위한 사내 공식 작업표준서(240702 버전)입니다.',
+        steps: [
+          '스캐너 예열(Warm-up) 후 전용 캘리브레이션 보드(체커보드/서클 그리드)의 오염 및 스크래치 상태를 점검합니다.',
+          '작업거리(WD) 전·중·후 구간 및 기울기 자세별로 규정된 매수만큼 보드 이미지를 취득합니다.',
+          '재투영 오차(Reprojection Error)가 사내 합격 기준(Threshold) 이내인지 확인 후 파라미터를 저장합니다.'
+        ],
+        warnings: [
+          '캘리브레이션 보드 표면에 지문이나 이물질이 묻어 있으면 특징점 추출 오차가 크게 증가합니다.',
+          '캘리브레이션 수행 후 반드시 캘리브레이션 파일 백업을 수행해야 합니다.'
+        ],
+        simLink: null
+      },
+      {
+        id: 2,
+        cat: 'CALIB',
+        catName: '2. 캘리브레이션 & 원점 보정',
+        file: '2. ATMC 로봇 스캐너 캘리브레이션 매뉴얼.pdf',
+        ext: 'PDF',
+        level: '핵심 실무',
+        tags: ['Hand-Eye 캘리브레이션', 'ATMC', '로봇-스캐너 정합'],
+        overview: '로봇 좌표계와 3D 스캐너 좌표계 간의 상대 변환 행렬(Hand-Eye Matrix)을 산출하는 ATMC 스캐너 캘리브레이션 상세 매뉴얼입니다.',
+        steps: [
+          'Eye-on-Hand(로봇 장착형) 또는 Fixed-Eye(외부 고정형) 구성에 맞는 로봇 자세(Pose) 티칭 포인트를 설정합니다.',
+          'ATMC 캘리브레이션 모드에서 로봇 이동과 스캐너 촬영을 순차 연동하여 다각도 데이터를 수집합니다.',
+          '산출된 변환 행렬의 잔차(Residual Error)를 검증하고 제어기 파라미터에 적용합니다.'
+        ],
+        warnings: [
+          '캘리브레이션 자세 티칭 시 회전(Rx, Ry, Rz) 변화량이 너무 작으면 수학적 해의 정밀도가 급격히 떨어집니다.'
+        ],
+        simLink: { label: 'Hand-Eye FOV 시뮬레이터 실행', url: 'fov_mo.html' }
+      },
+      {
+        id: 6,
+        cat: 'CALIB',
+        catName: '2. 캘리브레이션 & 원점 보정',
+        file: '6. ATMC 원점 보정 매뉴얼.pdf',
+        ext: 'PDF',
+        level: '핵심 실무',
+        tags: ['원점 보정', '기준 모델', '오프셋 복구'],
+        overview: '설비 유지보수, 충돌, 또는 스캐너 탈부착 이후 틀어진 기준 좌표계 원점을 신속하게 재정렬하는 원점 보정 매뉴얼입니다.',
+        steps: [
+          '정위치에 고정된 마스터 기준물(Master Part) 또는 지그를 스캔하여 현재 편차량을 계측합니다.',
+          '기존 등록된 기준 데이터(REF)와 현재 측정값 간의 6자유도(X, Y, Z, Rx, Ry, Rz) 오프셋을 산출합니다.',
+          '보정 값을 ATMC 기준 원점에 업데이트한 뒤 테스트 사이클에서 로봇 장착 정밀도를 최종 확인합니다.'
+        ],
+        warnings: [
+          '원점 보정 전 마스터 기준물이 지그 핀에 완전히 밀착·안착되었는지 육안으로 반드시 확인해야 합니다.'
+        ],
+        simLink: null
+      },
+      {
+        id: 8,
+        cat: 'CALIB',
+        catName: '2. 캘리브레이션 & 원점 보정',
+        file: '8. ATMC 로봇 스캐너 캘리브레이션 트랜스퍼 매뉴얼_검증포함.pdf',
+        ext: 'PDF',
+        level: '고급 실무',
+        tags: ['캘리브레이션 트랜스퍼', '다중 스캐너', '정밀도 검증'],
+        overview: '스캐너 교체 또는 다중 스캐너 시스템 구축 시 기존 티칭 데이터를 유지하면서 캘리브레이션 데이터를 이관(Transfer)하고 검증하는 매뉴얼입니다.',
+        steps: [
+          '기준 스캐너와 신규(또는 보조) 스캐너가 공통으로 관측할 수 있는 기준 타겟 좌표를 획득합니다.',
+          'TransferCalib 기능을 통해 좌표계 변환 행렬을 이관하고 기존 로봇 경로와의 일관성을 맞춥니다.',
+          '검증 시나리오에 따라 실제 작업물 스캔 후 로봇 이동 오차가 허용 공차 이내인지 최종 검증합니다.'
+        ],
+        warnings: [
+          '트랜스퍼 작업 중 로봇의 기준 툴(TCP) 번호나 유저 좌표계(UF) 번호가 변경되지 않도록 주의합니다.'
+        ],
+        simLink: { label: '공통좌표계(CC) 시뮬레이터 실행', url: 'com_uf.html' }
+      },
+      {
+        id: 12,
+        cat: 'CALIB',
+        catName: '2. 캘리브레이션 & 원점 보정',
+        file: '12. 스캐너 원점 보정 교육자료.pptx',
+        ext: 'PPTX',
+        level: '강의 자료',
+        tags: ['원점 보정 강의', '시각화 자료', '현장 사례'],
+        overview: '신입사원 및 현장 엔지니어 교육을 위해 스캐너 원점 보정의 필요성과 단계별 화면 캡처를 알기 쉽게 정리한 강의용 PPTX입니다.',
+        steps: [
+          '설비 미세 틀어짐이 발생했을 때 3D 비전 보정 좌표계가 어떻게 왜곡되는지 도식으로 이해합니다.',
+          'ATMC 소프트웨어 내 원점 보정 버튼 위치와 입력 파라미터 의미를 화면 예시로 익힙니다.',
+          '보정 전·후 오차 비교 사례를 통해 현장 트러블슈팅 감각을 익힙니다.'
+        ],
+        warnings: [
+          'PPTX 원본 파일이므로 우측 [다운로드] 버튼을 통해 PC에 저장한 뒤 슬라이드 쇼로 확인하시기 바랍니다.'
+        ],
+        simLink: null
+      },
+      {
+        id: 13,
+        cat: 'CALIB',
+        catName: '2. 캘리브레이션 & 원점 보정',
+        file: '3D 스캐너 - 구조광 방식에 대한 고찰.pptx',
+        ext: 'PPTX',
+        level: '심화 이론',
+        tags: ['광학 이론', '구조광 분석', '노이즈 저감'],
+        overview: '구조광 3D 스캐너의 광학적 한계, 난반사·다중반사(Inter-reflection) 현상 및 산업 현장 적용 시 해결 방안을 심층 고찰한 발표 자료입니다.',
+        steps: [
+          '단일 패턴과 다중 주파수 위상 천이 패턴의 측정 속도 및 정밀도 트레이드오프를 비교합니다.',
+          '금속 가공면이나 유광 도장면에서 발생하는 포화(Saturation) 현상과 노출(Exposure) 최적화 기법을 학습합니다.'
+        ],
+        warnings: [
+          'PPTX 원본 파일입니다. [다운로드] 후 PowerPoint에서 열람하세요.'
+        ],
+        simLink: { label: '3D 스캔 시뮬레이터 실행', url: '3D_scan.html' }
+      },
+
+      // --- 카테고리 3: 좌표계(CC/UF/TCP) & 로봇 실습 (COORD) ---
+      {
+        id: 3,
+        cat: 'COORD',
+        catName: '3. 좌표계(CC/UF/TCP) & 로봇 실습',
+        file: '3. ATMC 공통좌표계 매뉴얼.pdf',
+        ext: 'PDF',
+        level: '핵심 실무',
+        tags: ['공통좌표계(CC)', '이기종 로봇', 'TLH 좌표계'],
+        overview: '여러 대의 로봇과 스캐너가 하나의 작업물을 협업 처리할 때 기준이 되는 공통좌표계(Common Coordinate, CC) 구축 매뉴얼입니다.',
+        steps: [
+          '차량 또는 대형 워크피스의 기준 방향(T: 폭, L: 길이, H: 높이)을 반영한 공통좌표계 원점을 정의합니다.',
+          '각 로봇 제어기에 동일한 물리적 기준점을 3점 교시(원점, +X 방향점, +XY 평면점)로 등록합니다.',
+          '스캐너 보정 행렬을 공통좌표계 기준으로 변환하여 로봇 간 오차 없이 전송되는지 검증합니다.'
+        ],
+        warnings: [
+          '이기종 로봇(예: 현대 Hi5a/Hi6와 FANUC) 혼용 라인에서는 기본 직교축 방향(Z-Up 등)과 회전 오일러 각(ZYX vs XYZ) 표현 차이를 반드시 일치시켜야 합니다.'
+        ],
+        simLink: { label: '공통좌표계(CC) 시뮬레이터 실행', url: 'com_uf.html' }
+      },
+      {
+        id: 5,
+        cat: 'COORD',
+        catName: '3. 좌표계(CC/UF/TCP) & 로봇 실습',
+        file: '5. ATMC UF좌표계 매뉴얼.pdf',
+        ext: 'PDF',
+        level: '핵심 실무',
+        tags: ['유저좌표계(UF)', '6자유도 보정', 'UF6 전송'],
+        overview: '비전 시스템이 산출한 6자유도(X, Y, Z, Rx, Ry, Rz) 위치 오차 보정 값을 로봇의 유저 좌표계(User Frame, UF)로 실시간 전송·반영하는 매뉴얼입니다.',
+        steps: [
+          '로봇 제어기에 비전 보정 전용 유저 좌표계 번호(예: U6)를 할당하고 기준 원점을 등록합니다.',
+          'ATMC에서 계산된 4×4 동차 변환 행렬(Homogeneous Matrix)이 로봇 UF 레지스터로 수신되는 구조를 확인합니다.',
+          '로봇 JOB 프로그램에서 MOVE 명령에 해당 UF 번호를 지정해 보정 경로 추종을 테스트합니다.'
+        ],
+        warnings: [
+          '로봇 티칭 포인트가 BASE 좌표계 기준으로 교시되어 있으면 비전 보정(UF)이 전혀 적용되지 않으므로 반드시 지정 UF로 교시해야 합니다.'
+        ],
+        simLink: { label: 'UF6 3D 좌표계 시뮬레이터 실행', url: 'uf6_pc.html' }
+      },
+      {
+        id: 7,
+        cat: 'COORD',
+        catName: '3. 좌표계(CC/UF/TCP) & 로봇 실습',
+        file: '7. ATMC TCP측정의 3가지 방법 매뉴얼.pdf',
+        ext: 'PDF',
+        level: '핵심 실무',
+        tags: ['TCP 설정', '툴 좌표계', '3가지 측정법'],
+        overview: '로봇 그리퍼 또는 핸드 장착 스캐너의 정밀한 제어점(Tool Center Point, TCP)을 설정하는 3가지 표준 측정 기법 매뉴얼입니다.',
+        steps: [
+          '방법 1 (4점/6점 터치법): 고정된 기준 핀 끝점에 툴 끝단을 서로 다른 자세로 접근시켜 TCP 위치(X, Y, Z)를 산출합니다.',
+          '방법 2 (CAD 도면 치수 직접 입력법): 기구 설계 도면의 플랜지 기준 오프셋 및 자세 각도를 직접 입력합니다.',
+          '방법 3 (비전/레이저 계측기 활용법): 비접촉 광학 계측을 통해 툴 끝점 및 자세 벡터를 정밀 보정합니다.'
+        ],
+        warnings: [
+          'TCP가 부정확하면 로봇이 툴 끝을 중심으로 회전(Rx, Ry, Rz)할 때 끝점이 크게 이탈하여 충돌 위험이 발생합니다.'
+        ],
+        simLink: null
+      },
+      {
+        id: 11,
+        cat: 'COORD',
+        catName: '3. 좌표계(CC/UF/TCP) & 로봇 실습',
+        file: '11. 툴 무게 자동등록 매뉴얼.pptx',
+        ext: 'PPTX',
+        level: '로봇 설정',
+        tags: ['툴 부하(Payload)', '무게중심', '관성 모멘트'],
+        overview: '그리퍼 및 스캐너 장착 후 로봇 제어기의 부하 자동 계측 기능을 이용해 툴 중량, 무게중심(CoG), 관성 모멘트를 자동 등록하는 안내서입니다.',
+        steps: [
+          '로봇 주변 간섭물이 없는 안전 영역으로 이동한 뒤 티칭 펜던트의 [보조 설정 → 부하 자동 계측] 메뉴에 진입합니다.',
+          '등록할 툴 번호를 선택하고 자동 가감속 모션을 실행하여 중량(kg)과 무게중심 좌표를 측정합니다.',
+          '계측된 부하 데이터를 저장하고 활성화하여 고속 이동 시 진동 및 오버슈트를 방지합니다.'
+        ],
+        warnings: [
+          '부하 계측 중 로봇 손목 축이 큰 폭으로 회전하므로 케이블 꼬임 및 주변 설비 간섭 반경을 미리 확보하세요.'
+        ],
+        simLink: null
+      },
+      {
+        id: 15,
+        cat: 'COORD',
+        catName: '3. 좌표계(CC/UF/TCP) & 로봇 실습',
+        file: '로봇 툴좌표계(TCP) 설정 및 현대로봇 실습 가이드.pdf',
+        ext: 'PDF',
+        level: '실습 가이드',
+        tags: ['현대로봇 Hi5a/Hi6', 'TCP 실습', '티칭 펜던트'],
+        overview: '현대로봇(Hi5a / Hi6) 제어기 티칭 펜던트를 이용해 툴 좌표계(TCP)를 신규 등록하고 직교/툴 좌표계 Jog로 검증하는 신입사원 실습 가이드입니다.',
+        steps: [
+          '현대로봇 TP [시스템 → 제어 파라미터 → 툴 데이터]에서 신규 툴 번호를 선택합니다.',
+          '4자세 교시법을 이용해 기준점에 툴 끝을 맞추고 자동 계산된 X, Y, Z 오프셋을 확인합니다.',
+          '좌표계 모드를 [툴(TOOL)]로 전환한 후 Rx/Ry 회전 조그 시 끝점이 제자리에 고정되는지 확인합니다.'
+        ],
+        warnings: [
+          '실습 시 반드시 수동(TEACH) 모드에서 속도를 10% 이하로 제한하고 데드맨 스위치를 올바르게 파지하세요.'
+        ],
+        simLink: null
+      },
+      {
+        id: 16,
+        cat: 'COORD',
+        catName: '3. 좌표계(CC/UF/TCP) & 로봇 실습',
+        file: '위치보정에 대한 전반적인 작업 안내.docx',
+        ext: 'DOCX',
+        level: '전체 흐름',
+        tags: ['위치보정 프로세스', '전체 워크플로우', '현장 체크리스트'],
+        overview: '3D 비전 기반 로봇 위치보정 프로젝트의 착수부터 셋업, 캘리브레이션, 시운전, 양산 이관까지 전 과정을 요약한 안내 문서입니다.',
+        steps: [
+          '1단계(기구/네트워크): 스캐너 설치 거리(WD) 확보 및 PC-로봇-PLC 간 IP 대역 분리를 완료합니다.',
+          '2단계(좌표계/캘리브레이션): TCP 등록 → 스캐너 내부 보정 → Hand-Eye 캘리브레이션을 순차 진행합니다.',
+          '3단계(모델 등록/시운전): 기준 모델(REF) 등록 후 반복 정밀도 테스트 및 예외(NG) 처리 인터락을 검증합니다.'
+        ],
+        warnings: [
+          'DOCX 원본 파일입니다. 우측 [다운로드] 버튼을 눌러 Word 또는 한글 뷰어에서 확인하세요.'
+        ],
+        simLink: null
+      },
+
+      // --- 카테고리 4: 모델 등록 & 트러블슈팅/기타 (MODEL) ---
+      {
+        id: 4,
+        cat: 'MODEL',
+        catName: '4. 모델 등록 & 트러블슈팅/기타',
+        file: '4. ATMC 모델등록 매뉴얼.pdf',
+        ext: 'PDF',
+        level: '핵심 실무',
+        tags: ['3D 모델 등록', 'REF.ply', 'ICP 정합'],
+        overview: '신규 차종 또는 신규 부품 투입 시 기준 3D 형상(Reference Model)을 스캔·편집하여 ATMC에 등록하는 표준 매뉴얼입니다.',
+        steps: [
+          '정위치에 놓인 마스터 부품을 스캔하여 노이즈 및 불필요한 배경 지그 점군을 제거(Cropping)합니다.',
+          '형상 특징이 뚜렷한 영역(홀, 엣지, 굴곡면) 위주로 정합 기준 모델(REF.ply)을 생성합니다.',
+          'ICP(Iterative Closest Point) 정합 허용 오차(Fit Score)와 탐색 반경을 설정하고 시뮬레이션 매칭을 테스트합니다.'
+        ],
+        warnings: [
+          '평면만 있고 기하학적 특징이 부족한 영역을 모델로 등록하면 X·Y 평행 이동 방향에서 슬립(오정합)이 발생할 수 있습니다.'
+        ],
+        simLink: { label: 'ICP 3D 정합 시뮬레이터 실행', url: 'icp_pc.html' }
+      },
+      {
+        id: 14,
+        cat: 'MODEL',
+        catName: '4. 모델 등록 & 트러블슈팅/기타',
+        file: '20250502 - 3D 모델 등록.hwpx',
+        ext: 'HWPX',
+        level: '실무 양식',
+        tags: ['한글 문서(HWPX)', '모델 등록 절차', '현장 기록서'],
+        overview: '2025년 5월 개정된 3D 모델 등록 세부 절차 및 현장 적용 파라미터 기록용 한글(HWPX) 문서입니다.',
+        steps: [
+          '우측 [다운로드] 버튼을 클릭하여 HWPX 원본 파일을 PC에 저장합니다.',
+          '한컴오피스 한글에서 문서를 열어 차종별 모델 등록 파라미터 및 검증 체크리스트를 확인합니다.'
+        ],
+        warnings: [
+          '웹 브라우저에서는 HWPX 파일이 직접 열리지 않으므로 다운로드 후 한컴오피스 한글로 열람해 주세요.'
+        ],
+        simLink: { label: 'ICP 정합 시뮬레이터 실행', url: 'icp_pc.html' }
+      },
+      {
+        id: 18,
+        cat: 'MODEL',
+        catName: '4. 모델 등록 & 트러블슈팅/기타',
+        file: 'AbeoSCAN 매뉴얼_3.6_260521.pdf',
+        ext: 'PDF',
+        level: '소프트웨어 매뉴얼',
+        tags: ['AbeoSCAN 3.6', '3D 편집', '포인트클라우드 필터'],
+        overview: '3D 스캔 데이터 취득, 포인트 클라우드 필터링, CAD/PLY 모델 정합을 수행하는 AbeoSCAN 3.6 버전 전체 사용자 매뉴얼입니다.',
+        steps: [
+          '스캐너 연결 설정, 노출(Exposure) 및 게인(Gain) 조절을 통한 최적 포인트 클라우드 취득 방법을 익힙니다.',
+          'ROI(관심영역) 지정, 이상치(Outlier) 제거, 다운샘플링 등 전처리 필터 기능을 활용합니다.',
+          '다중 2D/3D 패턴 탐색(FormMultiPatternSearch) 및 기준 모델 내보내기(Export) 절차를 수행합니다.'
+        ],
+        warnings: [
+          '필터 강도를 과도하게 높이면 부품의 미세 모서리 특징점까지 함께 깎여 정합 정밀도가 저하될 수 있습니다.'
+        ],
+        simLink: null
+      },
+      {
+        id: 19,
+        cat: 'MODEL',
+        catName: '4. 모델 등록 & 트러블슈팅/기타',
+        file: 'ATM_3D세팅_메뉴얼_통합.pdf',
+        ext: 'PDF',
+        level: '종합 가이드',
+        tags: ['통합 매뉴얼', '전체 세팅', '시운전 가이드'],
+        overview: 'ATM 3D 비전 시스템의 하드웨어 결선, 소프트웨어 설치, 통신 설정, 캘리브레이션, 시운전까지 한 권으로 묶은 통합 매뉴얼입니다.',
+        steps: [
+          '시스템 전체 구성도 및 입출력 신호(PLC 핸드셰이크 비트맵) 표준 사양을 확인합니다.',
+          '단계별 셋업 목차에 따라 초기 설치부터 양산 모드 전환까지 빠짐없이 점검합니다.'
+        ],
+        warnings: [
+          '분량이 방대한 통합본이므로 좌측 검색창이나 PDF 내 목차 검색(Ctrl+F)을 활용해 필요한 파트를 빠르게 찾아보세요.'
+        ],
+        simLink: null
+      },
+      {
+        id: 20,
+        cat: 'MODEL',
+        catName: '4. 모델 등록 & 트러블슈팅/기타',
+        file: 'atm_error.pdf',
+        ext: 'PDF',
+        level: '트러블슈팅 필수',
+        tags: ['에러 코드', '통신 장애 복구', 'SCANNER/ROBOT/PLC 알람'],
+        overview: '현장 가동 중 발생하는 주요 알람 코드(스캐너 연결 끊김, HR-RPC 타임아웃, PLC 포트 오류, 정합 NG)의 원인 분석 및 즉시 조치 매뉴얼입니다.',
+        steps: [
+          'SCANNER[0] is not connected: LAN 케이블 및 1.0Gbps 링크 확인 후 하단 스캐너 아이콘을 Ctrl+더블클릭해 재연결합니다.',
+          'ROBOT HR-RPC Timeout: Hi5a TP [시스템 → 네트워크 → 서비스 → HR-RPC]에서 [초기화 범용] 실행 및 LAN 1을 점검합니다.',
+          'PLC is not connected: CONFIG에서 PLC IP, Port(5020), 디바이스(D300/D400) 설정을 재확인합니다.'
+        ],
+        warnings: [
+          '에러 복구 후 반드시 원점 상태 및 로봇 간섭 여부를 확인한 뒤 자동(AUTO) 운전 사이클을 재개하세요.'
+        ],
+        simLink: { label: '트러블슈팅 시뮬레이터 실행', url: 'net_comm.html' }
+      },
+      {
+        id: 21,
+        cat: 'MODEL',
+        catName: '4. 모델 등록 & 트러블슈팅/기타',
+        file: 'comm_uf.pdf',
+        ext: 'PDF',
+        level: '기술 노트',
+        tags: ['공통좌표계 요약', 'UF 변환 수식', '좌표계 검증'],
+        overview: '공통좌표계(CC)와 유저좌표계(UF) 간의 동차 변환 행렬 연산 구조 및 현장 적용 핵심 포인트를 간결하게 정리한 기술 문서입니다.',
+        steps: [
+          '기준 좌표계와 보정 좌표계 간의 회전·병진 변환 관계식을 확인합니다.',
+          '실제 로봇 제어기에 전송되는 6자유도(X, Y, Z, Rx, Ry, Rz) 데이터 포맷과 부호 규약을 점검합니다.'
+        ],
+        warnings: [
+          '좌표계 변환 테스트 시에는 반드시 로봇 속도를 저속으로 설정하고 드라이 런(Dry Run)으로 먼저 검증하세요.'
+        ],
+        simLink: { label: '공통좌표계 시뮬레이터 실행', url: 'com_uf.html' }
+      },
+      {
+        id: 22,
+        cat: 'MODEL',
+        catName: '4. 모델 등록 & 트러블슈팅/기타',
+        file: 'Hi5a-ma.pdf',
+        ext: 'PDF',
+        level: '로봇 제어기 매뉴얼',
+        tags: ['현대로봇 Hi5a', '파일 관리', '서비스 메뉴'],
+        overview: '현대로봇 Hi5a 제어기의 시스템 조작, 파일 관리(M/B · T/P · USB), 네트워크 서비스, 입출력 신호 설정을 다룬 공식 조작 설명서입니다.',
+        steps: [
+          '티칭 펜던트 화면 구성과 M/B(메인보드), T/P, USB 장치 간 프로그램 백업 및 복원 방법을 익힙니다.',
+          'HR-BASIC JOB 프로그램 구조 및 외부 입출력(DI/DO) 조건 대기·분기 명령을 확인합니다.'
+        ],
+        warnings: [
+          'USB 메모리에 파일 복사/삭제 작업을 수행하는 중에는 절대 USB 메모리를 분리하지 마십시오.'
+        ],
+        simLink: null
+      }
+    ];
+
+    let currentCat = 'ALL';
+    let selectedDocId = 0;
+
+    /* =========================================================================
+       2. 좌측 File List 렌더링 & 필터/검색 로직
+       ========================================================================= */
+    function setCatFilter(cat, btn) {
+      currentCat = cat;
+      document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+      btn.classList.add('active');
+      renderFileList();
+    }
+
+    function renderFileList() {
+      const keyword = document.getElementById('search-box').value.trim().toLowerCase();
+      const container = document.getElementById('file-list-container');
+
+      const filtered = manualDocs.filter(doc => {
+        const matchCat = (currentCat === 'ALL' || doc.cat === currentCat);
+        const matchKey = !keyword ||
+          doc.file.toLowerCase().includes(keyword) ||
+          doc.overview.toLowerCase().includes(keyword) ||
+          doc.tags.some(t => t.toLowerCase().includes(keyword));
+        return matchCat && matchKey;
+      });
+
+      document.getElementById('file-count').textContent = `${filtered.length}개`;
+
+      if (filtered.length === 0) {
+        container.innerHTML = `<div style="padding:20px; text-align:center; color:var(--text-muted); font-size:12px;">검색 조건에 일치하는 문서가 없습니다.</div>`;
+        return;
+      }
+
+      // 카테고리별 그룹핑 출력
+      const groups = {};
+      filtered.forEach(doc => {
+        if (!groups[doc.catName]) groups[doc.catName] = [];
+        groups[doc.catName].push(doc);
+      });
+
+      let html = '';
+      Object.keys(groups).forEach(catTitle => {
+        html += `<div class="cat-header"><span>${catTitle}</span><span>${groups[catTitle].length}</span></div>`;
+        groups[catTitle].forEach(doc => {
+          const isActive = (doc.id === selectedDocId) ? 'active' : '';
+          const extClass = `ext-${doc.ext.toLowerCase()}`;
+          html += `
+            <div class="file-item ${isActive}" onclick="selectDoc(${doc.id})">
+              <span class="file-name">${doc.file}</span>
+              <span class="ext-badge ${extClass}">${doc.ext}</span>
+            </div>
+          `;
+        });
+      });
+
+      container.innerHTML = html;
+    }
+
+    /* =========================================================================
+       3. 문서 선택 시 중앙 요약 뷰어 & 우측 다운로드/새창열기 버튼 갱신
+       ========================================================================= */
+    function selectDoc(id) {
+      selectedDocId = id;
+      const doc = manualDocs.find(d => d.id === id) || manualDocs[0];
+      renderFileList();
+
+      // 한글, 공백, 대괄호 등이 포함된 파일명을 안전하게 URL 인코딩
+      const safeHref = 'pdf/' + encodeURIComponent(doc.file);
+
+      document.getElementById('viewer-path').textContent = `pdf/${doc.file}`;
+
+      // 중앙 요약 카드 렌더링
+      const tagsHtml = doc.tags.map(t => `<span class="meta-pill"># ${t}</span>`).join('');
+      const stepsHtml = doc.steps.map((s, idx) => `
+        <li>
+          <span class="step-num">STEP ${idx + 1}</span>
+          <span>${s}</span>
+        </li>
+      `).join('');
+      const warnsHtml = doc.warnings.map(w => `<li>${w}</li>`).join('');
+
+      const simHtml = doc.simLink ? `
+        <div class="sim-link-box">
+          <div style="font-size:12.5px; color:#d7f3f5;">
+            <b>💡 연계 실습 시뮬레이터:</b> 본 매뉴얼의 원리를 3D 가상 환경에서 직접 조작해 볼 수 있습니다.
+          </div>
+          <a href="${doc.simLink.url}" class="sim-link-btn">${doc.simLink.label} ↗</a>
+        </div>
+      ` : '';
+
+      document.getElementById('doc-viewer').innerHTML = `
+        <div class="doc-hero">
+          <div class="doc-meta-row">
+            <span class="meta-pill" style="background:rgba(21,101,192,0.25); color:#64b5f6; border-color:#42a5f5;">${doc.catName}</span>
+            <span class="meta-pill" style="color:#2ed573; border-color:rgba(46,213,115,0.4);">${doc.level}</span>
+            ${tagsHtml}
+          </div>
+          <div class="doc-title">${doc.file.replace(/\.[^/.]+$/, "")}</div>
+          <div class="doc-filename">원본 파일명: pdf/${doc.file} (${doc.ext})</div>
+        </div>
+
+        <div class="summary-card">
+          <div class="card-title">📌 문서 개요 및 활용 목적</div>
+          <p class="overview-text">${doc.overview}</p>
+        </div>
+
+        <div class="summary-card">
+          <div class="card-title">🔢 핵심 작업 절차 및 학습 포인트</div>
+          <ul class="step-list">${stepsHtml}</ul>
+        </div>
+
+        <div class="warn-card">
+          <div class="warn-title">⚠️ 현장 주의사항 & 체크포인트</div>
+          <ul class="warn-list">${warnsHtml}</ul>
+        </div>
+
+        ${simHtml}
+      `;
+
+      // 우측 다운로드 / 새창열기 버튼 링크 및 라벨 동기화
+      const btnDl = document.getElementById('btn-download');
+      const btnOpen = document.getElementById('btn-open');
+
+      btnDl.href = safeHref;
+      btnDl.setAttribute('download', doc.file);
+      document.getElementById('dl-ext').textContent = `${doc.ext} 저장`;
+
+      btnOpen.href = safeHref;
+      if (doc.ext === 'PDF') {
+        document.getElementById('open-label').textContent = '새창열기';
+        document.getElementById('open-sub').textContent = 'PDF 새 탭 보기';
+      } else {
+        document.getElementById('open-label').textContent = '원문열기';
+        document.getElementById('open-sub').textContent = `${doc.ext} 내려받기`;
+      }
+    }
+
+    // 초기 실행: 첫 번째 문서(0번) 자동 선택
+    selectDoc(0);
+  </script>
+</body>
+</html>
