@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>ATM Field Toolkit | V1.0 (Season 2)</title>
+  <title>ATM Field Toolkit | V1.2 (Season 2)</title>
   <style>
     :root {
       --bg-dark: #091017;
@@ -34,7 +34,7 @@
       min-height: 100vh;
       display: flex;
       flex-direction: column;
-      padding-bottom: 74px; /* 하단 탭바 공간 */
+      padding-bottom: 76px;
       font-size: 14px;
     }
 
@@ -93,7 +93,7 @@
     /* 메인 컨테이너 */
     main {
       flex: 1;
-      max-width: 820px;
+      max-width: 840px;
       width: 100%;
       margin: 0 auto;
       padding: 14px;
@@ -129,7 +129,44 @@
       margin-top: 8px;
     }
 
-    /* 탭 1: 표준 IP & 서브넷 체커 */
+    /* 공통 검색 & 필터 칩 */
+    .search-input {
+      width: 100%;
+      background: #070c11;
+      border: 1px solid var(--border-color);
+      color: #ffffff;
+      font-size: 13.5px;
+      padding: 9px 12px;
+      border-radius: 7px;
+      outline: none;
+      margin-bottom: 8px;
+    }
+    .search-input:focus { border-color: var(--accent-cyan); }
+
+    .chip-row {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      margin-bottom: 10px;
+    }
+
+    .chip {
+      background: var(--card-bg);
+      border: 1px solid var(--border-color);
+      color: var(--text-muted);
+      font-size: 11.5px;
+      font-weight: 700;
+      padding: 5px 10px;
+      border-radius: 999px;
+      cursor: pointer;
+    }
+    .chip.active {
+      background: rgba(0, 173, 181, 0.18);
+      border-color: var(--accent-cyan);
+      color: var(--accent-cyan);
+    }
+
+    /* 탭 1: 표준 IP & 서브넷 체커 + 빠른 설정 참조표 */
     .ip-calc-grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
@@ -146,18 +183,18 @@
       font-weight: 600;
     }
 
-    .ip-input {
+    .ip-input, .text-input, .select-input {
       width: 100%;
       background: #070c11;
       border: 1px solid var(--border-color);
       color: #ffffff;
-      font-family: var(--font-mono);
-      font-size: 14px;
-      padding: 10px 12px;
+      font-size: 13.5px;
+      padding: 9px 11px;
       border-radius: 7px;
       outline: none;
     }
-    .ip-input:focus { border-color: var(--accent-cyan); }
+    .ip-input { font-family: var(--font-mono); font-size: 14px; }
+    .ip-input:focus, .text-input:focus, .select-input:focus { border-color: var(--accent-cyan); }
 
     .btn-full {
       width: 100%;
@@ -193,11 +230,12 @@
       padding: 9px 8px;
       border-bottom: 1px solid #1d3548;
       text-align: left;
+      vertical-align: top;
     }
     .port-table th { color: var(--text-muted); font-size: 11.5px; }
     .mono { font-family: var(--font-mono); font-weight: 700; color: #70e1f5; }
 
-    /* 탭 2: 1분 긴급 조치 카드 */
+    /* 탭 2: 1분 긴급 조치 카드 + 빈출 체크포인트 요약 카드 */
     .symptom-grid {
       display: grid;
       grid-template-columns: repeat(2, 1fr);
@@ -210,7 +248,7 @@
       background: var(--card-bg);
       border: 1px solid var(--border-color);
       color: var(--text-main);
-      padding: 12px 10px;
+      padding: 11px 10px;
       border-radius: 8px;
       text-align: left;
       cursor: pointer;
@@ -225,7 +263,7 @@
       box-shadow: 0 0 0 1px var(--danger-red);
     }
     .sym-tag { font-family: var(--font-mono); font-size: 10.5px; color: var(--danger-red); font-weight: 800; }
-    .sym-name { font-size: 13px; font-weight: 700; line-height: 1.3; }
+    .sym-name { font-size: 12.8px; font-weight: 700; line-height: 1.3; }
 
     .action-step {
       display: flex;
@@ -249,6 +287,71 @@
       margin-top: 2px;
     }
     .priority-badge.warn { background: var(--yellow-warn); }
+
+    .manual-ref-box {
+      margin-top: 10px;
+      padding: 10px 12px;
+      background: rgba(0, 173, 181, 0.09);
+      border: 1px solid rgba(0, 173, 181, 0.35);
+      border-radius: 8px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .manual-ref-link {
+      background: #0d1822;
+      border: 1px solid var(--accent-cyan);
+      color: var(--accent-cyan);
+      text-decoration: none;
+      font-size: 11.5px;
+      font-weight: 800;
+      padding: 6px 10px;
+      border-radius: 6px;
+      white-space: nowrap;
+    }
+
+    /* 빈출 체크포인트 요약 카드 */
+    .tip-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 8px;
+    }
+    @media (max-width: 560px) { .tip-grid { grid-template-columns: 1fr; } }
+
+    .tip-card {
+      background: var(--card-bg);
+      border: 1px solid #1e374b;
+      border-radius: 8px;
+      padding: 10px 11px;
+    }
+    .tip-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: 4px;
+    }
+    .tip-title {
+      font-weight: 800;
+      font-size: 12.8px;
+      color: #ffffff;
+    }
+    .tip-cat {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      color: var(--accent-cyan);
+      background: rgba(0, 173, 181, 0.14);
+      padding: 2px 6px;
+      border-radius: 4px;
+      flex-shrink: 0;
+    }
+    .tip-desc {
+      font-size: 12px;
+      color: var(--text-muted);
+      line-height: 1.45;
+    }
 
     /* 탭 3: LED & 핀맵 조견표 */
     .led-grid {
@@ -277,13 +380,22 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
+      gap: 8px;
       padding: 7px 0;
       border-bottom: 1px dashed #1e374b;
       font-size: 12.5px;
     }
     .signal-row:last-child { border-bottom: none; }
 
-    /* 탭 4: 현장 간이 좌표·오프셋 메모장 */
+    /* 탭 4: 현장 간이 좌표·오프셋·사례 메모장 */
+    .meta-grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+    @media (max-width: 520px) { .meta-grid-2 { grid-template-columns: 1fr; } }
+
     .dof-inputs {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
@@ -310,7 +422,7 @@
 
     textarea.memo-area {
       width: 100%;
-      min-height: 90px;
+      min-height: 88px;
       background: #070c11;
       border: 1px solid var(--border-color);
       color: #fff;
@@ -322,22 +434,55 @@
       margin-bottom: 10px;
     }
 
-    .btn-row-2 {
+    .btn-row-3 {
       display: grid;
-      grid-template-columns: 1fr 1fr;
+      grid-template-columns: 1.3fr 1fr 0.8fr;
       gap: 8px;
     }
+    @media (max-width: 540px) { .btn-row-3 { grid-template-columns: 1fr; } }
+
     .btn-sec {
       background: #1a3347;
       border: 1px solid var(--border-color);
       color: #fff;
       font-weight: 700;
+      font-size: 13px;
       padding: 10px;
       border-radius: 7px;
       cursor: pointer;
     }
+    .btn-sec.ok {
+      border-color: var(--success-green);
+      color: #7bed9f;
+    }
 
-    /* 하단 고정 네비게이션 바 (엄지 터치 최적화) */
+    .saved-log-item {
+      background: var(--card-bg);
+      border: 1px solid #1e374b;
+      border-radius: 8px;
+      padding: 10px 12px;
+      margin-top: 8px;
+    }
+    .saved-log-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 5px;
+      font-size: 11.5px;
+    }
+    .mini-btn {
+      background: #172d3f;
+      border: 1px solid var(--border-color);
+      color: var(--text-main);
+      font-size: 11px;
+      font-weight: 700;
+      padding: 3px 8px;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+    /* 하단 고정 네비게이션 바 */
     .bottom-nav {
       position: fixed;
       bottom: 0;
@@ -371,6 +516,15 @@
       border-top-color: var(--accent-cyan);
       background: rgba(0, 173, 181, 0.08);
     }
+
+    code {
+      font-family: var(--font-mono);
+      background: rgba(255, 255, 255, 0.08);
+      padding: 1px 5px;
+      border-radius: 4px;
+      color: #70e1f5;
+      font-size: 12px;
+    }
   </style>
 </head>
 <body>
@@ -389,11 +543,11 @@
 
   <main>
     <!-- =================================================================
-         TAB 1: 표준 IP & 서브넷 체커
+         TAB 1: 표준 IP & 서브넷 체커 + 빠른 설정 참조표
          ================================================================= -->
     <section id="tab-ip" class="tab-pane active">
       <div class="section-title">
-        <span>🌐 표준 IP & 서브넷 대역 체커</span>
+        <span>🌐 표준 IP & 설정값 빠른 참조표</span>
         <span style="font-size:11px; color:var(--text-muted);">4-Port 격리 기준</span>
       </div>
 
@@ -449,20 +603,79 @@
           </tbody>
         </table>
       </div>
+
+      <div class="card">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+          <span style="font-weight:800; color:#fff;">⚡ 자주 쓰는 포트·설정값 빠른 참조표</span>
+          <a href="manual.html" style="font-size:11px; color:var(--accent-cyan); text-decoration:none; font-weight:700;">매뉴얼 전체보기 ↗</a>
+        </div>
+        <table class="port-table">
+          <thead>
+            <tr>
+              <th>구분</th>
+              <th>표준 기준값</th>
+              <th>현장 확인 포인트</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><b>스캐너 끝자리 규칙</b></td>
+              <td class="mono">Cam .135 / Prj .10</td>
+              <td>S0(<code>192.168.10.x</code>), S1(<code>192.168.11.x</code>) 대역 분리</td>
+            </tr>
+            <tr>
+              <td><b>NIC 링크 / 점보 프레임</b></td>
+              <td class="mono">1.0 Gbps / 9014</td>
+              <td>장치관리자 고급 탭에서 Jumbo Packet <code>9014 Bytes</code> 및 절전 해제</td>
+            </tr>
+            <tr>
+              <td><b>PLC 통신 포트 / 번지</b></td>
+              <td class="mono">Port 5020 / D300·D400</td>
+              <td>Melsec MC Protocol (Binary), 32bit 데이터 시 <code>Byte/Word Swap</code> 확인</td>
+            </tr>
+            <tr>
+              <td><b>로봇 좌표계 / 툴</b></td>
+              <td class="mono">UF6 / TCP 등록</td>
+              <td>비전 보정 JOB은 반드시 <code>BASE</code>가 아닌 지정 <code>UF(예: U6)</code>로 실행</td>
+            </tr>
+            <tr>
+              <td><b>CC 보드 설치 기준</b></td>
+              <td class="mono">Tilt ~15° / 고정</td>
+              <td>정반사(Glare) 방지를 위해 약 15° 경사 배치, 이관 중 보드 이동 금지</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
     </section>
 
     <!-- =================================================================
-         TAB 2: 1분 긴급 조치 카드 (Symptom -> Action)
+         TAB 2: 1분 긴급 조치 카드 + 빈출 체크포인트 요약 카드
          ================================================================= -->
     <section id="tab-trouble" class="tab-pane">
       <div class="section-title">
-        <span>🚨 1분 현장 긴급 조치 카드</span>
-        <span style="font-size:11px; color:var(--text-muted);">증상 터치 시 절차 표시</span>
+        <span>🚨 1분 현장 긴급 조치 & 체크포인트</span>
+        <span style="font-size:11px; color:var(--text-muted);">증상 터치 / 키워드 필터</span>
       </div>
 
       <div class="symptom-grid" id="symptom-buttons"></div>
 
       <div class="card" id="action-detail-card"></div>
+
+      <div class="card">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+          <span style="font-weight:800; color:#fff;">🧩 현장 빈출 체크포인트 요약 카드 (단편 메모 허브)</span>
+          <span id="tip-count" style="font-family:var(--font-mono); font-size:11px; color:var(--accent-cyan);">8건</span>
+        </div>
+        <input type="text" id="tip-search" class="search-input" placeholder="🔍 키워드 검색 (예: 1.0Gbps, 9014, 렌즈, Swap, HR-RPC, U6)..." oninput="renderCheckpointCards()">
+        <div class="chip-row">
+          <button class="chip active" onclick="setTipFilter('ALL', this)">전체</button>
+          <button class="chip" onclick="setTipFilter('NET', this)">네트워크/NIC</button>
+          <button class="chip" onclick="setTipFilter('SCAN', this)">스캐너/광학</button>
+          <button class="chip" onclick="setTipFilter('ROBOT', this)">로봇/좌표계</button>
+          <button class="chip" onclick="setTipFilter('PLC', this)">PLC/데이터</button>
+        </div>
+        <div class="tip-grid" id="checkpoint-grid"></div>
+      </div>
     </section>
 
     <!-- =================================================================
@@ -496,16 +709,20 @@
         </div>
 
         <div class="card-sub">
-          <div style="font-weight:700; color:var(--yellow-warn); margin-bottom:4px;">🔌 PC 후면 랜포트 LED & 링크 속도 체크</div>
-          <div style="font-size:12.5px; line-height:1.55;">
+          <div style="font-weight:700; color:var(--yellow-warn); margin-bottom:4px;">🔌 PC 후면 랜포트 LED & NIC 필수 점검</div>
+          <div style="font-size:12.5px; line-height:1.6;">
             • <b>정상 점등:</b> 초록(링크) + 주황(데이터 고속 점멸) / 속도 <b>1.0 Gbps</b> 필수<br>
-            • <b>불량 징후:</b> 초록+초록 점등(100Mbps 저하) 또는 소등 → <b>LAN 케이블 즉시 교체</b>
+            • <b>불량 징후:</b> 초록+초록 점등(100Mbps 저하) 또는 소등 → <b>LAN 케이블 즉시 교체</b><br>
+            • <b>NIC 4대 체크:</b> 1.0Gbps 속도 · Jumbo Packet <code>9014</code> · Rx Buffers 최대 · 절전/EEE 해제
           </div>
         </div>
       </div>
 
       <div class="card">
-        <div style="font-weight:800; color:#fff; margin-bottom:6px;">📡 ATMC ↔ PLC 주요 핸드셰이크 비트맵</div>
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+          <span style="font-weight:800; color:#fff;">📡 ATMC ↔ PLC 주요 핸드셰이크 비트맵</span>
+          <a href="manual.html" style="font-size:11px; color:var(--accent-cyan); text-decoration:none; font-weight:700;">통합 매뉴얼 참고 ↗</a>
+        </div>
         <div class="signal-row"><span class="mono">R0 / R1</span><span>PLC → PC : RESET(초기화) / START(사이클 시작)</span></div>
         <div class="signal-row"><span class="mono">R2 / R3</span><span>PLC → PC : S0_SCAN / S1_SCAN 트리거</span></div>
         <div class="signal-row"><span class="mono">R8 ~ R11</span><span>PLC → PC : 차종 모델 선택 비트 (MODEL_A/B)</span></div>
@@ -516,16 +733,40 @@
     </section>
 
     <!-- =================================================================
-         TAB 4: 현장 간이 좌표·오프셋 메모장
+         TAB 4: 현장 간이 좌표·오프셋·사례 메모장
          ================================================================= -->
     <section id="tab-memo" class="tab-pane">
       <div class="section-title">
-        <span>📐 현장 시운전 오프셋 & IP 메모장</span>
+        <span>📐 현장 시운전 오프셋 & 사례 메모장</span>
         <span style="font-size:11px; color:var(--success-green);">자동 로컬 저장</span>
       </div>
 
       <div class="card">
-        <div style="font-weight:800; color:#fff; margin-bottom:8px;">6-DOF 보정 측정값 기록 (UF6 / CC)</div>
+        <div style="font-weight:800; color:#fff; margin-bottom:8px;">1. 현장 / 증상 기본 정보 (보고·사례 축적용)</div>
+        <div class="meta-grid-2">
+          <div class="input-group">
+            <label>현장 / 라인 · 호기</label>
+            <input type="text" id="m-site" class="text-input" placeholder="예: 울산 2공장 파노라마 S0 라인" oninput="saveMemo()">
+          </div>
+          <div class="input-group">
+            <label>증상 / 관련 알람 구분</label>
+            <select id="m-cat" class="select-input" onchange="saveMemo()">
+              <option value="시운전/보정 기록">시운전 / 6-DOF 보정 기록</option>
+              <option value="SCANNER ERR (스캐너 통신)">SCANNER ERR (스캐너 통신)</option>
+              <option value="ROBOT ERR (HR-RPC/좌표계)">ROBOT ERR (HR-RPC / 좌표계)</option>
+              <option value="PLC ERR (포트/번지/Swap)">PLC ERR (포트 / 번지 / Swap)</option>
+              <option value="FIT/OVL NG (정합/광학)">FIT/OVL NG (정합 / 렌즈 / 외란광)</option>
+              <option value="LIMIT NG (원점/간섭)">LIMIT NG (원점 보정 / 간섭 한계)</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="input-group" style="margin-bottom:10px;">
+          <label>로그 키워드 / 에러 문구 (선택 입력)</label>
+          <input type="text" id="m-log" class="text-input" style="font-family:var(--font-mono); font-size:12.5px;" placeholder="예: physically removed / LC4500Bridge / FIT=0.42, OVL=94%" oninput="saveMemo()">
+        </div>
+
+        <div style="font-weight:800; color:#fff; margin-bottom:8px;">2. 6-DOF 보정 측정값 기록 (UF6 / CC)</div>
         <div class="dof-inputs">
           <div class="dof-field"><label>ΔX (mm)</label><input type="number" step="0.1" id="m-dx" value="0.0" oninput="saveMemo()"></div>
           <div class="dof-field"><label>ΔY (mm)</label><input type="number" step="0.1" id="m-dy" value="0.0" oninput="saveMemo()"></div>
@@ -535,16 +776,28 @@
           <div class="dof-field"><label>ΔRz (deg)</label><input type="number" step="0.1" id="m-rz" value="0.0" oninput="saveMemo()"></div>
         </div>
 
-        <div style="font-weight:800; color:#fff; margin-bottom:6px;">현장 특이사항 / 변경 IP 메모</div>
-        <textarea id="m-note" class="memo-area" placeholder="예: 2라인 S0 카메라 IP 192.168.10.135 확인, FIT=0.42, OVL=94% 양호..." oninput="saveMemo()"></textarea>
+        <div style="font-weight:800; color:#fff; margin-bottom:6px;">3. 원인 / 조치 내용 / 변경 IP 메모</div>
+        <textarea id="m-note" class="memo-area" placeholder="예: LAN 3 케이블 교체 후 1.0Gbps 복구, Ctrl+더블클릭 재연결 확인. S0 카메라 IP 192.168.10.135..." oninput="saveMemo()"></textarea>
 
-        <div class="btn-row-2">
-          <button class="btn-full" onclick="copyMemoText()">📋 클립보드 복사 (보고용)</button>
-          <button class="btn-sec" onclick="clearMemo()">🗑️ 입력 초기화</button>
+        <div class="btn-row-3">
+          <button class="btn-full" onclick="copyMemoText()">📋 보고용 포맷 복사</button>
+          <button class="btn-sec ok" onclick="archiveMemoEntry()">💾 사례 목록에 저장</button>
+          <button class="btn-sec" onclick="clearMemo()">🗑️ 초기화</button>
         </div>
         <div id="copy-toast" style="margin-top:8px; font-size:12px; color:var(--success-green); text-align:center; display:none;">
           ✓ 클립보드에 복사되었습니다. 메신저/메모장에 바로 붙여넣으세요!
         </div>
+      </div>
+
+      <div class="card">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+          <span style="font-weight:800; color:#fff;">🗂️ 임시 축적된 현장 사례 목록 (<span id="archive-count">0</span>건)</span>
+          <button class="mini-btn" onclick="copyAllArchived()">전체 일괄 복사</button>
+        </div>
+        <div style="font-size:11.5px; color:var(--text-muted); margin-bottom:6px;">
+          현장에서 기록한 사례를 쌓아두고, 나중에 매뉴얼이나 진단 시뮬레이터에 옮길 때 한 번에 복사할 수 있습니다.
+        </div>
+        <div id="archive-list"></div>
       </div>
     </section>
   </main>
@@ -552,10 +805,10 @@
   <!-- 하단 4탭 네비게이션 -->
   <nav class="bottom-nav">
     <button class="nav-btn active" onclick="switchTab('tab-ip', this)">
-      <span class="ico">🌐</span><span>IP 체커</span>
+      <span class="ico">🌐</span><span>IP·참조표</span>
     </button>
     <button class="nav-btn" onclick="switchTab('tab-trouble', this)">
-      <span class="ico">🚨</span><span>긴급 조치</span>
+      <span class="ico">🚨</span><span>긴급·체크</span>
     </button>
     <button class="nav-btn" onclick="switchTab('tab-led', this)">
       <span class="ico">🔌</span><span>LED·핀맵</span>
@@ -610,20 +863,22 @@
       }
     }
 
-    /* 3. 1분 긴급 조치 카드 데이터 */
+    /* 3. 1분 긴급 조치 카드 데이터 (manual.html 연계 안내 포함) */
     const troubleCases = [
       {
         code: 'SCANNER ERR',
         title: '스캐너 연결 끊김 (S0/S1 적색)',
+        manualRef: 'atm_error.pdf · 10.ATM_3D와 Abeoscan 셋팅.pdf',
         steps: [
-          { p: '1순위', text: 'ATMC 하단 상태바의 적색 <b>SCANNER 탭을 Ctrl + 더블클릭</b>하여 소프트웨어 재연결을 시도합니다.' },
-          { p: '2순위', text: '로그에 <code>"physically removed"</code>가 떴다면 LAN/전원 케이블 커넥터 풀림(99%)이므로 재체결 후 제어판 <b>1.0 Gbps</b> 링크 속도를 확인합니다.' },
+          { p: '1순위', text: 'ATMC 하단 상태바의 적색 <b>SCANNER 탭을 Ctrl + 더블클릭</b>(macOS는 Cmd/Option + 클릭)하여 소프트웨어 재연결을 시도합니다.' },
+          { p: '2순위', text: '로그에 <code>"physically removed"</code>가 떴다면 LAN/전원 케이블 커넥터 풀림(99%)이므로 재체결 후 제어판 <b>1.0 Gbps</b> 링크 속도와 <b>Jumbo Packet 9014</b>를 확인합니다.' },
           { p: '3순위', text: '로그에 <code>LC4500Bridge [EVENT_DISCONNECTED]</code>가 있다면 프로젝터 펌웨어 다운입니다. <b>PC 랙 후면 CP 전원을 20초 이상 차단</b> 후 재부팅하세요.', warn: true }
         ]
       },
       {
         code: 'ROBOT ERR',
         title: '로봇 HR-RPC 통신 응답 없음',
+        manualRef: 'atm_error.pdf · Hi5a-ma.pdf',
         steps: [
           { p: '1순위', text: '하단 <b>ROBOT 탭을 Ctrl + 더블클릭</b>해 재연결을 시도합니다.' },
           { p: '2순위', text: '현대로봇 TP <b>[시스템 → 네트워크 → 서비스 → HR-RPC]</b> 진입 후 <b>[초기화 범용]</b> 버튼을 눌러 소켓을 리셋합니다.' },
@@ -632,16 +887,18 @@
       },
       {
         code: 'PLC ERR',
-        title: 'PLC 미연결 / 포트 오류',
+        title: 'PLC 미연결 / 포트·Swap 오류',
+        manualRef: 'atm_error.pdf · ATM_3D세팅_메뉴얼_통합.pdf',
         steps: [
           { p: '1순위', text: 'ATMC <b>CONFIG → PLC</b> 설정에서 PLC IP(<code>192.168.0.1</code>)와 포트 번호(<b>5020</b>)가 일치하는지 확인합니다.' },
           { p: '2순위', text: '로그에 <code>Invalid PLC address</code>가 떴다면 InputDevice(<code>D300</code>) / OutputDevice(<code>D400</code>) 디바이스 영역 오타를 수정합니다.' },
-          { p: '3순위', text: 'Melsec GX Works / Ethernet 모듈의 MC 프로토콜(Binary/ASCII) 설정 및 2진 코드 통신 허용 여부를 점검합니다.', warn: true }
+          { p: '3순위', text: '신호 비트는 오가는데 6-DOF 좌표 수치만 비정상이라면 Melsec/Siemens 간 <b>Byte / Word Swap</b> 옵션을 점검하세요.', warn: true }
         ]
       },
       {
         code: 'FIT / OVL NG',
         title: '정합 실패 (FIT 상승 / OVL 저하)',
+        manualRef: '4. ATMC 모델등록 매뉴얼.pdf · atm_error.pdf',
         steps: [
           { p: '1순위', text: '스캐너 전면 <b>LPF(Low Pass Filter) 렌즈 오염</b> 여부를 확인합니다. 손으로 만지지 말고 반드시 <b>전용 렌즈 와이프</b>로만 닦아주세요.' },
           { p: '2순위', text: '작업 영역에 강한 공장 천장 직사광선이나 용접 아크 빛이 반사되어 포인트 클라우드에 홀(구멍)이 생겼는지 확인합니다.' },
@@ -650,11 +907,22 @@
       },
       {
         code: 'LIMIT NG',
-        title: 'Shift Limit 초과 알람',
+        title: 'Shift Limit 초과 / 기준 틀어짐',
+        manualRef: '6. ATMC 원점 보정 매뉴얼.pdf · 5. ATMC UF좌표계 매뉴얼.pdf',
         steps: [
           { p: '1순위', text: '로봇 충돌 방지를 위한 안전 허용 오차(예: ±15mm, ±5°)를 초과한 상태입니다. 작업물/대차 정위치 안착을 먼저 확인하세요.' },
           { p: '2순위', text: '설비 충격이나 스캐너 브라켓 풀림으로 기준점이 틀어졌다면 <b>6. ATMC 원점 보정 매뉴얼</b> 절차로 기준 원점을 재정렬합니다.' },
-          { p: '3순위', text: '임의로 Limit 수치를 크게 늘리면 로봇과 지그 간 물리적 충돌이 발생할 수 있으므로 주의하세요.', warn: true }
+          { p: '3순위', text: '로봇 JOB이 <code>BASE</code>가 아닌 지정 <code>UF(예: U6)</code>로 교시되어 있는지 확인하고, Limit 수치를 임의로 크게 늘리지 마세요.', warn: true }
+        ]
+      },
+      {
+        code: 'CALIB / CC',
+        title: '캘리브레이션 / 공통좌표계 오차',
+        manualRef: '2. ATMC 로봇 스캐너 캘리브레이션 · 3. ATMC 공통좌표계 매뉴얼.pdf',
+        steps: [
+          { p: '1순위', text: '공통좌표계(CC) 보드 설치 시 정반사(Glare) 방지를 위해 <b>약 15° 기울기</b>가 확보되었는지 확인합니다.' },
+          { p: '2순위', text: 'TransferCalib 수행 중에는 캘리브레이션 보드가 절대 움직이지 않도록(<b>NEVER MOVE</b>) 고정하고 회전 변화는 2° 이내로 유지합니다.' },
+          { p: '3순위', text: '이기종 로봇(현대 ↔ FANUC 등) 혼용 시 <b>TLH 축 방향</b>과 오일러 회전각(ZYX/XYZ) 규약 일치 여부를 재확인하세요.', warn: true }
         ]
       }
     ];
@@ -679,21 +947,109 @@
             <div style="font-size:13px; line-height:1.55;">${s.text}</div>
           </div>
         `).join('')}
+        <div class="manual-ref-box">
+          <div style="font-size:12px; color:#cfe9ef; line-height:1.4;">
+            📚 <b>연계 기술 매뉴얼:</b> ${sel.manualRef}
+          </div>
+          <a href="manual.html" class="manual-ref-link">매뉴얼 자료실 열기 ↗</a>
+        </div>
       `;
     }
 
-    /* 4. 현장 메모장 (localStorage 연동) */
-    const memoIds = ['m-dx', 'm-dy', 'm-dz', 'm-rx', 'm-ry', 'm-rz', 'm-note'];
+    /* 4. 빈출 체크포인트 요약 카드 데이터 (단편 실무 팁 허브) */
+    const checkpointTips = [
+      {
+        cat: 'NET',
+        title: '1.0 Gbps 링크 속도 필수',
+        desc: '100Mbps(초록+초록 LED)로 떨어지면 3D 점군 전송 타임아웃 발생. 랜 케이블 및 허브 포트 즉시 점검.'
+      },
+      {
+        cat: 'NET',
+        title: 'Jumbo Packet 9014 Bytes',
+        desc: '장치관리자 → 네트워크 어댑터 고급 속성에서 점보 패킷 9014 활성화 및 절전/EEE 기능 비활성화.'
+      },
+      {
+        cat: 'SCAN',
+        title: 'LPF 렌즈 와이프만 사용',
+        desc: '스캐너 전면 필터 오염 시 정합 FIT 급등·OVL 급락. 손 터치 및 일반 휴지 금지, 전용 렌즈 와이프로 세척.'
+      },
+      {
+        cat: 'SCAN',
+        title: '프로젝터 다운 시 CP 20초 차단',
+        desc: 'LC4500Bridge [EVENT_DISCONNECTED] 발생 시 SW 재연결로 복구 안 됨. PC 랙 후면 CP 전원 20초 이상 차단 후 재기동.'
+      },
+      {
+        cat: 'ROBOT',
+        title: 'HR-RPC 초기화 범용',
+        desc: '로봇 통신 타임아웃 시 TP [시스템 → 네트워크 → 서비스 → HR-RPC]에서 [초기화 범용] 실행 후 재연결.'
+      },
+      {
+        cat: 'ROBOT',
+        title: 'MOVE 명령 기준 좌표계(UF6)',
+        desc: '로봇 티칭 포인트가 BASE로 교시되면 비전 보정값이 미적용됨. 반드시 지정 UF(예: U6) 기준으로 동작 확인.'
+      },
+      {
+        cat: 'PLC',
+        title: 'Byte / Word Swap 확인',
+        desc: 'PLC-PC 핸드셰이크 비트는 정상인데 보정 좌표 수치가 튀면 통신 설정의 Byte/Word Swap 옵션 반전 점검.'
+      },
+      {
+        cat: 'SCAN',
+        title: 'CC 보드 약 15° 경사 배치',
+        desc: '공통좌표계(CC) 및 캘리브레이션 보드를 0° 평면으로 두면 프로젝터 정반사(Glare) 발생. 약 15° 기울여 설치.'
+      }
+    ];
+
+    let currentTipCat = 'ALL';
+
+    function setTipFilter(cat, btn) {
+      currentTipCat = cat;
+      document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+      btn.classList.add('active');
+      renderCheckpointCards();
+    }
+
+    function renderCheckpointCards() {
+      const q = (document.getElementById('tip-search')?.value || '').trim().toLowerCase();
+      const filtered = checkpointTips.filter(item => {
+        const matchCat = (currentTipCat === 'ALL' || item.cat === currentTipCat);
+        const matchKey = !q || item.title.toLowerCase().includes(q) || item.desc.toLowerCase().includes(q) || item.cat.toLowerCase().includes(q);
+        return matchCat && matchKey;
+      });
+
+      document.getElementById('tip-count').textContent = `${filtered.length}건`;
+      const grid = document.getElementById('checkpoint-grid');
+
+      if (filtered.length === 0) {
+        grid.innerHTML = `<div style="grid-column:1/-1; text-align:center; padding:16px; color:var(--text-muted); font-size:12.5px;">일치하는 체크포인트가 없습니다.</div>`;
+        return;
+      }
+
+      grid.innerHTML = filtered.map(item => `
+        <div class="tip-card">
+          <div class="tip-head">
+            <span class="tip-title">${item.title}</span>
+            <span class="tip-cat">${item.cat}</span>
+          </div>
+          <div class="tip-desc">${item.desc}</div>
+        </div>
+      `).join('');
+    }
+
+    /* 5. 현장 메모장 & 사례 아카이브 (localStorage 연동) */
+    const memoIds = ['m-site', 'm-cat', 'm-log', 'm-dx', 'm-dy', 'm-dz', 'm-rx', 'm-ry', 'm-rz', 'm-note'];
+    const MEMO_KEY = 'atm_field_memo_v12';
+    const ARCHIVE_KEY = 'atm_field_archive_v12';
 
     function saveMemo() {
       const data = {};
       memoIds.forEach(id => { data[id] = document.getElementById(id).value; });
-      localStorage.setItem('atm_field_memo_v1', JSON.stringify(data));
+      localStorage.setItem(MEMO_KEY, JSON.stringify(data));
     }
 
     function loadMemo() {
       try {
-        const raw = localStorage.getItem('atm_field_memo_v1');
+        const raw = localStorage.getItem(MEMO_KEY) || localStorage.getItem('atm_field_memo_v1');
         if (!raw) return;
         const data = JSON.parse(raw);
         memoIds.forEach(id => {
@@ -702,26 +1058,128 @@
       } catch (e) {}
     }
 
-    function copyMemoText() {
-      const dx = document.getElementById('m-dx').value || '0';
-      const dy = document.getElementById('m-dy').value || '0';
-      const dz = document.getElementById('m-dz').value || '0';
-      const rx = document.getElementById('m-rx').value || '0';
-      const ry = document.getElementById('m-ry').value || '0';
-      const rz = document.getElementById('m-rz').value || '0';
-      const note = document.getElementById('m-note').value || '(특이사항 없음)';
+    function buildFormattedReport() {
+      const site = document.getElementById('m-site').value.trim() || '(미기재)';
+      const cat = document.getElementById('m-cat').value;
+      const logTxt = document.getElementById('m-log').value.trim();
+      const dx = document.getElementById('m-dx').value || '0.0';
+      const dy = document.getElementById('m-dy').value || '0.0';
+      const dz = document.getElementById('m-dz').value || '0.0';
+      const rx = document.getElementById('m-rx').value || '0.0';
+      const ry = document.getElementById('m-ry').value || '0.0';
+      const rz = document.getElementById('m-rz').value || '0.0';
+      const note = document.getElementById('m-note').value.trim() || '(특이사항 없음)';
 
-      const text = `[ATM 현장 점검 기록]
-• 6-DOF 보정값: ΔX=${dx}mm, ΔY=${dy}mm, ΔZ=${dz}mm / ΔRx=${rx}°, ΔRy=${ry}°, ΔRz=${rz}°
-• 현장 메모: ${note}`;
+      const now = new Date();
+      const stamp = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')} ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+
+      let lines = [
+        `[ATM 현장 점검·사례 기록] (${stamp})`,
+        `• 현장/라인: ${site}`,
+        `• 구분: ${cat}`
+      ];
+      if (logTxt) lines.push(`• 로그/키워드: ${logTxt}`);
+      lines.push(`• 6-DOF 보정값: ΔX=${dx}mm, ΔY=${dy}mm, ΔZ=${dz}mm / ΔRx=${rx}°, ΔRy=${ry}°, ΔRz=${rz}°`);
+      lines.push(`• 조치/메모: ${note}`);
+      return lines.join('
+');
+    }
+
+    function showToast(msg) {
+      const t = document.getElementById('copy-toast');
+      t.textContent = msg;
+      t.style.display = 'block';
+      setTimeout(() => { t.style.display = 'none'; }, 2600);
+    }
+
+    function copyMemoText() {
+      const text = buildFormattedReport();
       navigator.clipboard.writeText(text).then(() => {
-        const t = document.getElementById('copy-toast');
-        t.style.display = 'block';
-        setTimeout(() => { t.style.display = 'none'; }, 2500);
+        showToast('✓ 보고용 포맷이 클립보드에 복사되었습니다!');
+      });
+    }
+
+    function getArchiveList() {
+      try {
+        return JSON.parse(localStorage.getItem(ARCHIVE_KEY) || '[]');
+      } catch (e) {
+        return [];
+      }
+    }
+
+    function archiveMemoEntry() {
+      const list = getArchiveList();
+      const report = buildFormattedReport();
+      const site = document.getElementById('m-site').value.trim() || '현장 미기재';
+      const cat = document.getElementById('m-cat').value;
+      const now = new Date();
+      const timeStr = `${String(now.getMonth()+1).padStart(2,'0')}/${String(now.getDate()).padStart(2,'0')} ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+
+      list.unshift({ id: Date.now(), time: timeStr, site, cat, report });
+      localStorage.setItem(ARCHIVE_KEY, JSON.stringify(list));
+      renderArchiveList();
+      showToast('✓ 현장 사례 목록에 저장되었습니다.');
+    }
+
+    function renderArchiveList() {
+      const list = getArchiveList();
+      document.getElementById('archive-count').textContent = list.length;
+      const box = document.getElementById('archive-list');
+
+      if (list.length === 0) {
+        box.innerHTML = `<div style="padding:12px; text-align:center; color:var(--text-muted); font-size:12px; background:var(--card-bg); border-radius:7px;">아직 저장된 현장 사례가 없습니다. 위에서 입력 후 [사례 목록에 저장]을 눌러보세요.</div>`;
+        return;
+      }
+
+      box.innerHTML = list.map((item, i) => `
+        <div class="saved-log-item">
+          <div class="saved-log-top">
+            <span style="color:var(--accent-cyan); font-weight:800;">[${item.time}] ${item.site} · ${item.cat}</span>
+            <div style="display:flex; gap:5px;">
+              <button class="mini-btn" onclick="copySingleArchive(${i})">복사</button>
+              <button class="mini-btn" style="color:#ff8792;" onclick="deleteSingleArchive(${i})">삭제</button>
+            </div>
+          </div>
+          <pre style="white-space:pre-wrap; font-family:inherit; font-size:12px; color:#d5e3ed; line-height:1.45;">${item.report}</pre>
+        </div>
+      `).join('');
+    }
+
+    function copySingleArchive(idx) {
+      const list = getArchiveList();
+      if (!list[idx]) return;
+      navigator.clipboard.writeText(list[idx].report).then(() => {
+        showToast('✓ 선택한 사례가 클립보드에 복사되었습니다.');
+      });
+    }
+
+    function deleteSingleArchive(idx) {
+      const list = getArchiveList();
+      list.splice(idx, 1);
+      localStorage.setItem(ARCHIVE_KEY, JSON.stringify(list));
+      renderArchiveList();
+    }
+
+    function copyAllArchived() {
+      const list = getArchiveList();
+      if (list.length === 0) {
+        showToast('⚠️ 저장된 사례가 없습니다.');
+        return;
+      }
+      const joined = list.map(x => x.report).join('
+
+------------------------------
+
+');
+      navigator.clipboard.writeText(joined).then(() => {
+        showToast(`✓ 저장된 ${list.length}건의 사례가 모두 복사되었습니다.`);
       });
     }
 
     function clearMemo() {
+      document.getElementById('m-site').value = '';
+      document.getElementById('m-cat').selectedIndex = 0;
+      document.getElementById('m-log').value = '';
       ['m-dx', 'm-dy', 'm-dz', 'm-rx', 'm-ry', 'm-rz'].forEach(id => document.getElementById(id).value = '0.0');
       document.getElementById('m-note').value = '';
       saveMemo();
@@ -729,7 +1187,9 @@
 
     // 초기 실행
     renderTroubleTab(0);
+    renderCheckpointCards();
     loadMemo();
+    renderArchiveList();
   </script>
 </body>
 </html>
