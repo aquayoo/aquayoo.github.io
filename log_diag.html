@@ -1,0 +1,1145 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>ATMC Log & Alarm Diagnostics Simulator | Season 2 (8 Cases)</title>
+  <style>
+    :root {
+      --bg-dark: #06141d;
+      --atmc-topbar: #041017;
+      --atmc-teal: #0b2c3d;
+      --atmc-teal-light: #123e54;
+      --atmc-border: #1e4d63;
+      --log-bg: #f3efe4;
+      --log-text: #1b242b;
+      --panel-bg: #0e1e2b;
+      --accent-cyan: #00adb5;
+      --ok-green: #2ecc71;
+      --ng-red: #e74c3c;
+      --warn-yellow: #f1c40f;
+      --font-mono: 'Consolas', 'Monaco', 'Courier New', monospace;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', "Noto Sans KR", sans-serif;
+    }
+
+    body {
+      background: var(--bg-dark);
+      color: #e6eff5;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      font-size: 13px;
+    }
+
+    /* 상단 타이틀바 */
+    .atmc-titlebar {
+      background: var(--atmc-topbar);
+      border-bottom: 1px solid var(--atmc-border);
+      padding: 7px 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-shrink: 0;
+      gap: 6px;
+    }
+
+    .app-brand {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      min-width: 0;
+    }
+
+    .atm-logo-box {
+      background: #f5f0e6;
+      color: #d62828;
+      font-weight: 900;
+      font-size: 12px;
+      padding: 2px 6px;
+      border-radius: 2px;
+      letter-spacing: 0.8px;
+      flex-shrink: 0;
+    }
+
+    .app-name {
+      font-size: 13px;
+      color: #a9c5d6;
+      font-weight: 700;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .s2-pill {
+      background: rgba(0, 173, 181, 0.18);
+      border: 1px solid var(--accent-cyan);
+      color: var(--accent-cyan);
+      font-family: var(--font-mono);
+      font-size: 10.5px;
+      font-weight: 800;
+      padding: 2px 7px;
+      border-radius: 4px;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+
+    .top-nav-links {
+      display: flex;
+      gap: 5px;
+      flex-shrink: 0;
+    }
+    .top-link {
+      background: rgba(255,255,255,0.06);
+      border: 1px solid var(--atmc-border);
+      color: #d6e6f0;
+      text-decoration: none;
+      padding: 5px 9px;
+      border-radius: 5px;
+      font-size: 11.5px;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+    .top-link:hover, .top-link:active { border-color: var(--accent-cyan); color: #fff; }
+
+    /* 상단 리본 & 시나리오 바 */
+    .atmc-ribbon {
+      background: #081c28;
+      border-bottom: 1px solid var(--atmc-border);
+      padding: 7px 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+      flex-shrink: 0;
+    }
+
+    .scenario-bar {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;
+      padding-bottom: 1px;
+    }
+    .scenario-bar::-webkit-scrollbar { display: none; }
+
+    .sc-btn {
+      background: #0d2636;
+      border: 1px solid #26536b;
+      color: #cbe0ec;
+      padding: 6px 11px;
+      border-radius: 5px;
+      font-size: 11.5px;
+      font-weight: 700;
+      cursor: pointer;
+      white-space: nowrap;
+      flex-shrink: 0;
+      transition: all 0.15s;
+    }
+    .sc-btn:hover { border-color: var(--accent-cyan); color: #fff; }
+    .sc-btn.active {
+      background: rgba(231, 76, 60, 0.25);
+      border-color: var(--ng-red);
+      color: #ff9a90;
+    }
+    .sc-btn.solved {
+      background: rgba(46, 204, 113, 0.2);
+      border-color: var(--ok-green);
+      color: #7bed9f;
+    }
+
+    .mode-badge {
+      background: var(--ok-green);
+      color: #05140c;
+      font-weight: 900;
+      padding: 5px 12px;
+      border-radius: 4px;
+      font-size: 12px;
+      letter-spacing: 0.5px;
+      flex-shrink: 0;
+    }
+
+    /* 메인 그리드 (데스크톱 2단 / 모바일 1단) */
+    .main-grid {
+      display: grid;
+      grid-template-columns: 1fr 395px;
+      flex: 1;
+      overflow: hidden;
+    }
+
+    /* 좌측: ATMC.App 화면 재현부 */
+    .atmc-screen {
+      display: flex;
+      flex-direction: column;
+      border-right: 2px solid var(--atmc-border);
+      overflow: hidden;
+      background: #051017;
+    }
+
+    /* 상단 뷰어 영역 */
+    .cam-viewport {
+      position: relative;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 4px;
+      padding: 4px;
+      height: 40%;
+      min-height: 170px;
+      background: #040d14;
+    }
+
+    .cam-box {
+      background: #02060a;
+      border: 1px solid var(--atmc-border);
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+    }
+    .cam-header {
+      background: var(--atmc-teal);
+      text-align: center;
+      padding: 4px;
+      font-size: 11px;
+      font-weight: 700;
+      color: #cde3ef;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .cam-canvas {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      color: #6b889c;
+      font-family: var(--font-mono);
+      font-size: 11.5px;
+      padding: 8px;
+      text-align: center;
+      line-height: 1.4;
+    }
+
+    /* 노란/빨간 빗금 경고 배너 */
+    .alarm-banner-overlay {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 86%;
+      max-width: 520px;
+      background: repeating-linear-gradient(
+        -45deg,
+        #f1c40f,
+        #f1c40f 12px,
+        #d4ac0d 12px,
+        #d4ac0d 24px
+      );
+      border: 3px solid #c0392b;
+      border-radius: 6px;
+      padding: 4px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+      z-index: 20;
+      transition: all 0.25s ease;
+    }
+    .alarm-banner-inner {
+      background: #1a1508;
+      color: #ffeb3b;
+      padding: 10px 12px;
+      text-align: center;
+      border-radius: 3px;
+    }
+    .alarm-banner-inner .alarm-code {
+      font-family: var(--font-mono);
+      font-size: 14.5px;
+      font-weight: 900;
+      color: #ff5252;
+      margin-bottom: 3px;
+      word-break: keep-all;
+    }
+    .alarm-banner-inner .alarm-desc {
+      font-size: 11.5px;
+      color: #f7e9a0;
+      line-height: 1.4;
+    }
+    .alarm-banner-overlay.cleared {
+      opacity: 0;
+      pointer-events: none;
+      transform: translate(-50%, -60%) scale(0.95);
+    }
+
+    /* 중단 정보 패널 */
+    .atmc-mid-strip {
+      display: grid;
+      grid-template-columns: 185px 200px 95px 1fr;
+      border-top: 1px solid var(--atmc-border);
+      border-bottom: 1px solid var(--atmc-border);
+      background: #0b2230;
+      min-height: 142px;
+      flex-shrink: 0;
+    }
+
+    .counter-col {
+      display: flex;
+      flex-direction: column;
+      border-right: 1px solid var(--atmc-border);
+    }
+    .cnt-top {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      text-align: center;
+      font-weight: 900;
+      font-size: 11px;
+    }
+    .cnt-ok { background: #2ecc71; color: #061a0e; padding: 5px 2px; }
+    .cnt-ng { background: #e74c3c; color: #1c0503; padding: 5px 2px; }
+    .cnt-tot { background: #dfe6e9; color: #111; padding: 5px 2px; }
+    .cnt-num { font-size: 16px; display: block; margin-top: 1px; }
+
+    .model-rows {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-around;
+      background: #7f949e;
+      color: #0b171e;
+      font-weight: 800;
+      font-size: 11px;
+    }
+    .m-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 3px 8px;
+      border-top: 1px solid #637882;
+    }
+
+    .io-mini {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      background: #ece7d8;
+      color: #111;
+      border-right: 1px solid var(--atmc-border);
+      font-family: var(--font-mono);
+      font-size: 10.5px;
+    }
+    .io-col { border-right: 1px solid #b8b2a2; }
+    .io-head {
+      background: #143b4f;
+      color: #fff;
+      font-weight: 700;
+      padding: 3px 4px;
+      text-align: center;
+    }
+    .io-line {
+      padding: 3px 5px;
+      border-bottom: 1px solid #d5cfc0;
+      display: flex;
+      justify-content: space-between;
+    }
+    .io-line.on { background: #2ecc71; font-weight: 800; }
+    .io-line.err { background: #ff6b6b; color: #fff; font-weight: 800; }
+
+    .judge-box {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 30px;
+      font-weight: 900;
+      background: #e1b12c;
+      color: #111;
+      border-right: 1px solid var(--atmc-border);
+    }
+    .judge-box.ng { background: #e74c3c; color: #fff; }
+    .judge-box.ok { background: #2ecc71; color: #051b0e; }
+
+    .shift-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      padding: 6px 8px;
+      gap: 4px 6px;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      align-content: center;
+    }
+    .sh-item {
+      display: flex;
+      justify-content: space-between;
+      background: #071722;
+      padding: 4px 6px;
+      border-radius: 3px;
+      border: 1px solid #16374a;
+    }
+    .sh-val.bad { color: #ff6b6b; font-weight: 900; }
+    .sh-val.good { color: #2ecc71; font-weight: 900; }
+
+    /* 하단 실시간 로그 터미널 */
+    .log-terminal {
+      flex: 1;
+      background: var(--log-bg);
+      color: var(--log-text);
+      font-family: var(--font-mono);
+      font-size: 11.5px;
+      padding: 8px 10px;
+      overflow-y: auto;
+      line-height: 1.5;
+      min-height: 135px;
+    }
+    .log-line { white-space: pre-wrap; word-break: break-all; margin-bottom: 2px; }
+    .log-err { color: #c0392b; font-weight: 700; background: rgba(231, 76, 60, 0.12); padding: 1px 3px; }
+    .log-warn { color: #b7791f; font-weight: 700; }
+    .log-ok { color: #1e824c; font-weight: 700; }
+    .log-info { color: #1f4e78; }
+
+    /* 최하단 상태바 */
+    .atmc-statusbar {
+      background: #030a0f;
+      border-top: 1px solid var(--atmc-border);
+      padding: 5px 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      flex-shrink: 0;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    .hw-tabs {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      flex-wrap: wrap;
+    }
+    .hw-led {
+      padding: 4px 10px;
+      font-weight: 900;
+      border-radius: 3px;
+      cursor: pointer;
+      user-select: none;
+      transition: transform 0.1s;
+    }
+    .hw-led:active { transform: scale(0.95); }
+    .hw-led.ok { background: #2ecc71; color: #05180c; }
+    .hw-led.err { background: #e74c3c; color: #fff; animation: blinkErr 1.2s infinite; }
+    @keyframes blinkErr { 50% { opacity: 0.72; } }
+
+    /* 우측: 진단 & 복구 워크벤치 */
+    .diag-workbench {
+      background: var(--panel-bg);
+      display: flex;
+      flex-direction: column;
+      overflow-y: auto;
+      padding: 12px;
+      gap: 10px;
+    }
+
+    .wb-card {
+      background: #09151f;
+      border: 1px solid var(--atmc-border);
+      border-radius: 8px;
+      padding: 12px;
+    }
+
+    .wb-title {
+      font-size: 13.5px;
+      font-weight: 800;
+      color: var(--accent-cyan);
+      margin-bottom: 7px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .option-list {
+      display: flex;
+      flex-direction: column;
+      gap: 7px;
+    }
+
+    .diag-opt {
+      background: #102433;
+      border: 1px solid #22475e;
+      color: #e2eff7;
+      padding: 11px 12px;
+      min-height: 44px;
+      border-radius: 6px;
+      text-align: left;
+      cursor: pointer;
+      font-size: 12.5px;
+      line-height: 1.45;
+      transition: all 0.15s;
+    }
+    .diag-opt:hover { border-color: var(--accent-cyan); background: #153145; }
+    .diag-opt.correct { border-color: var(--ok-green); background: rgba(46, 204, 113, 0.22); color: #9bf6be; font-weight: 700; }
+    .diag-opt.wrong { border-color: var(--ng-red); background: rgba(231, 76, 60, 0.22); color: #ff9f96; }
+
+    .feedback-box {
+      padding: 11px 12px;
+      border-radius: 6px;
+      font-size: 12.5px;
+      line-height: 1.55;
+      display: none;
+    }
+    .feedback-box.ok { display: block; background: rgba(46, 204, 113, 0.15); border: 1px solid var(--ok-green); color: #a3f7c4; }
+    .feedback-box.err { display: block; background: rgba(231, 76, 60, 0.16); border: 1px solid var(--ng-red); color: #ffa69e; }
+
+    .hw-shortcut-tip {
+      background: rgba(241, 196, 15, 0.1);
+      border: 1px dashed rgba(241, 196, 15, 0.45);
+      border-radius: 6px;
+      padding: 9px 11px;
+      font-size: 11.8px;
+      color: #f6e59c;
+      line-height: 1.5;
+    }
+
+    /* 태블릿 및 스마트폰(iPhone 14 Pro 393px / 삼성 갤럭시 360~412px) 반응형 레이아웃 */
+    @media (max-width: 1080px) {
+      body {
+        height: auto;
+        min-height: 100vh;
+        overflow-y: auto;
+      }
+      .main-grid {
+        grid-template-columns: 1fr;
+        overflow: visible;
+      }
+      .atmc-screen {
+        border-right: none;
+        border-bottom: 2px solid var(--atmc-border);
+        overflow: visible;
+      }
+      .atmc-mid-strip {
+        grid-template-columns: 1fr 1fr;
+        height: auto;
+      }
+      .judge-box {
+        border-top: 1px solid var(--atmc-border);
+        padding: 10px 0;
+        font-size: 26px;
+      }
+      .shift-grid {
+        border-top: 1px solid var(--atmc-border);
+        grid-template-columns: repeat(2, 1fr);
+      }
+      .log-terminal {
+        max-height: 195px;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .s2-pill, .ver-text-hide { display: none; }
+      .app-name { font-size: 12.5px; }
+      .cam-viewport {
+        min-height: 145px;
+      }
+      .alarm-banner-overlay {
+        width: 92%;
+      }
+      .alarm-banner-inner .alarm-code {
+        font-size: 13px;
+      }
+      .atmc-mid-strip {
+        grid-template-columns: 1fr;
+      }
+      .counter-col, .io-mini, .judge-box {
+        border-right: none;
+        border-bottom: 1px solid var(--atmc-border);
+      }
+      .shift-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+      .hw-led {
+        padding: 6px 11px;
+        font-size: 11.5px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- 상단 타이틀바 -->
+  <div class="atmc-titlebar">
+    <div class="app-brand">
+      <span class="atm-logo-box">ATM</span>
+      <span class="app-name">ATMC.Diagnostics_Trainer</span>
+      <span class="s2-pill">SEASON 2 · 8 CASES</span>
+    </div>
+    <div class="top-nav-links">
+      <a href="field_kit.html" class="top-link">📱 툴킷</a>
+      <a href="manual.html" class="top-link">📚 매뉴얼</a>
+      <a href="index.html" class="top-link">🏠 홈</a>
+    </div>
+  </div>
+
+  <!-- 시나리오 선택 바 -->
+  <div class="atmc-ribbon">
+    <div class="scenario-bar" id="scenario-buttons"></div>
+    <div class="mode-badge">AUTO</div>
+  </div>
+
+  <!-- 메인 2단 그리드 -->
+  <div class="main-grid">
+
+    <!-- 좌측: ATMC.App 화면 재현 -->
+    <div class="atmc-screen">
+      <!-- 상단 카메라 뷰포트 + 경고 배너 -->
+      <div class="cam-viewport">
+        <div class="cam-box">
+          <div class="cam-header">SCANNER 0 (S0)</div>
+          <div class="cam-canvas" id="s0-view">No 3D Scan Data</div>
+        </div>
+        <div class="cam-box">
+          <div class="cam-header">SCANNER 1 (S1)</div>
+          <div class="cam-canvas" id="s1-view">No 3D Scan Data</div>
+        </div>
+
+        <!-- 실제 현장 경고창 오버레이 -->
+        <div class="alarm-banner-overlay" id="alarm-banner">
+          <div class="alarm-banner-inner">
+            <div class="alarm-code" id="banner-code">SCANNER[0] is not connected!</div>
+            <div class="alarm-desc" id="banner-desc">하단 로그창과 상태 LED를 확인하여 원인을 진단하세요.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 중단 카운터 / I/O / 판정 / SHIFT -->
+      <div class="atmc-mid-strip">
+        <div class="counter-col">
+          <div class="cnt-top">
+            <div class="cnt-ok">OK<span class="cnt-num" id="cnt-ok">124</span></div>
+            <div class="cnt-ng">NG<span class="cnt-num" id="cnt-ng">3</span></div>
+            <div class="cnt-tot">TOTAL<span class="cnt-num" id="cnt-tot">127</span></div>
+          </div>
+          <div class="model-rows">
+            <div class="m-row"><span>MODEL</span><span id="disp-model">HLA(8)</span></div>
+            <div class="m-row"><span>BODY_NO</span><span>82158</span></div>
+            <div class="m-row"><span>SEQ_NO</span><span>00412</span></div>
+          </div>
+        </div>
+
+        <div class="io-mini" id="io-mini-box"></div>
+
+        <div class="judge-box ng" id="judge-box">NG</div>
+
+        <div class="shift-grid" id="shift-grid"></div>
+      </div>
+
+      <!-- 하단 로그 터미널 -->
+      <div class="log-terminal" id="log-terminal"></div>
+
+      <!-- 최하단 상태바 (Windows Ctrl / macOS Cmd / 모바일 Tap 모두 지원) -->
+      <div class="atmc-statusbar">
+        <div class="hw-tabs">
+          <span class="ver-text-hide" style="color:#7c98ab; margin-right:4px;">ver: 1.24.1228</span>
+          <span class="hw-led ok" id="led-plc" onclick="handleHwTouch(event, 'PLC')" ondblclick="handleHwDblClick(event, 'PLC')">PLC</span>
+          <span class="hw-led err" id="led-s0" onclick="handleHwTouch(event, 'S0')" ondblclick="handleHwDblClick(event, 'S0')">SCANNER0</span>
+          <span class="hw-led ok" id="led-s1" onclick="handleHwTouch(event, 'S1')" ondblclick="handleHwDblClick(event, 'S1')">SCANNER1</span>
+          <span class="hw-led ok" id="led-robot" onclick="handleHwTouch(event, 'ROBOT')" ondblclick="handleHwDblClick(event, 'ROBOT')">ROBOT0</span>
+        </div>
+        <span style="color:#7c98ab; font-size:10.5px;" id="os-hint-badge">Win: Ctrl+더블클릭 | Mac: Cmd+더블클릭</span>
+      </div>
+    </div>
+
+    <!-- 우측: 트러블슈팅 진단 & 복구 워크벤치 -->
+    <aside class="diag-workbench">
+      <div class="wb-card">
+        <div class="wb-title">
+          <span>🔍 STEP 1. 로그 기반 원인 판독</span>
+          <span id="sc-badge" style="font-family:var(--font-mono); font-size:11px; color:#f1c40f;">CASE 1/8</span>
+        </div>
+        <div style="font-size:12px; color:#9ab5c7; margin-bottom:9px;">
+          베이지색 로그창의 <b>붉은색 에러 메시지</b>를 읽고 정확한 발생 원인을 선택하세요.
+        </div>
+        <div class="option-list" id="cause-options"></div>
+      </div>
+
+      <div class="wb-card">
+        <div class="wb-title">
+          <span>🛠️ STEP 2. 현장 복구 조치 실행</span>
+        </div>
+        <div style="font-size:12px; color:#9ab5c7; margin-bottom:9px;">
+          원인에 맞는 표준 복구 절차를 실행해 시스템을 정상(OK) 상태로 되돌리세요.
+        </div>
+        <div class="option-list" id="action-options"></div>
+      </div>
+
+      <div class="feedback-box" id="diag-feedback"></div>
+
+      <div class="hw-shortcut-tip" id="shortcut-guide-box">
+        💡 <b>현장 조작 팁:</b> 하단 상태바의 적색 탭(<code>PLC</code>, <code>SCANNER0</code>, <code>ROBOT0</code>)을
+        <b>Windows는 Ctrl+더블클릭</b>, <b>Mac은 Cmd(⌘)+더블클릭</b>(모바일은 1회 탭)하면 소프트웨어 재연결 테스트가 실행됩니다.
+      </div>
+    </aside>
+
+  </div>
+
+  <script>
+    /* =========================================================================
+       현장 실제 로그 및 트러블슈팅 시나리오 8종 (기본 5종 + 신규 3종)
+       ========================================================================= */
+    const scenarios = [
+      {
+        id: 0,
+        shortTitle: '1. 스캐너 단선 (Cable)',
+        bannerCode: 'SCANNER[0] is not connected!',
+        bannerDesc: 'S0 스캐너 통신이 끊어졌습니다. 로그를 분석해 원인을 찾으세요.',
+        leds: { PLC: 'ok', S0: 'err', S1: 'ok', ROBOT: 'ok' },
+        judge: { text: 'ERR', cls: 'ng' },
+        s0Text: '[OFFLINE] No Basler GigE devices found.',
+        s1Text: '[READY] PointCloud 48,120 pts',
+        shift: { dx: '0.000', dy: '0.000', dz: '0.000', rx: '0.000', ry: '0.000', rz: '0.000', fit: '0.000', ovl: '0%', bad: true },
+        io: {
+          r: [{ n: '0 RESET', on: false }, { n: '1 START', on: true }, { n: '2 S0_SCAN', on: true }],
+          w: [{ n: '0 READY', on: false }, { n: '1 HW_ERR', err: true }, { n: '15 PCRUN', on: true }]
+        },
+        logs: [
+          { t: 'info', m: '[09:14:22.104] PLC[Melsec].DI.START = True' },
+          { t: 'info', m: '[09:14:22.118] PLC[Melsec].DI.S0_SCAN = True' },
+          { t: 'err',  m: '[09:14:22.405] [SCANNER0] Exception: The camera device has been physically removed.' },
+          { t: 'err',  m: '[09:14:22.408] SCANNER[0] is not connected!' },
+          { t: 'warn', m: '[09:14:22.412] PLC.DO.HW_ERR = True' }
+        ],
+        causes: [
+          { text: 'LAN 케이블 손상 또는 RJ45 커넥터 체결 불량 (물리적 링크 단선)', ok: true },
+          { text: '프로젝터 내부 펌웨어 다운 (LC4500Bridge 충돌)', ok: false },
+          { text: 'PLC 포트 번호(5020) 및 디바이스 어드레스 오타', ok: false }
+        ],
+        actions: [
+          { text: 'LAN 케이블/RJ45 재체결 및 1.0Gbps 링크 확인 후 SCANNER0 재연결', ok: true },
+          { text: '현대로봇 TP에서 HR-RPC [초기화 범용] 실행', ok: false },
+          { text: 'CONFIG에서 InputDevice를 D300으로 수정', ok: false }
+        ],
+        explain: '정확합니다! 로그에 <b>"The camera device has been physically removed"</b>가 출력되면 99% LAN 케이블 단선 또는 커넥터 풀림입니다. 케이블 재체결 및 제어판 <b>1.0 Gbps</b> 속도 확인 후 하단 SCANNER0 탭을 재연결합니다.',
+        ctrlDblTarget: 'S0'
+      },
+      {
+        id: 1,
+        shortTitle: '2. 프로젝터 펌웨어 다운',
+        bannerCode: 'SCANNER[0] Projector Disconnected',
+        bannerDesc: '카메라는 인식되나 구조광 패턴이 투사되지 않습니다.',
+        leds: { PLC: 'ok', S0: 'err', S1: 'ok', ROBOT: 'ok' },
+        judge: { text: 'ERR', cls: 'ng' },
+        s0Text: '[WARN] Camera OK / Projector Bridge Lost',
+        s1Text: '[READY] PointCloud 47,890 pts',
+        shift: { dx: '0.000', dy: '0.000', dz: '0.000', rx: '0.000', ry: '0.000', rz: '0.000', fit: '0.000', ovl: '0%', bad: true },
+        io: {
+          r: [{ n: '0 RESET', on: false }, { n: '1 START', on: true }, { n: '2 S0_SCAN', on: true }],
+          w: [{ n: '0 READY', on: false }, { n: '1 HW_ERR', err: true }, { n: '15 PCRUN', on: true }]
+        },
+        logs: [
+          { t: 'info', m: '[10:04:38.910] Basler acA1300-60gm (24383077) EVENT_CONNECTED' },
+          { t: 'err',  m: '[10:04:40.142] [LC4500Bridge] EVENT_DISCONNECTED (Timeout)' },
+          { t: 'err',  m: '[10:04:40.155] Failed to project structured light pattern on S0.' },
+          { t: 'warn', m: '[10:04:40.160] PLC.DO.HW_ERR = True' }
+        ],
+        causes: [
+          { text: '스캐너 내부 프로젝터(LC4500Bridge) 펌웨어 일시 다운', ok: true },
+          { text: 'HandEye_S0.json 파일 경로 누락', ok: false },
+          { text: '스캐너 전면 LPF 렌즈 먼지 오염', ok: false }
+        ],
+        actions: [
+          { text: 'PC 랙 후면 스캐너 CP 전원 차단 → 20초 이상 대기 후 재투입(리부팅)', ok: true },
+          { text: '전용 렌즈 와이프로 카메라 렌즈 표면 세척', ok: false },
+          { text: 'PLC IP 주소를 192.168.0.1로 변경', ok: false }
+        ],
+        explain: '정확합니다! <b>LC4500Bridge [EVENT_DISCONNECTED]</b> 로그는 프로젝터 제어 보드 펌웨어가 응답을 멈춘 상태입니다. 소프트웨어 재연결만으로는 복구되지 않으며, 반드시 <b>전원(CP)을 내리고 20초 이상 완전 방전 후 재부팅</b>해야 합니다.',
+        ctrlDblTarget: 'S0'
+      },
+      {
+        id: 2,
+        shortTitle: '3. 로봇 HR-RPC 타임아웃',
+        bannerCode: 'ROBOT[0] is not connected!',
+        bannerDesc: '현대로봇 제어기와 HR-RPC 소켓 통신이 실패했습니다.',
+        leds: { PLC: 'ok', S0: 'ok', S1: 'ok', ROBOT: 'err' },
+        judge: { text: 'ERR', cls: 'ng' },
+        s0Text: '[OK] PointCloud Acquired (49,200 pts)',
+        s1Text: '[OK] PointCloud Acquired (48,510 pts)',
+        shift: { dx: '2.140', dy: '-1.320', dz: '0.850', rx: '0.120', ry: '-0.080', rz: '0.210', fit: '0.380', ovl: '95%', bad: false },
+        io: {
+          r: [{ n: '0 RESET', on: false }, { n: '1 START', on: true }, { n: '2 S0_SCAN', on: false }],
+          w: [{ n: '0 READY', on: false }, { n: '1 HW_ERR', err: true }, { n: '15 PCRUN', on: true }]
+        },
+        logs: [
+          { t: 'info', m: '[11:22:45.102] Loading registry data @[HyundaiRobotRPC]...' },
+          { t: 'info', m: '[11:22:45.110] [HostIP]: 10.10.10.100 / [RobotIP]: 10.10.10.55' },
+          { t: 'err',  m: '[11:22:45.858] [HyundaiRobot0] Failed to connect. (ReadTimeout: 10000)' },
+          { t: 'err',  m: '[11:22:47.889] Failed to find DO pin with Name='S0_READY'' }
+        ],
+        causes: [
+          { text: '현대로봇 제어기 HR-RPC 서비스 소켓 잠김 또는 LAN 1 통신 단절', ok: true },
+          { text: 'ICP 정합 오차(FIT) 임계치 초과', ok: false },
+          { text: 'Siemens S7 PLC 메모리 어드레스 오류', ok: false }
+        ],
+        actions: [
+          { text: '현대로봇 TP [시스템 → 네트워크 → 서비스 → HR-RPC]에서 [초기화 범용] 실행 후 ROBOT0 재연결', ok: true },
+          { text: '스캐너 노출(Exposure) 값을 2배로 증가', ok: false },
+          { text: '모델 파일(.ply)을 삭제 후 재등록', ok: false }
+        ],
+        explain: '정확합니다! 현대로봇 제어기 재부팅 직후나 비정상 종료 후에는 HR-RPC 서비스 포트가 잠길 수 있습니다. TP의 <b>HR-RPC 메뉴에서 [초기화 범용]</b>을 누른 뒤 ATMC 하단 <b>ROBOT0 탭을 재연결</b>하면 즉시 복구됩니다.',
+        ctrlDblTarget: 'ROBOT'
+      },
+      {
+        id: 3,
+        shortTitle: '4. PLC 어드레스 오설정',
+        bannerCode: 'PLC is not connected!',
+        bannerDesc: 'PLC 통신 초기화 중 디바이스 어드레스 파싱 오류가 발생했습니다.',
+        leds: { PLC: 'err', S0: 'ok', S1: 'ok', ROBOT: 'ok' },
+        judge: { text: '--', cls: '' },
+        s0Text: '[STANDBY] Scanner Ready',
+        s1Text: '[STANDBY] Scanner Ready',
+        shift: { dx: '0.000', dy: '0.000', dz: '0.000', rx: '0.000', ry: '0.000', rz: '0.000', fit: '0.000', ovl: '0%', bad: false },
+        io: {
+          r: [{ n: '0 RESET', on: false }, { n: '1 START', on: false }, { n: '2 S0_SCAN', on: false }],
+          w: [{ n: '0 READY', on: false }, { n: '1 HW_ERR', on: false }, { n: '15 PCRUN', on: false }]
+        },
+        logs: [
+          { t: 'info', m: '[09:31:19.639] PCRUN is enabled!' },
+          { t: 'err',  m: '[09:31:19.639] PLC[Siemens S7] Invalid PLC address: D0000' },
+          { t: 'err',  m: '[09:31:19.639] PLC[Siemens S7] Invalid PLC address: D0000' },
+          { t: 'err',  m: '[09:31:20.102] PLC is not connected!' }
+        ],
+        causes: [
+          { text: 'CONFIG → PLC 설정의 입출력 디바이스 영역(Input/OutputDevice) 주소 오타', ok: true },
+          { text: '스캐너 LPF 렌즈 오염으로 인한 3D 점군 노이즈', ok: false },
+          { text: '로봇 툴(TCP) 무게중심 설정 누락', ok: false }
+        ],
+        actions: [
+          { text: 'CONFIG → PLC 탭에서 올바른 디바이스 영역(DB/X/Y/D300 등) 수정 및 저장 후 재연결', ok: true },
+          { text: '스캐너 CP 전원을 20초간 껐다 켜기', ok: false },
+          { text: '현대로봇 티칭 펜던트 속도를 10%로 하향', ok: false }
+        ],
+        explain: '정확합니다! 로그에 <b>Invalid PLC address: D0000</b>가 반복 출력되는 것은 통신 선로 문제가 아니라 <b>CONFIG → PLC 설정의 디바이스 주소 표기 오류</b> 때문입니다. 사양서에 맞는 디바이스 영역을 기입 후 저장하세요.',
+        ctrlDblTarget: 'PLC'
+      },
+      {
+        id: 4,
+        shortTitle: '5. 정합 품질 NG (FIT/OVL)',
+        bannerCode: 'RESULT NG : FIT / OVL Threshold Exceeded',
+        bannerDesc: '장비 통신은 모두 정상이나 3D 정합 품질 불량으로 NG가 발생했습니다.',
+        leds: { PLC: 'ok', S0: 'ok', S1: 'ok', ROBOT: 'ok' },
+        judge: { text: 'NG', cls: 'ng' },
+        s0Text: '[NG] High Noise / LPF Blur Detected',
+        s1Text: '[OK] PointCloud Acquired (48,900 pts)',
+        shift: { dx: '18.450', dy: '-9.120', dz: '4.300', rx: '3.410', ry: '-2.150', rz: '5.820', fit: '4.850', ovl: '58%', bad: true },
+        io: {
+          r: [{ n: '0 RESET', on: false }, { n: '1 START', on: true }, { n: '2 S0_SCAN', on: false }],
+          w: [{ n: '2 S0_OK', on: false }, { n: '3 S0_NG', err: true }, { n: '15 PCRUN', on: true }]
+        },
+        logs: [
+          { t: 'info', m: '[14:33:25.110] S0 3D Scan completed (312 ms)' },
+          { t: 'warn', m: '[14:33:25.240] ICP Matching Warning: Low overlap ratio (OVL=58% < 80%)' },
+          { t: 'err',  m: '[14:33:25.245] Fitness error exceeded limit (FIT=4.850 > 1.500) -> S0_NG' },
+          { t: 'err',  m: '[14:33:25.250] Shift Limit Exceeded! Robot motion blocked for safety.' }
+        ],
+        causes: [
+          { text: '스캐너 전면 LPF 렌즈 오염/이물질 또는 작업물 지그 안착 불량으로 점군 왜곡', ok: true },
+          { text: 'LAN 1번 로봇 케이블 단선', ok: false },
+          { text: 'Windows 11 정품 인증 만료', ok: false }
+        ],
+        actions: [
+          { text: '전용 렌즈 와이프로 LPF 렌즈 세척(손 접촉 금지) 및 작업물 정위치 안착 후 재스캔', ok: true },
+          { text: '로봇 충돌 방지를 위해 Shift Limit 허용치를 ±50mm로 대폭 완화', ok: false },
+          { text: 'PLC 포트 번호를 5020에서 8080으로 변경', ok: false }
+        ],
+        explain: '정확합니다! 통신 LED가 모두 초록색인데 <b>FIT 급등·OVL 급락(58%)</b>이 발생하면 스캐너 전면 <b>LPF 필터 오염(절대 손으로 만지지 말고 렌즈 와이프로 세척)</b> 또는 부품 안착 불량을 최우선 점검해야 합니다. 임의로 Limit을 넓히면 로봇 충돌 위험이 커집니다!',
+        ctrlDblTarget: null
+      },
+      {
+        id: 5,
+        shortTitle: '6. HandEye JSON 누락',
+        bannerCode: 'CONFIG ERROR : HandEye_S0.json Missing',
+        bannerDesc: '프로그램 기동 시 캘리브레이션 변환 행렬 파일을 로드하지 못했습니다.',
+        leds: { PLC: 'ok', S0: 'err', S1: 'ok', ROBOT: 'ok' },
+        judge: { text: 'ERR', cls: 'ng' },
+        s0Text: '[ERR] Hand-Eye Matrix Not Loaded',
+        s1Text: '[OK] Hand-Eye Matrix Loaded',
+        shift: { dx: '0.000', dy: '0.000', dz: '0.000', rx: '0.000', ry: '0.000', rz: '0.000', fit: '0.000', ovl: '0%', bad: true },
+        io: {
+          r: [{ n: '0 RESET', on: false }, { n: '1 START', on: false }, { n: '2 S0_SCAN', on: false }],
+          w: [{ n: '0 READY', on: false }, { n: '1 HW_ERR', err: true }, { n: '15 PCRUN', on: true }]
+        },
+        logs: [
+          { t: 'info', m: '[08:45:10.012] Initializing Hand-Eye calibration matrices...' },
+          { t: 'err',  m: '[08:45:10.045] Could not open json file './ATMC.App.Settings/HandEye_S0.json'' },
+          { t: 'err',  m: '[08:45:10.048] [SCANNER0] Failed to initialize coordinate transform.' },
+          { t: 'warn', m: '[08:45:10.052] System startup aborted: Calibration data missing.' }
+        ],
+        causes: [
+          { text: 'Settings 폴더 내 HandEye_S0.json 캘리브레이션 파일 유실 또는 경로 지정 오류', ok: true },
+          { text: '로봇 그리퍼 진공 흡착 센서(DI13) 단선', ok: false },
+          { text: 'LAN 2번 PLC 케이블 연결 해제', ok: false }
+        ],
+        actions: [
+          { text: '백업 폴더에서 HandEye_S0.json 복원(또는 CONFIG 경로 재지정) 후 프로그램 재기동', ok: true },
+          { text: '스캐너 프로젝터 밝기(LED Current)를 최대로 설정', ok: false },
+          { text: '현대로봇 TP의 비상정지(E-STOP) 버튼을 눌렀다 해제', ok: false }
+        ],
+        explain: '정확합니다! <b>"Could not open json file './ATMC.App.Settings/HandEye_S0.json'"</b> 로그는 로봇-스캐너 좌표 변환 행렬 파일이 삭제되었거나 설정 경로가 틀어졌을 때 발생합니다. 백업된 <code>HandEye_S0.json</code>을 복원한 뒤 재기동해야 정확한 3D 보정 좌표가 산출됩니다.',
+        ctrlDblTarget: 'S0'
+      },
+      {
+        id: 6,
+        shortTitle: '7. 차종 REF 모델(.ply) 누락',
+        bannerCode: 'MODEL LOAD ERROR : REF.ply Not Found',
+        bannerDesc: 'PLC에서 수신한 차종 번호에 해당하는 기준 3D 모델 파일이 없습니다.',
+        leds: { PLC: 'ok', S0: 'ok', S1: 'ok', ROBOT: 'ok' },
+        judge: { text: 'NG', cls: 'ng' },
+        s0Text: '[OK] PointCloud Acquired (49,050 pts)',
+        s1Text: '[ERR] Target REF.ply Missing (Type=33)',
+        shift: { dx: '0.000', dy: '0.000', dz: '0.000', rx: '0.000', ry: '0.000', rz: '0.000', fit: '0.000', ovl: '0%', bad: true },
+        io: {
+          r: [{ n: '1 START', on: true }, { n: '8 MODEL_33', on: true }, { n: '3 S1_SCAN', on: true }],
+          w: [{ n: '4 S1_OK', on: false }, { n: '5 S1_NG', err: true }, { n: '15 PCRUN', on: true }]
+        },
+        logs: [
+          { t: 'info', m: '[13:12:04.220] PLC Model Code Received: Type = 33 (OS_EV)' },
+          { t: 'err',  m: '[13:12:04.235] File does not exist (C:\LotusAPI\bin\...\Models\OS_EV\hole_model_base.ply)' },
+          { t: 'err',  m: '[13:12:04.238] ICP Aligner aborted: Reference model is null.' },
+          { t: 'warn', m: '[13:12:04.242] PLC.DO.S1_NG = True' }
+        ],
+        causes: [
+          { text: '신규 투입 차종(OS_EV, Type=33)의 Models 폴더 경로 또는 기준 .ply 파일 미등록', ok: true },
+          { text: '비전 PC 랜카드 링크 속도가 100Mbps로 저하됨', ok: false },
+          { text: '현대로봇 HR-RPC 서비스 포트 잠김', ok: false }
+        ],
+        actions: [
+          { text: 'CONFIG → MODELS에서 Type 33(OS_EV)의 ModelDir 경로 및 기준 .ply 파일 등록 후 Reload', ok: true },
+          { text: '스캐너 CP 전원을 20초 차단 후 재투입', ok: false },
+          { text: '로봇 툴 무게(Payload) 자동 계측 재실행', ok: false }
+        ],
+        explain: '정확합니다! 로그에 <b>"File does not exist (...\Models\OS_EV\hole_model_base.ply)"</b>가 출력되면 PLC가 보낸 차종 코드(Type=33)에 매핑된 폴더나 기준 3D 모델(<code>.ply</code>)이 없는 상태입니다. <b>CONFIG → MODELS</b>에서 모델 경로와 파일을 등록한 뒤 Reload해야 합니다.',
+        ctrlDblTarget: null
+      },
+      {
+        id: 7,
+        shortTitle: '8. 링크 속도 100Mbps 저하',
+        bannerCode: 'SCANNER[1] Frame Drop / Incomplete 3D',
+        bannerDesc: '스캐너 연결은 되었으나 3D 점군 데이터가 잘리거나 타임아웃이 빈발합니다.',
+        leds: { PLC: 'ok', S0: 'ok', S1: 'err', ROBOT: 'ok' },
+        judge: { text: 'NG', cls: 'ng' },
+        s0Text: '[OK] PointCloud Acquired (48,910 pts)',
+        s1Text: '[WARN] Packet Loss 42% (Link: 100Mbps)',
+        shift: { dx: '0.000', dy: '0.000', dz: '0.000', rx: '0.000', ry: '0.000', rz: '0.000', fit: '0.000', ovl: '14%', bad: true },
+        io: {
+          r: [{ n: '0 RESET', on: false }, { n: '1 START', on: true }, { n: '3 S1_SCAN', on: true }],
+          w: [{ n: '4 S1_OK', on: false }, { n: '5 S1_NG', err: true }, { n: '15 PCRUN', on: true }]
+        },
+        logs: [
+          { t: 'info', m: '[15:40:11.015] [SCANNER1] Triggering 24-pattern structured light sequence...' },
+          { t: 'warn', m: '[15:40:11.620] GigE Vision Grab Warning: Incomplete frame buffer (14/24 images).' },
+          { t: 'err',  m: '[15:40:11.890] [SCANNER1] Adapter link speed is 100 Mbps (1.0 Gbps required!).' },
+          { t: 'err',  m: '[15:40:11.895] 3D reconstruction failed due to packet timeout -> S1_NG' }
+        ],
+        causes: [
+          { text: 'LAN 4번 케이블 핀 접촉 불량·단선으로 이더넷 속도가 100Mbps로 강등(패킷 유실)', ok: true },
+          { text: 'PLC 디바이스 어드레스 D0000 오타', ok: false },
+          { text: '차체 TLH 공통좌표계(U10) 원점 미등록', ok: false }
+        ],
+        actions: [
+          { text: 'PC 후면 랜포트 LED(초록/초록 이상) 확인 및 CAT.6 이상 LAN 케이블 교체 후 1.0Gbps 복구', ok: true },
+          { text: '현대로봇 TP에서 툴 좌표계(TCP) 4점 재교시', ok: false },
+          { text: 'AbeoSCAN에서 다운샘플링 필터 강도를 최대로 상향', ok: false }
+        ],
+        explain: '정확합니다! 3D 구조광 스캐너는 대용량 패턴 이미지를 고속 전송하므로 <b>1.0 Gbps 링크 속도</b>가 필수입니다. 케이블 일부 심선이 단선되면 윈도우에서 <b>100 Mbps</b>로 자동 하향되며(랜포트 LED가 초록+초록으로 점등) 프레임 유실이 발생하므로 즉시 케이블을 교체해야 합니다.',
+        ctrlDblTarget: 'S1'
+      }
+    ];
+
+    let curSc = 0;
+    let selectedCause = null;
+    let selectedAction = null;
+    let solvedSet = new Set();
+
+    /* 접속 기기 OS / 모바일 자동 감지 안내 */
+    function detectPlatformHint() {
+      const isTouch = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0) || window.innerWidth <= 1024;
+      const isMac = /Mac/.test(navigator.platform) && !isTouch;
+      const badge = document.getElementById('os-hint-badge');
+      if (isTouch) {
+        badge.textContent = '📱 모바일/태블릿: 적색 LED 1회 탭으로 재연결';
+      } else if (isMac) {
+        badge.textContent = '🍎 macOS 감지: Cmd(⌘) + 더블클릭 지원';
+      } else {
+        badge.textContent = '🪟 Windows: Ctrl + 더블클릭 지원';
+      }
+    }
+
+    function initScenarioBar() {
+      const bar = document.getElementById('scenario-buttons');
+      bar.innerHTML = scenarios.map((s, idx) => {
+        const cls = idx === curSc ? 'active' : (solvedSet.has(idx) ? 'solved' : '');
+        const mark = solvedSet.has(idx) ? '✓ ' : '';
+        return `<button class="sc-btn ${cls}" onclick="loadScenario(${idx})">${mark}${s.shortTitle}</button>`;
+      }).join('');
+    }
+
+    function loadScenario(idx) {
+      curSc = idx;
+      selectedCause = null;
+      selectedAction = null;
+      const sc = scenarios[idx];
+
+      initScenarioBar();
+      document.getElementById('sc-badge').textContent = `CASE ${idx + 1}/${scenarios.length}`;
+
+      const banner = document.getElementById('alarm-banner');
+      banner.classList.remove('cleared');
+      document.getElementById('banner-code').textContent = sc.bannerCode;
+      document.getElementById('banner-desc').textContent = sc.bannerDesc;
+
+      document.getElementById('s0-view').textContent = sc.s0Text;
+      document.getElementById('s1-view').textContent = sc.s1Text;
+      const jb = document.getElementById('judge-box');
+      jb.textContent = sc.judge.text;
+      jb.className = `judge-box ${sc.judge.cls}`;
+
+      ['PLC', 'S0', 'S1', 'ROBOT'].forEach(k => {
+        const el = document.getElementById('led-' + k.toLowerCase());
+        el.className = `hw-led ${sc.leds[k]}`;
+      });
+
+      const ioBox = document.getElementById('io-mini-box');
+      ioBox.innerHTML = `
+        <div class="io-col">
+          <div class="io-head">R · INPUT</div>
+          ${sc.io.r.map(i => `<div class="io-line ${i.on ? 'on' : ''}"><span>${i.n}</span><span>${i.on ? '1' : '0'}</span></div>`).join('')}
+        </div>
+        <div class="io-col" style="border-right:none;">
+          <div class="io-head">W · OUTPUT</div>
+          ${sc.io.w.map(o => `<div class="io-line ${o.err ? 'err' : (o.on ? 'on' : '')}"><span>${o.n}</span><span>${(o.on || o.err) ? '1' : '0'}</span></div>`).join('')}
+        </div>
+      `;
+
+      const sh = sc.shift;
+      const vCls = sh.bad ? 'bad' : 'good';
+      document.getElementById('shift-grid').innerHTML = `
+        <div class="sh-item"><span>ΔX</span><span class="sh-val ${vCls}">${sh.dx}</span></div>
+        <div class="sh-item"><span>ΔY</span><span class="sh-val ${vCls}">${sh.dy}</span></div>
+        <div class="sh-item"><span>ΔZ</span><span class="sh-val ${vCls}">${sh.dz}</span></div>
+        <div class="sh-item"><span>FIT</span><span class="sh-val ${vCls}">${sh.fit}</span></div>
+        <div class="sh-item"><span>ΔRx</span><span class="sh-val ${vCls}">${sh.rx}</span></div>
+        <div class="sh-item"><span>ΔRy</span><span class="sh-val ${vCls}">${sh.ry}</span></div>
+        <div class="sh-item"><span>ΔRz</span><span class="sh-val ${vCls}">${sh.rz}</span></div>
+        <div class="sh-item"><span>OVL</span><span class="sh-val ${vCls}">${sh.ovl}</span></div>
+      `;
+
+      const logEl = document.getElementById('log-terminal');
+      logEl.innerHTML = sc.logs.map(l => `<div class="log-line log-${l.t}">${l.m}</div>`).join('');
+      logEl.scrollTop = logEl.scrollHeight;
+
+      document.getElementById('cause-options').innerHTML = sc.causes.map((c, i) =>
+        `<button class="diag-opt" id="c-opt-${i}" onclick="pickCause(${i})">${i + 1}. ${c.text}</button>`
+      ).join('');
+
+      document.getElementById('action-options').innerHTML = sc.actions.map((a, i) =>
+        `<button class="diag-opt" id="a-opt-${i}" onclick="pickAction(${i})">${i + 1}. ${a.text}</button>`
+      ).join('');
+
+      document.getElementById('diag-feedback').style.display = 'none';
+    }
+
+    function pickCause(i) {
+      const sc = scenarios[curSc];
+      selectedCause = i;
+      sc.causes.forEach((_, idx) => {
+        const b = document.getElementById(`c-opt-${idx}`);
+        b.className = 'diag-opt' + (idx === i ? (sc.causes[idx].ok ? ' correct' : ' wrong') : '');
+      });
+      evaluateDiagnosis();
+    }
+
+    function pickAction(i) {
+      const sc = scenarios[curSc];
+      selectedAction = i;
+      sc.actions.forEach((_, idx) => {
+        const b = document.getElementById(`a-opt-${idx}`);
+        b.className = 'diag-opt' + (idx === i ? (sc.actions[idx].ok ? ' correct' : ' wrong') : '');
+      });
+      evaluateDiagnosis();
+    }
+
+    function evaluateDiagnosis() {
+      const sc = scenarios[curSc];
+      const fb = document.getElementById('diag-feedback');
+      if (selectedCause === null || selectedAction === null) return;
+
+      const isCauseOk = sc.causes[selectedCause].ok;
+      const isActionOk = sc.actions[selectedAction].ok;
+
+      if (isCauseOk && isActionOk) {
+        fb.className = 'feedback-box ok';
+        fb.innerHTML = `✅ <b>진단 및 복구 완료!</b><br>${sc.explain}`;
+        applyRecoveryVisuals();
+      } else {
+        fb.className = 'feedback-box err';
+        fb.innerHTML = `❌ <b>진단 또는 조치 불일치:</b> 베이지색 로그창의 에러 키워드(<code>${sc.logs.find(l => l.t === 'err').m.slice(15, 56)}...</code>)를 다시 확인해 보세요.`;
+      }
+    }
+
+    function applyRecoveryVisuals() {
+      solvedSet.add(curSc);
+      initScenarioBar();
+
+      document.getElementById('alarm-banner').classList.add('cleared');
+      ['PLC', 'S0', 'S1', 'ROBOT'].forEach(k => {
+        document.getElementById('led-' + k.toLowerCase()).className = 'hw-led ok';
+      });
+      const jb = document.getElementById('judge-box');
+      jb.textContent = 'OK';
+      jb.className = 'judge-box ok';
+
+      const logEl = document.getElementById('log-terminal');
+      logEl.innerHTML += `<div class="log-line log-ok">[RECOVERY] System restored to normal state. READY = True (OK)</div>`;
+      logEl.scrollTop = logEl.scrollHeight;
+    }
+
+    function triggerHwReconnect(target) {
+      const sc = scenarios[curSc];
+      const logEl = document.getElementById('log-terminal');
+      logEl.innerHTML += `<div class="log-line log-info">[USER] Reconnect Trigger on [${target}] -> Attempting reconnect...</div>`;
+      if (sc.ctrlDblTarget === target) {
+        logEl.innerHTML += `<div class="log-line log-ok">[${target}] Reconnect signal sent! 우측 패널에서 원인/조치 확인을 완료하세요.</div>`;
+      } else {
+        logEl.innerHTML += `<div class="log-line log-warn">[${target}] Already connected or requires parameter/physical check first.</div>`;
+      }
+      logEl.scrollTop = logEl.scrollHeight;
+    }
+
+    /* 데스크톱: Windows(Ctrl) 및 macOS(Cmd) + 더블클릭 지원 */
+    function handleHwDblClick(e, target) {
+      const logEl = document.getElementById('log-terminal');
+      const isModifier = e.ctrlKey || e.metaKey;
+      if (!isModifier) {
+        const isMac = /Mac/.test(navigator.platform);
+        const keyHint = isMac ? 'Cmd(⌘)' : 'Ctrl';
+        logEl.innerHTML += `<div class="log-line log-warn">[UI Tip] 하드웨어 강제 재연결은 <b>${keyHint} 키를 누른 상태에서 더블클릭</b>하세요.</div>`;
+        logEl.scrollTop = logEl.scrollHeight;
+        return;
+      }
+      triggerHwReconnect(target);
+    }
+
+    /* 모바일/태블릿(iPhone 14 Pro / Galaxy): 터치 환경에서는 1회 탭으로 즉시 실행 */
+    function handleHwTouch(e, target) {
+      const isMobileOrTouch = ('ontouchstart' in window && navigator.maxTouchPoints > 0) || window.innerWidth <= 1024;
+      if (isMobileOrTouch) {
+        triggerHwReconnect(target);
+      }
+    }
+
+    detectPlatformHint();
+    loadScenario(0);
+  </script>
+</body>
+</html>

@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>ATM 신입 직원 교육 시스템</title>
   <style>
     :root {
@@ -12,6 +12,7 @@
       --accent-blue: #38bdf8;
       --accent-green: #4ade80;
       --accent-amber: #f59e0b;
+      --accent-cyan: #00adb5;
       --text-main: #f8fafc;
       --text-sub: #94a3b8;
     }
@@ -33,74 +34,54 @@
       padding: 1.5rem;
     }
 
-    /* PC 1920x1080 기준 쾌적한 와이드 카드 컨테이너 */
     .container {
       background: var(--card-bg);
       border: 1px solid var(--card-border);
       border-radius: 1.5rem;
-      padding: 2.5rem 3rem;
+      padding: 2.25rem 2.5rem;
       max-width: 1120px;
       width: 100%;
-      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.55);
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
     }
 
-    /* 헤더 영역: ATM 로고 이미지(홈페이지 링크) 및 실시간 접속 일시 + 문의자 박스 */
     .header {
       display: flex;
       justify-content: space-between;
-      align-items: flex-end;
+      align-items: center;
       border-bottom: 1px solid var(--card-border);
-      padding-bottom: 1.25rem;
-      margin-bottom: 2rem;
+      padding-bottom: 1.2rem;
+      margin-bottom: 1.75rem;
       gap: 1rem;
     }
 
     .brand-wrap {
       display: flex;
       flex-direction: column;
-      gap: 0.45rem;
+      gap: 0.25rem;
     }
 
-    .brand-link {
-      display: inline-flex;
+    .brand {
+      font-size: 2rem;
+      font-weight: 800;
+      letter-spacing: 0.05em;
+      color: var(--accent-blue);
+      display: flex;
       align-items: center;
-      text-decoration: none;
-      transition: transform 0.2s ease, opacity 0.2s ease;
-      width: fit-content;
-    }
-
-    .brand-link:hover {
-      transform: scale(1.03);
-      opacity: 0.92;
-    }
-
-    /* 기존 2rem 텍스트보다 크고 선명한 로고 크기 */
-    .brand-logo {
-      height: 46px;
-      width: auto;
-      display: block;
-      object-fit: contain;
+      gap: 0.5rem;
+      line-height: 1;
     }
 
     .brand-sub {
-      font-size: 0.88rem;
+      font-size: 0.85rem;
       color: var(--text-sub);
       font-weight: 500;
       letter-spacing: 0.02em;
     }
 
-    /* 우측 정렬 컨테이너: 접속 일시 뱃지와 문의자 박스의 오른쪽 끝선 일치 */
-    .header-right {
-      display: flex;
-      flex-direction: column;
-      align-items: flex-end;
-      gap: 0.5rem;
-    }
-
     .date-badge {
       background: #0f172a;
       border: 1px solid #475569;
-      padding: 0.5rem 1.05rem;
+      padding: 0.5rem 1rem;
       border-radius: 0.6rem;
       font-size: 0.9rem;
       font-weight: 600;
@@ -108,69 +89,41 @@
       letter-spacing: 0.02em;
       box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.3);
       white-space: nowrap;
-      font-variant-numeric: tabular-nums;
     }
 
-    /* 문의자 메일 링크 박스 (헤더 하단 구분선 바로 위, 우측 끝 정렬) */
-    .contact-box {
-      display: inline-flex;
-      align-items: center;
-      gap: 0.45rem;
-      background: #0f172a;
-      border: 1px solid #475569;
-      padding: 0.42rem 1.05rem;
-      border-radius: 0.55rem;
-      font-size: 0.85rem;
-      font-weight: 600;
-      color: var(--text-main);
-      text-decoration: none;
-      transition: all 0.2s ease;
-      white-space: nowrap;
-    }
-
-    .contact-box:hover {
-      border-color: var(--accent-blue);
-      background: rgba(56, 189, 248, 0.12);
-      color: var(--accent-blue);
-      box-shadow: 0 0 12px rgba(56, 189, 248, 0.25);
-    }
-
-    /* 인사말 및 메인 타이틀 */
     .greeting-section {
       text-align: center;
-      margin-bottom: 2.5rem;
+      margin-bottom: 2rem;
     }
 
     .welcome-text {
-      font-size: 1.15rem;
+      font-size: 1.1rem;
       color: var(--text-sub);
-      margin-bottom: 0.5rem;
+      margin-bottom: 0.45rem;
       font-weight: 400;
     }
 
     .main-title {
-      font-size: 2.15rem;
+      font-size: 2.05rem;
       font-weight: 800;
       color: #ffffff;
       letter-spacing: -0.02em;
       line-height: 1.3;
-      margin-bottom: 1.25rem;
+      margin-bottom: 1.1rem;
     }
 
-    /* 안내 공지 배너 */
     .notice-banner {
       display: inline-flex;
-      align-items: flex-start;
-      gap: 0.75rem;
+      align-items: center;
+      gap: 0.6rem;
       background: rgba(245, 158, 11, 0.1);
-      border: 1px solid rgba(245, 158, 11, 0.32);
+      border: 1px solid rgba(245, 158, 11, 0.3);
       color: #fde68a;
-      padding: 0.8rem 1.35rem;
-      border-radius: 0.9rem;
-      font-size: 0.84rem;
-      line-height: 1.6;
+      padding: 0.5rem 1.15rem;
+      border-radius: 9999px;
+      font-size: 0.82rem;
+      line-height: 1.4;
       text-align: left;
-      max-width: 920px;
     }
 
     .notice-tag {
@@ -178,30 +131,65 @@
       color: #0f172a;
       font-size: 0.72rem;
       font-weight: 800;
-      padding: 0.18rem 0.5rem;
+      padding: 0.15rem 0.45rem;
       border-radius: 0.3rem;
-      letter-spacing: 0.04em;
+      letter-spacing: 0.03em;
       flex-shrink: 0;
-      margin-top: 0.15rem;
     }
 
-    .notice-list {
+    .section-divider {
       display: flex;
-      flex-direction: column;
-      gap: 0.25rem;
+      align-items: center;
+      gap: 0.75rem;
+      margin-bottom: 1.25rem;
     }
 
-    /* 8대 모듈 2단 균형 배치 (상단 4개 / 하단 4개) */
-    .modules-wrapper {
-      display: flex;
-      flex-direction: column;
-      gap: 2.2rem;
+    .season-pill {
+      font-size: 0.75rem;
+      font-weight: 800;
+      letter-spacing: 0.04em;
+      padding: 0.25rem 0.7rem;
+      border-radius: 9999px;
+      background: rgba(56, 189, 248, 0.14);
+      border: 1px solid rgba(56, 189, 248, 0.4);
+      color: var(--accent-blue);
+      white-space: nowrap;
     }
 
-    .modules-row {
+    .season-pill.s2 {
+      background: rgba(0, 173, 181, 0.16);
+      border-color: rgba(45, 212, 191, 0.45);
+      color: #2dd4bf;
+    }
+
+    .section-label {
+      font-size: 0.9rem;
+      font-weight: 700;
+      color: #cbd5e1;
+      white-space: nowrap;
+    }
+
+    .divider-line {
+      flex: 1;
+      height: 1px;
+      background: var(--card-border);
+    }
+
+    .modules-grid {
       display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 1.5rem 2rem;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 0.9rem;
+      justify-items: center;
+      align-items: start;
+      margin-bottom: 2rem;
+    }
+
+    .s2-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1.25rem;
+      max-width: 720px;
+      margin: 0 auto;
       justify-items: center;
       align-items: start;
     }
@@ -213,7 +201,6 @@
       text-decoration: none;
       color: inherit;
       width: 100%;
-      max-width: 165px;
       position: relative;
       transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
     }
@@ -222,10 +209,9 @@
       transform: translateY(-6px);
     }
 
-    /* 원형 버튼 디자인 (기본 파란색 통일) */
     .circle-btn {
-      width: 108px;
-      height: 108px;
+      width: 96px;
+      height: 96px;
       border-radius: 50%;
       background: #0f172a;
       border: 2px solid var(--accent-blue);
@@ -242,34 +228,35 @@
     .module-item:hover .circle-btn {
       background: var(--accent-blue);
       border-color: var(--accent-blue);
-      box-shadow: 0 0 24px rgba(56, 189, 248, 0.55);
+      box-shadow: 0 0 22px rgba(56, 189, 248, 0.5);
     }
 
-    /* Beta 프로젝트 강조 테두리 (오직 manual.html ATM 사용자설명서만 해당) */
-    .module-item.is-beta .circle-btn {
-      border-color: var(--accent-amber);
-      box-shadow: 0 4px 15px rgba(245, 158, 11, 0.18);
+    .circle-btn.s2-btn {
+      width: 104px;
+      height: 104px;
+      border-color: #2dd4bf;
+      box-shadow: 0 4px 16px rgba(45, 212, 191, 0.18);
     }
 
-    .module-item.is-beta:hover .circle-btn {
-      background: var(--accent-amber);
-      border-color: var(--accent-amber);
-      box-shadow: 0 0 24px rgba(245, 158, 11, 0.55);
+    .module-item:hover .circle-btn.s2-btn {
+      background: #2dd4bf;
+      border-color: #2dd4bf;
+      box-shadow: 0 0 24px rgba(45, 212, 191, 0.55);
     }
 
     .btn-icon {
-      font-size: 1.7rem;
-      margin-bottom: 0.22rem;
+      font-size: 1.55rem;
+      margin-bottom: 0.2rem;
       color: var(--accent-blue);
       transition: color 0.25s ease;
     }
 
-    .module-item.is-beta .btn-icon {
-      color: var(--accent-amber);
+    .circle-btn.s2-btn .btn-icon {
+      color: #2dd4bf;
     }
 
     .btn-code {
-      font-size: 0.78rem;
+      font-size: 0.74rem;
       font-weight: 700;
       color: var(--text-main);
       transition: color 0.25s ease;
@@ -281,25 +268,37 @@
       color: #0f172a;
     }
 
-    /* ATM 사용자설명서에만 부착되는 BETA 뱃지 */
     .beta-badge {
       position: absolute;
-      top: 0px;
+      top: -2px;
       right: 4px;
       background: var(--accent-amber);
       color: #0f172a;
-      font-size: 0.66rem;
+      font-size: 0.62rem;
       font-weight: 800;
-      padding: 0.16rem 0.45rem;
+      padding: 0.14rem 0.38rem;
+      border-radius: 0.35rem;
+      letter-spacing: 0.04em;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
+    }
+
+    .new-badge {
+      position: absolute;
+      top: -2px;
+      right: 4px;
+      background: #2dd4bf;
+      color: #0f172a;
+      font-size: 0.62rem;
+      font-weight: 900;
+      padding: 0.14rem 0.42rem;
       border-radius: 0.35rem;
       letter-spacing: 0.04em;
       box-shadow: 0 2px 6px rgba(0, 0, 0, 0.45);
     }
 
-    /* 버튼 하단 텍스트 */
     .module-title {
-      margin-top: 0.85rem;
-      font-size: 0.96rem;
+      margin-top: 0.75rem;
+      font-size: 0.88rem;
       font-weight: 700;
       text-align: center;
       color: #ffffff;
@@ -307,115 +306,53 @@
     }
 
     .module-desc {
-      font-size: 0.76rem;
+      font-size: 0.72rem;
       color: var(--text-sub);
       text-align: center;
-      margin-top: 0.3rem;
+      margin-top: 0.25rem;
       line-height: 1.35;
       word-break: keep-all;
     }
 
-    /* 태블릿 반응형 */
-    @media (max-width: 880px) {
-      .container {
-        padding: 2rem 1.5rem;
-      }
-
-      .modules-row {
-        gap: 1.6rem 1.2rem;
+    @media (max-width: 1024px) {
+      .modules-grid {
+        grid-template-columns: repeat(4, 1fr);
+        gap: 1.4rem 1rem;
       }
     }
 
-    /* iPhone 14 Pro (393 x 852pt) 및 모바일 화면 최적화 */
-    @media (max-width: 480px) {
-      body {
-        padding: 1rem 0.85rem;
-        align-items: flex-start;
-      }
-
+    @media (max-width: 640px) {
       .container {
-        padding: 1.4rem 1.1rem;
-        border-radius: 1.2rem;
+        padding: 1.5rem 1.2rem;
       }
 
       .header {
         flex-direction: column;
-        align-items: stretch;
-        gap: 0.85rem;
-        padding-bottom: 1rem;
-        margin-bottom: 1.4rem;
+        align-items: flex-start;
+        gap: 0.8rem;
       }
 
-      .brand-logo {
-        height: 40px;
+      .modules-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1.25rem 0.8rem;
       }
 
-      .brand-sub {
-        font-size: 0.8rem;
+      .s2-grid {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 0.9rem 0.5rem;
       }
 
-      .header-right {
-        align-items: flex-end;
-        width: 100%;
-      }
-
-      .date-badge {
-        font-size: 0.8rem;
-        padding: 0.45rem 0.85rem;
-      }
-
-      .contact-box {
-        font-size: 0.78rem;
-        padding: 0.4rem 0.85rem;
-      }
-
-      .greeting-section {
-        margin-bottom: 1.75rem;
-      }
-
-      .welcome-text {
-        font-size: 0.98rem;
+      .circle-btn, .circle-btn.s2-btn {
+        width: 88px;
+        height: 88px;
       }
 
       .main-title {
-        font-size: 1.5rem;
-        margin-bottom: 1rem;
-      }
-
-      .notice-banner {
-        font-size: 0.77rem;
-        padding: 0.65rem 0.9rem;
-        border-radius: 0.75rem;
-      }
-
-      .modules-wrapper {
-        gap: 1.25rem;
-      }
-
-      .modules-row {
-        grid-template-columns: repeat(2, 1fr);
-        gap: 1.25rem 0.75rem;
-      }
-
-      .circle-btn {
-        width: 92px;
-        height: 92px;
-      }
-
-      .btn-icon {
-        font-size: 1.5rem;
-      }
-
-      .btn-code {
-        font-size: 0.74rem;
+        font-size: 1.55rem;
       }
 
       .module-title {
-        font-size: 0.88rem;
-      }
-
-      .module-desc {
-        font-size: 0.72rem;
+        font-size: 0.8rem;
       }
     }
   </style>
@@ -423,150 +360,152 @@
 <body>
 
   <main class="container">
-    <!-- 1. 헤더: ATM 로고(홈페이지 새창 링크) 및 실시간 접속 일시 + 문의자 메일 링크 박스 -->
     <header class="header">
       <div class="brand-wrap">
-        <a href="http://www.atmc.co.kr/" target="_blank" rel="noopener noreferrer" class="brand-link" title="(주)에이티엠 공식 홈페이지 새 창으로 열기">
-          <img src="./image/atm_red.png" alt="ATM 로고" class="brand-logo">
-        </a>
+        <div class="brand">ATM</div>
         <div class="brand-sub">(주)에이티엠 산업용 로보틱스 & 3D 비전 교육 포털</div>
       </div>
-
-      <div class="header-right">
-        <div class="date-badge" id="currentDateTime">접속 일시 확인 중...</div>
-        <a href="mailto:jaekwang.yoo@atmc.co.kr" class="contact-box" title="jaekwang.yoo@atmc.co.kr 로 문의 메일 보내기">
-          <span>✉️ 문의자 : 교육관 유재광</span>
-        </a>
-      </div>
+      <div class="date-badge" id="currentDate">접속일자 확인 중...</div>
     </header>
 
-    <!-- 2. 중앙 타이틀 및 안내 -->
     <section class="greeting-section">
       <p class="welcome-text">신입 연구원 및 엔지니어 여러분, 환영합니다.</p>
       <h1 class="main-title">ATM 직무 기술 교육 시스템</h1>
       
-      <!-- 안내 공지 배너 -->
       <div class="notice-banner">
         <span class="notice-tag">NOTICE</span>
-        <div class="notice-list">
-          <span>1. 기본 모듈은 PC(1920×1080) 해상도에 최적화되어 있으며, (Mobile) 표기 모듈은 iPhone 14 Pro 화면 해상도에 최적화되어 있습니다.</span>
-          <span>2. 7가지 프로젝트는 정식 버젼으로 공개합니다. 물론 지속적으로 내용의 추가, 수정, 보완되어 나갈 것입니다.</span>
-          <span>3. 다음 작업은 ATM 통합 메뉴얼을 통합 제공하는 프로젝트를 시행할 것입니다.(Beta)</span>
-        </div>
+        <span>신규 추가 모듈은 <strong>베타 연구 버전</strong>으로, 알고리즘 구상 및 현장 사례 업데이트에 따라 지속적으로 확장됩니다.</span>
       </div>
     </section>
 
-    <!-- 3. 원형 링크 모듈 (상단 4개 / 하단 4개 2단 균형 배치) -->
-    <nav class="modules-wrapper">
-      <!-- 상단 행: 4개 모듈 -->
-      <div class="modules-row top-row">
-        <!-- ① UF6 3D -->
-        <a href="uf6_pc.html" class="module-item">
-          <div class="circle-btn">
-            <span class="btn-icon">🖥️</span>
-            <span class="btn-code">uf6_pc</span>
-          </div>
-          <div class="module-title">UF6 3D</div>
-          <div class="module-desc">데스크톱 정밀 시뮬레이터</div>
-        </a>
+    <div class="section-divider">
+      <span class="season-pill">SEASON 1</span>
+      <span class="section-label">기초 이론 · 좌표계 · 공정 시뮬레이터</span>
+      <span class="divider-line"></span>
+    </div>
 
-        <!-- ② ICP 매칭 -->
-        <a href="icp_pc.html" class="module-item">
-          <div class="circle-btn">
-            <span class="btn-icon">🎯</span>
-            <span class="btn-code">icp_pc</span>
-          </div>
-          <div class="module-title">ICP 매칭</div>
-          <div class="module-desc">포인트클라우드 정합</div>
-        </a>
+    <nav class="modules-grid">
+      <a href="uf6_pc.html" class="module-item">
+        <div class="circle-btn">
+          <span class="btn-icon">🖥️</span>
+          <span class="btn-code">uf6_pc</span>
+        </div>
+        <div class="module-title">UF6 3D (PC)</div>
+        <div class="module-desc">데스크톱 정밀 시뮬레이터</div>
+      </a>
 
-        <!-- ③ 구조광 3D Scan -->
-        <a href="3D_scan.html" class="module-item">
-          <div class="circle-btn">
-            <span class="btn-icon">📸</span>
-            <span class="btn-code">3D_scan</span>
-          </div>
-          <div class="module-title">구조광 3D Scan</div>
-          <div class="module-desc">Pointcloud 생성</div>
-        </a>
+      <a href="uf6_mo.html" class="module-item">
+        <div class="circle-btn">
+          <span class="btn-icon">📱</span>
+          <span class="btn-code">uf6_mo</span>
+        </div>
+        <div class="module-title">UF6 3D (Mobile)</div>
+        <div class="module-desc">현장 터치 최적화 뷰어</div>
+      </a>
 
-        <!-- ④ PLC-Robot 통신 -->
-        <a href="net_comm.html" class="module-item">
-          <div class="circle-btn">
-            <span class="btn-icon">🔌</span>
-            <span class="btn-code">net_comm</span>
-          </div>
-          <div class="module-title">PLC-Robot 통신</div>
-          <div class="module-desc">3D 비전 핸드셰이크</div>
-        </a>
-      </div>
+      <a href="fov_mo.html" class="module-item">
+        <div class="circle-btn">
+          <span class="btn-icon">📐</span>
+          <span class="btn-code">fov_mo</span>
+        </div>
+        <div class="module-title">FOV-WD (Mobile)</div>
+        <div class="module-desc">광학 화각 및 작업거리</div>
+      </a>
 
-      <!-- 하단 행: 4개 모듈 (모바일 2개 + 공통좌표(CC) 정식 전환 + ATM 사용자설명서 Beta) -->
-      <div class="modules-row bottom-row">
-        <!-- ⑤ UF6 3D (Mobile) -->
-        <a href="uf6_mo.html" class="module-item">
-          <div class="circle-btn">
-            <span class="btn-icon">📱</span>
-            <span class="btn-code">uf6_mo</span>
-          </div>
-          <div class="module-title">UF6 3D (Mobile)</div>
-          <div class="module-desc">현장 터치 최적화 뷰어</div>
-        </a>
+      <a href="icp_pc.html" class="module-item">
+        <div class="circle-btn">
+          <span class="beta-badge">BETA</span>
+          <span class="btn-icon">🎯</span>
+          <span class="btn-code">icp_pc</span>
+        </div>
+        <div class="module-title">ICP 매칭 (PC)</div>
+        <div class="module-desc">포인트클라우드 정합</div>
+      </a>
 
-        <!-- ⑥ FOV-WD (Mobile) -->
-        <a href="fov_mo.html" class="module-item">
-          <div class="circle-btn">
-            <span class="btn-icon">📐</span>
-            <span class="btn-code">fov_mo</span>
-          </div>
-          <div class="module-title">FOV-WD (Mobile)</div>
-          <div class="module-desc">광학 화각 및 작업거리</div>
-        </a>
+      <a href="3D_scan.html" class="module-item">
+        <div class="circle-btn">
+          <span class="beta-badge">BETA</span>
+          <span class="btn-icon">📸</span>
+          <span class="btn-code">3D_scan</span>
+        </div>
+        <div class="module-title">구조광 3D Scan</div>
+        <div class="module-desc">Pointcloud 생성</div>
+      </a>
 
-        <!-- ⑦ 공통좌표(CC) (정식 공개 전환 - 일반 원형 스타일) -->
-        <a href="comm_uf.html" class="module-item">
-          <div class="circle-btn">
-            <span class="btn-icon">🧭</span>
-            <span class="btn-code">comm_uf</span>
-          </div>
-          <div class="module-title">공통좌표(CC)</div>
-          <div class="module-desc">다중 로봇 공통 좌표계 정합</div>
-        </a>
+      <a href="net_comm.html" class="module-item">
+        <div class="circle-btn">
+          <span class="beta-badge">BETA</span>
+          <span class="btn-icon">🔌</span>
+          <span class="btn-code">net_comm</span>
+        </div>
+        <div class="module-title">PLC-Robot 통신</div>
+        <div class="module-desc">3D 비전 핸드셰이크</div>
+      </a>
 
-        <!-- ⑧ ATM 사용자설명서 (신규 추가 / BETA 프로젝트) -->
-        <a href="manual.html" class="module-item is-beta">
-          <div class="circle-btn">
-            <span class="beta-badge">BETA</span>
-            <span class="btn-icon">📘</span>
-            <span class="btn-code">manual</span>
-          </div>
-          <div class="module-title">ATM 사용자설명서</div>
-          <div class="module-desc">ATM 통합 메뉴얼 포털</div>
-        </a>
-      </div>
+      <a href="comm_uf.html" class="module-item">
+        <div class="circle-btn">
+          <span class="btn-icon">🧭</span>
+          <span class="btn-code">comm_uf</span>
+        </div>
+        <div class="module-title">공통좌표계 (CC)</div>
+        <div class="module-desc">다중 스캐너·로봇 정합</div>
+      </a>
+    </nav>
+
+    <div class="section-divider">
+      <span class="season-pill s2">SEASON 2</span>
+      <span class="section-label">실무 매뉴얼 아카이브 & 현장 트러블슈팅 툴킷</span>
+      <span class="divider-line"></span>
+    </div>
+
+    <nav class="s2-grid">
+      <a href="manual.html" class="module-item">
+        <div class="circle-btn s2-btn">
+          <span class="new-badge">S2</span>
+          <span class="btn-icon">📚</span>
+          <span class="btn-code">manual</span>
+        </div>
+        <div class="module-title">기술 매뉴얼 자료실</div>
+        <div class="module-desc">사내 표준서·요약본 22종</div>
+      </a>
+
+      <a href="field_kit.html" class="module-item">
+        <div class="circle-btn s2-btn">
+          <span class="new-badge">S2</span>
+          <span class="btn-icon">🧰</span>
+          <span class="btn-code">field_kit</span>
+        </div>
+        <div class="module-title">현장 필드 툴킷</div>
+        <div class="module-desc">IP 체커·1분 긴급조치·LED</div>
+      </a>
+
+      <a href="log_diag.html" class="module-item">
+        <div class="circle-btn s2-btn">
+          <span class="new-badge">S2</span>
+          <span class="btn-icon">🩺</span>
+          <span class="btn-code">log_diag</span>
+        </div>
+        <div class="module-title">로그·알람 진단 훈련</div>
+        <div class="module-desc">현장 에러 역추적 12종</div>
+      </a>
     </nav>
   </main>
 
   <script>
-    // 접속 일자 및 실시간 시:분:초 표기 (YYYY. MM. DD (요일) HH:MM:SS)
-    function updateAccessDateTime() {
-      const dateElement = document.getElementById('currentDateTime');
+    function updateAccessDate() {
+      const dateElement = document.getElementById('currentDate');
       const now = new Date();
       const year = now.getFullYear();
       const month = String(now.getMonth() + 1).padStart(2, '0');
       const day = String(now.getDate()).padStart(2, '0');
-      const hours = String(now.getHours()).padStart(2, '0');
-      const minutes = String(now.getMinutes()).padStart(2, '0');
-      const seconds = String(now.getSeconds()).padStart(2, '0');
-
+      
       const weekdays = ['일', '월', '화', '수', '목', '금', '토'];
       const weekday = weekdays[now.getDay()];
 
-      dateElement.textContent = `접속 일시 : ${year}. ${month}. ${day} (${weekday}) ${hours}:${minutes}:${seconds}`;
+      dateElement.textContent = `접속 일자 : ${year}. ${month}. ${day} (${weekday})`;
     }
 
-    updateAccessDateTime();
-    setInterval(updateAccessDateTime, 1000);
+    updateAccessDate();
   </script>
 </body>
 </html>

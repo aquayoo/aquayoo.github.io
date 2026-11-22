@@ -1,0 +1,735 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>ATM Field Toolkit | V1.0 (Season 2)</title>
+  <style>
+    :root {
+      --bg-dark: #091017;
+      --panel-bg: #13222f;
+      --card-bg: #0d1822;
+      --border-color: #223b4f;
+      --accent-cyan: #00adb5;
+      --accent-blue: #1e88e5;
+      --text-main: #e6eff5;
+      --text-muted: #88a2b5;
+      --danger-red: #ff4757;
+      --success-green: #2ed573;
+      --yellow-warn: #f1c40f;
+      --font-mono: 'Consolas', 'Monaco', 'Courier New', monospace;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans KR", sans-serif;
+    }
+
+    body {
+      background-color: var(--bg-dark);
+      color: var(--text-main);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      padding-bottom: 74px; /* 하단 탭바 공간 */
+      font-size: 14px;
+    }
+
+    /* 상단 헤더 */
+    header {
+      background: #070c11;
+      border-bottom: 1px solid var(--border-color);
+      padding: 12px 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: sticky;
+      top: 0;
+      z-index: 50;
+    }
+
+    .header-title-wrap {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .s2-badge {
+      background: linear-gradient(135deg, #00adb5, #007799);
+      color: #070c11;
+      font-family: var(--font-mono);
+      font-weight: 900;
+      font-size: 11px;
+      padding: 3px 7px;
+      border-radius: 4px;
+    }
+
+    .header-title {
+      font-size: 16px;
+      font-weight: 800;
+      color: #ffffff;
+    }
+
+    .header-links {
+      display: flex;
+      gap: 6px;
+    }
+
+    .nav-pill-btn {
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid var(--border-color);
+      color: var(--text-main);
+      text-decoration: none;
+      font-size: 12px;
+      font-weight: 700;
+      padding: 6px 10px;
+      border-radius: 6px;
+    }
+    .nav-pill-btn:active { background: rgba(0, 173, 181, 0.2); }
+
+    /* 메인 컨테이너 */
+    main {
+      flex: 1;
+      max-width: 820px;
+      width: 100%;
+      margin: 0 auto;
+      padding: 14px;
+    }
+
+    .tab-pane { display: none; }
+    .tab-pane.active { display: block; animation: fadeIn 0.18s ease; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(3px); } to { opacity: 1; transform: translateY(0); } }
+
+    .section-title {
+      font-size: 15px;
+      font-weight: 800;
+      color: var(--accent-cyan);
+      margin-bottom: 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .card {
+      background: var(--panel-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 10px;
+      padding: 14px;
+      margin-bottom: 12px;
+    }
+
+    .card-sub {
+      background: var(--card-bg);
+      border: 1px solid #1b3142;
+      border-radius: 8px;
+      padding: 12px;
+      margin-top: 8px;
+    }
+
+    /* 탭 1: 표준 IP & 서브넷 체커 */
+    .ip-calc-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+    @media (max-width: 520px) { .ip-calc-grid { grid-template-columns: 1fr; } }
+
+    .input-group label {
+      display: block;
+      font-size: 11.5px;
+      color: var(--text-muted);
+      margin-bottom: 4px;
+      font-weight: 600;
+    }
+
+    .ip-input {
+      width: 100%;
+      background: #070c11;
+      border: 1px solid var(--border-color);
+      color: #ffffff;
+      font-family: var(--font-mono);
+      font-size: 14px;
+      padding: 10px 12px;
+      border-radius: 7px;
+      outline: none;
+    }
+    .ip-input:focus { border-color: var(--accent-cyan); }
+
+    .btn-full {
+      width: 100%;
+      background: var(--accent-cyan);
+      color: #070c11;
+      border: none;
+      font-weight: 800;
+      font-size: 14px;
+      padding: 11px;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+    .btn-full:active { opacity: 0.85; }
+
+    .calc-result {
+      margin-top: 10px;
+      padding: 10px 12px;
+      border-radius: 7px;
+      font-size: 13px;
+      font-weight: 700;
+      line-height: 1.45;
+      display: none;
+    }
+    .calc-result.ok { display: block; background: rgba(46, 213, 115, 0.14); border: 1px solid var(--success-green); color: #7bed9f; }
+    .calc-result.err { display: block; background: rgba(255, 71, 87, 0.16); border: 1px solid var(--danger-red); color: #ff8792; }
+
+    .port-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12.5px;
+    }
+    .port-table th, .port-table td {
+      padding: 9px 8px;
+      border-bottom: 1px solid #1d3548;
+      text-align: left;
+    }
+    .port-table th { color: var(--text-muted); font-size: 11.5px; }
+    .mono { font-family: var(--font-mono); font-weight: 700; color: #70e1f5; }
+
+    /* 탭 2: 1분 긴급 조치 카드 */
+    .symptom-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+    @media (min-width: 640px) { .symptom-grid { grid-template-columns: repeat(3, 1fr); } }
+
+    .sym-btn {
+      background: var(--card-bg);
+      border: 1px solid var(--border-color);
+      color: var(--text-main);
+      padding: 12px 10px;
+      border-radius: 8px;
+      text-align: left;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      transition: all 0.15s;
+    }
+    .sym-btn.active {
+      background: rgba(255, 71, 87, 0.15);
+      border-color: var(--danger-red);
+      box-shadow: 0 0 0 1px var(--danger-red);
+    }
+    .sym-tag { font-family: var(--font-mono); font-size: 10.5px; color: var(--danger-red); font-weight: 800; }
+    .sym-name { font-size: 13px; font-weight: 700; line-height: 1.3; }
+
+    .action-step {
+      display: flex;
+      gap: 10px;
+      padding: 10px;
+      background: var(--card-bg);
+      border: 1px solid #1e374b;
+      border-radius: 7px;
+      margin-bottom: 8px;
+      align-items: flex-start;
+    }
+    .priority-badge {
+      background: var(--accent-cyan);
+      color: #070c11;
+      font-family: var(--font-mono);
+      font-weight: 900;
+      font-size: 11px;
+      padding: 3px 7px;
+      border-radius: 4px;
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+    .priority-badge.warn { background: var(--yellow-warn); }
+
+    /* 탭 3: LED & 핀맵 조견표 */
+    .led-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 8px;
+    }
+    .led-item {
+      background: var(--card-bg);
+      border: 1px solid #1d3548;
+      border-radius: 7px;
+      padding: 10px;
+    }
+    .led-head {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      font-family: var(--font-mono);
+      font-weight: 800;
+      font-size: 13px;
+      margin-bottom: 4px;
+    }
+    .dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
+
+    .signal-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 7px 0;
+      border-bottom: 1px dashed #1e374b;
+      font-size: 12.5px;
+    }
+    .signal-row:last-child { border-bottom: none; }
+
+    /* 탭 4: 현장 간이 좌표·오프셋 메모장 */
+    .dof-inputs {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+    .dof-field label {
+      display: block;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--accent-cyan);
+      margin-bottom: 3px;
+    }
+    .dof-field input {
+      width: 100%;
+      background: #070c11;
+      border: 1px solid var(--border-color);
+      color: #fff;
+      font-family: var(--font-mono);
+      font-size: 13.5px;
+      padding: 8px;
+      border-radius: 6px;
+    }
+
+    textarea.memo-area {
+      width: 100%;
+      min-height: 90px;
+      background: #070c11;
+      border: 1px solid var(--border-color);
+      color: #fff;
+      padding: 10px;
+      border-radius: 7px;
+      font-size: 13px;
+      line-height: 1.5;
+      resize: vertical;
+      margin-bottom: 10px;
+    }
+
+    .btn-row-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+    .btn-sec {
+      background: #1a3347;
+      border: 1px solid var(--border-color);
+      color: #fff;
+      font-weight: 700;
+      padding: 10px;
+      border-radius: 7px;
+      cursor: pointer;
+    }
+
+    /* 하단 고정 네비게이션 바 (엄지 터치 최적화) */
+    .bottom-nav {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: #070c11;
+      border-top: 1px solid var(--border-color);
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      height: 64px;
+      z-index: 60;
+    }
+
+    .nav-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 3px;
+      cursor: pointer;
+      font-size: 11px;
+      font-weight: 700;
+      border-top: 2px solid transparent;
+    }
+    .nav-btn .ico { font-size: 18px; line-height: 1; }
+    .nav-btn.active {
+      color: var(--accent-cyan);
+      border-top-color: var(--accent-cyan);
+      background: rgba(0, 173, 181, 0.08);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- 상단 헤더 -->
+  <header>
+    <div class="header-title-wrap">
+      <span class="s2-badge">SEASON 2</span>
+      <span class="header-title">ATM Field Toolkit</span>
+    </div>
+    <div class="header-links">
+      <a href="manual.html" class="nav-pill-btn">📚 매뉴얼</a>
+      <a href="index.html" class="nav-pill-btn">🏠 홈</a>
+    </div>
+  </header>
+
+  <main>
+    <!-- =================================================================
+         TAB 1: 표준 IP & 서브넷 체커
+         ================================================================= -->
+    <section id="tab-ip" class="tab-pane active">
+      <div class="section-title">
+        <span>🌐 표준 IP & 서브넷 대역 체커</span>
+        <span style="font-size:11px; color:var(--text-muted);">4-Port 격리 기준</span>
+      </div>
+
+      <div class="card">
+        <div style="font-size:12.5px; color:var(--text-muted); margin-bottom:10px;">
+          현장 PC 랜카드 IP와 연결할 장비 IP를 입력해 동일 서브넷 여부 및 충돌을 즉시 점검합니다.
+        </div>
+        <div class="ip-calc-grid">
+          <div class="input-group">
+            <label>Vision PC 랜카드 IP</label>
+            <input type="text" id="chk-pc-ip" class="ip-input" value="192.168.10.100" placeholder="예: 192.168.10.100">
+          </div>
+          <div class="input-group">
+            <label>대상 장비(카메라/PLC/로봇) IP</label>
+            <input type="text" id="chk-dev-ip" class="ip-input" value="192.168.10.135" placeholder="예: 192.168.10.135">
+          </div>
+        </div>
+        <button class="btn-full" onclick="checkSubnet()">서브넷 연결 가능 여부 판정</button>
+        <div id="ip-calc-msg" class="calc-result"></div>
+      </div>
+
+      <div class="card">
+        <div style="font-weight:800; color:#fff; margin-bottom:8px;">📌 현장 표준 4-Port 네트워크 IP 맵</div>
+        <table class="port-table">
+          <thead>
+            <tr>
+              <th>포트 / 역할</th>
+              <th>Vision PC</th>
+              <th>상대 장비 표준 IP</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><b>LAN 1</b><br><span style="font-size:11px; color:var(--text-muted);">로봇 (HR-RPC)</span></td>
+              <td class="mono">10.10.10.100</td>
+              <td class="mono">10.10.10.55<br><span style="font-size:10.5px; color:var(--text-muted);">(Hi5a/Hi6 제어기)</span></td>
+            </tr>
+            <tr>
+              <td><b>LAN 2</b><br><span style="font-size:11px; color:var(--text-muted);">PLC (Port 5020)</span></td>
+              <td class="mono">192.168.0.111</td>
+              <td class="mono">192.168.0.1<br><span style="font-size:10.5px; color:var(--text-muted);">(Melsec / Siemens)</span></td>
+            </tr>
+            <tr>
+              <td><b>LAN 3</b><br><span style="font-size:11px; color:var(--text-muted);">스캐너 S0</span></td>
+              <td class="mono">192.168.10.100</td>
+              <td class="mono">Cam: .135 / Prj: .10</td>
+            </tr>
+            <tr>
+              <td><b>LAN 4</b><br><span style="font-size:11px; color:var(--text-muted);">스캐너 S1</span></td>
+              <td class="mono">192.168.11.100</td>
+              <td class="mono">Cam: .135 / Prj: .10</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- =================================================================
+         TAB 2: 1분 긴급 조치 카드 (Symptom -> Action)
+         ================================================================= -->
+    <section id="tab-trouble" class="tab-pane">
+      <div class="section-title">
+        <span>🚨 1분 현장 긴급 조치 카드</span>
+        <span style="font-size:11px; color:var(--text-muted);">증상 터치 시 절차 표시</span>
+      </div>
+
+      <div class="symptom-grid" id="symptom-buttons"></div>
+
+      <div class="card" id="action-detail-card"></div>
+    </section>
+
+    <!-- =================================================================
+         TAB 3: LED & 핀맵 빠른 조견표
+         ================================================================= -->
+    <section id="tab-led" class="tab-pane">
+      <div class="section-title">
+        <span>🔌 스캐너 LED & 표준 신호 조견표</span>
+        <span style="font-size:11px; color:var(--text-muted);">atm_error.pdf 기준</span>
+      </div>
+
+      <div class="card">
+        <div style="font-weight:800; color:#fff; margin-bottom:8px;">💡 AITZ 3D 스캐너 4대 상태 LED</div>
+        <div class="led-grid">
+          <div class="led-item">
+            <div class="led-head"><span class="dot" style="background:#2ed573;"></span>PWR (전원)</div>
+            <div style="font-size:12px; color:var(--text-muted);">부팅 완료 및 정상 대기 시 <b>초록색 상시 점등</b></div>
+          </div>
+          <div class="led-item">
+            <div class="led-head"><span class="dot" style="background:#f1c40f;"></span>TRX (스캔/전송)</div>
+            <div style="font-size:12px; color:var(--text-muted);">부팅 시 노랑→초록 전환, <b>스캔 트리거 시 점멸</b></div>
+          </div>
+          <div class="led-item">
+            <div class="led-head"><span class="dot" style="background:#38bdf8;"></span>LNK (하트비트)</div>
+            <div style="font-size:12px; color:var(--text-muted);">프로젝터 모듈 생존 신호 (<b>5초 간격 점멸</b>)</div>
+          </div>
+          <div class="led-item">
+            <div class="led-head"><span class="dot" style="background:#a55eea;"></span>STA (네트워크)</div>
+            <div style="font-size:12px; color:var(--text-muted);">PC-스캐너 간 네트워크 링크 활성 상태 표시</div>
+          </div>
+        </div>
+
+        <div class="card-sub">
+          <div style="font-weight:700; color:var(--yellow-warn); margin-bottom:4px;">🔌 PC 후면 랜포트 LED & 링크 속도 체크</div>
+          <div style="font-size:12.5px; line-height:1.55;">
+            • <b>정상 점등:</b> 초록(링크) + 주황(데이터 고속 점멸) / 속도 <b>1.0 Gbps</b> 필수<br>
+            • <b>불량 징후:</b> 초록+초록 점등(100Mbps 저하) 또는 소등 → <b>LAN 케이블 즉시 교체</b>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div style="font-weight:800; color:#fff; margin-bottom:6px;">📡 ATMC ↔ PLC 주요 핸드셰이크 비트맵</div>
+        <div class="signal-row"><span class="mono">R0 / R1</span><span>PLC → PC : RESET(초기화) / START(사이클 시작)</span></div>
+        <div class="signal-row"><span class="mono">R2 / R3</span><span>PLC → PC : S0_SCAN / S1_SCAN 트리거</span></div>
+        <div class="signal-row"><span class="mono">R8 ~ R11</span><span>PLC → PC : 차종 모델 선택 비트 (MODEL_A/B)</span></div>
+        <div class="signal-row"><span class="mono">W0 / W15</span><span>PC → PLC : READY(준비완료) / PCRUN(생존신호)</span></div>
+        <div class="signal-row"><span class="mono">W2 / W3</span><span>PC → PLC : S0_OK(정상) / S0_NG(오차 초과)</span></div>
+        <div class="signal-row"><span class="mono">W4 / W5</span><span>PC → PLC : S1_OK(정상) / S1_NG(오차 초과)</span></div>
+      </div>
+    </section>
+
+    <!-- =================================================================
+         TAB 4: 현장 간이 좌표·오프셋 메모장
+         ================================================================= -->
+    <section id="tab-memo" class="tab-pane">
+      <div class="section-title">
+        <span>📐 현장 시운전 오프셋 & IP 메모장</span>
+        <span style="font-size:11px; color:var(--success-green);">자동 로컬 저장</span>
+      </div>
+
+      <div class="card">
+        <div style="font-weight:800; color:#fff; margin-bottom:8px;">6-DOF 보정 측정값 기록 (UF6 / CC)</div>
+        <div class="dof-inputs">
+          <div class="dof-field"><label>ΔX (mm)</label><input type="number" step="0.1" id="m-dx" value="0.0" oninput="saveMemo()"></div>
+          <div class="dof-field"><label>ΔY (mm)</label><input type="number" step="0.1" id="m-dy" value="0.0" oninput="saveMemo()"></div>
+          <div class="dof-field"><label>ΔZ (mm)</label><input type="number" step="0.1" id="m-dz" value="0.0" oninput="saveMemo()"></div>
+          <div class="dof-field"><label>ΔRx (deg)</label><input type="number" step="0.1" id="m-rx" value="0.0" oninput="saveMemo()"></div>
+          <div class="dof-field"><label>ΔRy (deg)</label><input type="number" step="0.1" id="m-ry" value="0.0" oninput="saveMemo()"></div>
+          <div class="dof-field"><label>ΔRz (deg)</label><input type="number" step="0.1" id="m-rz" value="0.0" oninput="saveMemo()"></div>
+        </div>
+
+        <div style="font-weight:800; color:#fff; margin-bottom:6px;">현장 특이사항 / 변경 IP 메모</div>
+        <textarea id="m-note" class="memo-area" placeholder="예: 2라인 S0 카메라 IP 192.168.10.135 확인, FIT=0.42, OVL=94% 양호..." oninput="saveMemo()"></textarea>
+
+        <div class="btn-row-2">
+          <button class="btn-full" onclick="copyMemoText()">📋 클립보드 복사 (보고용)</button>
+          <button class="btn-sec" onclick="clearMemo()">🗑️ 입력 초기화</button>
+        </div>
+        <div id="copy-toast" style="margin-top:8px; font-size:12px; color:var(--success-green); text-align:center; display:none;">
+          ✓ 클립보드에 복사되었습니다. 메신저/메모장에 바로 붙여넣으세요!
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- 하단 4탭 네비게이션 -->
+  <nav class="bottom-nav">
+    <button class="nav-btn active" onclick="switchTab('tab-ip', this)">
+      <span class="ico">🌐</span><span>IP 체커</span>
+    </button>
+    <button class="nav-btn" onclick="switchTab('tab-trouble', this)">
+      <span class="ico">🚨</span><span>긴급 조치</span>
+    </button>
+    <button class="nav-btn" onclick="switchTab('tab-led', this)">
+      <span class="ico">🔌</span><span>LED·핀맵</span>
+    </button>
+    <button class="nav-btn" onclick="switchTab('tab-memo', this)">
+      <span class="ico">📐</span><span>현장 메모</span>
+    </button>
+  </nav>
+
+  <script>
+    /* 1. 하단 탭 전환 */
+    function switchTab(tabId, btn) {
+      document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+      document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+      document.getElementById(tabId).classList.add('active');
+      btn.classList.add('active');
+      window.scrollTo(0, 0);
+    }
+
+    /* 2. 서브넷 IP 계산기 */
+    function parseIp(ipStr) {
+      const parts = ipStr.trim().split('.');
+      if (parts.length !== 4) return null;
+      const nums = parts.map(Number);
+      if (nums.some(n => isNaN(n) || n < 0 || n > 255 || !Number.isInteger(n))) return null;
+      return nums;
+    }
+
+    function checkSubnet() {
+      const pc = parseIp(document.getElementById('chk-pc-ip').value);
+      const dev = parseIp(document.getElementById('chk-dev-ip').value);
+      const box = document.getElementById('ip-calc-msg');
+
+      if (!pc || !dev) {
+        box.className = 'calc-result err';
+        box.innerHTML = '❌ IP 주소 형식이 올바르지 않습니다. (예: 192.168.10.100)';
+        return;
+      }
+
+      if (pc.join('.') === dev.join('.')) {
+        box.className = 'calc-result err';
+        box.innerHTML = `❌ IP 충돌 발생! PC와 장비가 동일한 주소(${pc.join('.')})를 사용하고 있습니다.`;
+        return;
+      }
+
+      if (pc[0] === dev[0] && pc[1] === dev[1] && pc[2] === dev[2]) {
+        box.className = 'calc-result ok';
+        box.innerHTML = `✅ 통신 가능 (동일 서브넷: ${pc[0]}.${pc[1]}.${pc[2]}.x / 255.255.255.0)<br>호스트 번호(.${pc[3]} ↔ .${dev[3]}) 정상 분리됨.`;
+      } else {
+        box.className = 'calc-result err';
+        box.innerHTML = `❌ 서브넷 대역 불일치! 통신 불가 상태입니다.<br>• PC 대역: <b>${pc[0]}.${pc[1]}.${pc[2]}.x</b> vs 장비 대역: <b>${dev[0]}.${dev[1]}.${dev[2]}.x</b><br>→ 앞 3자리를 동일하게 맞추세요.`;
+      }
+    }
+
+    /* 3. 1분 긴급 조치 카드 데이터 */
+    const troubleCases = [
+      {
+        code: 'SCANNER ERR',
+        title: '스캐너 연결 끊김 (S0/S1 적색)',
+        steps: [
+          { p: '1순위', text: 'ATMC 하단 상태바의 적색 <b>SCANNER 탭을 Ctrl + 더블클릭</b>하여 소프트웨어 재연결을 시도합니다.' },
+          { p: '2순위', text: '로그에 <code>"physically removed"</code>가 떴다면 LAN/전원 케이블 커넥터 풀림(99%)이므로 재체결 후 제어판 <b>1.0 Gbps</b> 링크 속도를 확인합니다.' },
+          { p: '3순위', text: '로그에 <code>LC4500Bridge [EVENT_DISCONNECTED]</code>가 있다면 프로젝터 펌웨어 다운입니다. <b>PC 랙 후면 CP 전원을 20초 이상 차단</b> 후 재부팅하세요.', warn: true }
+        ]
+      },
+      {
+        code: 'ROBOT ERR',
+        title: '로봇 HR-RPC 통신 응답 없음',
+        steps: [
+          { p: '1순위', text: '하단 <b>ROBOT 탭을 Ctrl + 더블클릭</b>해 재연결을 시도합니다.' },
+          { p: '2순위', text: '현대로봇 TP <b>[시스템 → 네트워크 → 서비스 → HR-RPC]</b> 진입 후 <b>[초기화 범용]</b> 버튼을 눌러 소켓을 리셋합니다.' },
+          { p: '3순위', text: 'LAN 1번 포트(<code>10.10.10.100 ↔ 10.10.10.55</code>) 케이블 연결 및 TP 키 스위치가 <b>AUTO(자동)</b> 모드인지 확인합니다.', warn: true }
+        ]
+      },
+      {
+        code: 'PLC ERR',
+        title: 'PLC 미연결 / 포트 오류',
+        steps: [
+          { p: '1순위', text: 'ATMC <b>CONFIG → PLC</b> 설정에서 PLC IP(<code>192.168.0.1</code>)와 포트 번호(<b>5020</b>)가 일치하는지 확인합니다.' },
+          { p: '2순위', text: '로그에 <code>Invalid PLC address</code>가 떴다면 InputDevice(<code>D300</code>) / OutputDevice(<code>D400</code>) 디바이스 영역 오타를 수정합니다.' },
+          { p: '3순위', text: 'Melsec GX Works / Ethernet 모듈의 MC 프로토콜(Binary/ASCII) 설정 및 2진 코드 통신 허용 여부를 점검합니다.', warn: true }
+        ]
+      },
+      {
+        code: 'FIT / OVL NG',
+        title: '정합 실패 (FIT 상승 / OVL 저하)',
+        steps: [
+          { p: '1순위', text: '스캐너 전면 <b>LPF(Low Pass Filter) 렌즈 오염</b> 여부를 확인합니다. 손으로 만지지 말고 반드시 <b>전용 렌즈 와이프</b>로만 닦아주세요.' },
+          { p: '2순위', text: '작업 영역에 강한 공장 천장 직사광선이나 용접 아크 빛이 반사되어 포인트 클라우드에 홀(구멍)이 생겼는지 확인합니다.' },
+          { p: '3순위', text: '대상 부품이 지그 핀에 삐딱하게 걸려 있거나 차종 모델 비트(<code>R8/R9</code>)가 잘못 입력되었는지 확인합니다.', warn: true }
+        ]
+      },
+      {
+        code: 'LIMIT NG',
+        title: 'Shift Limit 초과 알람',
+        steps: [
+          { p: '1순위', text: '로봇 충돌 방지를 위한 안전 허용 오차(예: ±15mm, ±5°)를 초과한 상태입니다. 작업물/대차 정위치 안착을 먼저 확인하세요.' },
+          { p: '2순위', text: '설비 충격이나 스캐너 브라켓 풀림으로 기준점이 틀어졌다면 <b>6. ATMC 원점 보정 매뉴얼</b> 절차로 기준 원점을 재정렬합니다.' },
+          { p: '3순위', text: '임의로 Limit 수치를 크게 늘리면 로봇과 지그 간 물리적 충돌이 발생할 수 있으므로 주의하세요.', warn: true }
+        ]
+      }
+    ];
+
+    function renderTroubleTab(idx = 0) {
+      const btnWrap = document.getElementById('symptom-buttons');
+      btnWrap.innerHTML = troubleCases.map((c, i) => `
+        <button class="sym-btn ${i === idx ? 'active' : ''}" onclick="renderTroubleTab(${i})">
+          <span class="sym-tag">${c.code}</span>
+          <span class="sym-name">${c.title}</span>
+        </button>
+      `).join('');
+
+      const sel = troubleCases[idx];
+      document.getElementById('action-detail-card').innerHTML = `
+        <div style="font-size:15px; font-weight:800; color:#fff; margin-bottom:10px; border-bottom:1px solid #1e374b; padding-bottom:8px;">
+          🛠️ [${sel.code}] ${sel.title}
+        </div>
+        ${sel.steps.map(s => `
+          <div class="action-step">
+            <span class="priority-badge ${s.warn ? 'warn' : ''}">${s.p}</span>
+            <div style="font-size:13px; line-height:1.55;">${s.text}</div>
+          </div>
+        `).join('')}
+      `;
+    }
+
+    /* 4. 현장 메모장 (localStorage 연동) */
+    const memoIds = ['m-dx', 'm-dy', 'm-dz', 'm-rx', 'm-ry', 'm-rz', 'm-note'];
+
+    function saveMemo() {
+      const data = {};
+      memoIds.forEach(id => { data[id] = document.getElementById(id).value; });
+      localStorage.setItem('atm_field_memo_v1', JSON.stringify(data));
+    }
+
+    function loadMemo() {
+      try {
+        const raw = localStorage.getItem('atm_field_memo_v1');
+        if (!raw) return;
+        const data = JSON.parse(raw);
+        memoIds.forEach(id => {
+          if (data[id] !== undefined) document.getElementById(id).value = data[id];
+        });
+      } catch (e) {}
+    }
+
+    function copyMemoText() {
+      const dx = document.getElementById('m-dx').value || '0';
+      const dy = document.getElementById('m-dy').value || '0';
+      const dz = document.getElementById('m-dz').value || '0';
+      const rx = document.getElementById('m-rx').value || '0';
+      const ry = document.getElementById('m-ry').value || '0';
+      const rz = document.getElementById('m-rz').value || '0';
+      const note = document.getElementById('m-note').value || '(특이사항 없음)';
+
+      const text = `[ATM 현장 점검 기록]
+• 6-DOF 보정값: ΔX=${dx}mm, ΔY=${dy}mm, ΔZ=${dz}mm / ΔRx=${rx}°, ΔRy=${ry}°, ΔRz=${rz}°
+• 현장 메모: ${note}`;
+      navigator.clipboard.writeText(text).then(() => {
+        const t = document.getElementById('copy-toast');
+        t.style.display = 'block';
+        setTimeout(() => { t.style.display = 'none'; }, 2500);
+      });
+    }
+
+    function clearMemo() {
+      ['m-dx', 'm-dy', 'm-dz', 'm-rx', 'm-ry', 'm-rz'].forEach(id => document.getElementById(id).value = '0.0');
+      document.getElementById('m-note').value = '';
+      saveMemo();
+    }
+
+    // 초기 실행
+    renderTroubleTab(0);
+    loadMemo();
+  </script>
+</body>
+</html>
