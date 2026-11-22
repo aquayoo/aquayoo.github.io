@@ -217,6 +217,53 @@
       background: #051017;
     }
 
+    /* 실제 ATMC.App 내부 메뉴 스트립 (HOME / DB / LOG / CONFIG + AUTO/MANUAL) */
+    .atmc-app-subbar {
+      background: #071924;
+      border-bottom: 1px solid var(--atmc-border);
+      padding: 4px 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-shrink: 0;
+      font-size: 11px;
+    }
+    .atmc-menu-icons {
+      display: flex;
+      gap: 6px;
+    }
+    .atmc-menu-item {
+      padding: 2px 8px;
+      border-radius: 3px;
+      background: #0c2636;
+      border: 1px solid #1b4359;
+      color: #8fb1c4;
+      font-weight: 700;
+      font-family: var(--font-mono);
+    }
+    .atmc-menu-item.active {
+      background: #14435c;
+      border-color: var(--accent-cyan);
+      color: #ffffff;
+    }
+    .atmc-op-mode {
+      padding: 3px 12px;
+      border-radius: 3px;
+      font-family: var(--font-mono);
+      font-weight: 900;
+      letter-spacing: 0.6px;
+      transition: all 0.2s;
+    }
+    .atmc-op-mode.auto {
+      background: var(--ok-green);
+      color: #05170d;
+    }
+    .atmc-op-mode.manual {
+      background: #182c38;
+      border: 1px solid #3c657d;
+      color: #cbdbe6;
+    }
+
     /* 상단 뷰어 영역 */
     .cam-viewport {
       position: relative;
@@ -224,8 +271,8 @@
       grid-template-columns: 1fr 1fr;
       gap: 4px;
       padding: 4px;
-      height: 36%;
-      min-height: 155px;
+      height: 33%;
+      min-height: 145px;
       background: #040d14;
     }
 
@@ -316,7 +363,7 @@
       border-top: 1px solid var(--atmc-border);
       border-bottom: 1px solid var(--atmc-border);
       background: #0b2230;
-      min-height: 136px;
+      min-height: 132px;
       flex-shrink: 0;
     }
 
@@ -423,7 +470,7 @@
       padding: 8px 10px;
       overflow-y: auto;
       line-height: 1.5;
-      min-height: 120px;
+      min-height: 115px;
     }
     .log-line { white-space: pre-wrap; word-break: break-all; margin-bottom: 2px; }
     .log-err { color: #c0392b; font-weight: 700; background: rgba(231, 76, 60, 0.12); padding: 1px 3px; }
@@ -459,11 +506,17 @@
       cursor: pointer;
       user-select: none;
       -webkit-user-select: none;
-      transition: transform 0.1s;
+      transition: transform 0.1s, box-shadow 0.15s;
     }
     .hw-led:active { transform: scale(0.95); }
     .hw-led.ok { background: #2ecc71; color: #05180c; }
     .hw-led.err { background: #e74c3c; color: #fff; animation: blinkErr 1.2s infinite; }
+    .hw-led.reconnected {
+      background: #f1c40f;
+      color: #141002;
+      box-shadow: 0 0 8px rgba(241, 196, 15, 0.75);
+      animation: none;
+    }
     @keyframes blinkErr { 50% { opacity: 0.72; } }
 
     /* 우측: 진단 & 복구 워크벤치 */
@@ -524,6 +577,7 @@
       display: none;
     }
     .feedback-box.ok { display: block; background: rgba(46, 204, 113, 0.15); border: 1px solid var(--ok-green); color: #a3f7c4; }
+    .feedback-box.warn { display: block; background: rgba(241, 196, 15, 0.15); border: 1px solid var(--warn-yellow); color: #f9e79f; }
     .feedback-box.err { display: block; background: rgba(231, 76, 60, 0.16); border: 1px solid var(--ng-red); color: #ffa69e; }
 
     .hw-shortcut-tip {
@@ -574,7 +628,7 @@
       .s2-pill, .ver-text-hide { display: none; }
       .app-name { font-size: 12.5px; }
       .cam-viewport {
-        min-height: 145px;
+        min-height: 140px;
       }
       .alarm-banner-overlay {
         width: 92%;
@@ -635,6 +689,17 @@
 
     <!-- 좌측: ATMC.App 화면 재현 -->
     <div class="atmc-screen">
+      <!-- ATMC.App 내부 메뉴 스트립 (HOME / DB / LOG / CONFIG + MANUAL/AUTO) -->
+      <div class="atmc-app-subbar">
+        <div class="atmc-menu-icons">
+          <span class="atmc-menu-item active">HOME</span>
+          <span class="atmc-menu-item">DB</span>
+          <span class="atmc-menu-item">LOG</span>
+          <span class="atmc-menu-item">CONFIG</span>
+        </div>
+        <div class="atmc-op-mode manual" id="op-mode-badge">MANUAL</div>
+      </div>
+
       <!-- 상단 카메라 뷰포트 + 경고 배너 -->
       <div class="cam-viewport">
         <div class="cam-box">
@@ -719,8 +784,8 @@
       <div class="feedback-box" id="diag-feedback"></div>
 
       <div class="hw-shortcut-tip" id="shortcut-guide-box">
-        💡 <b>현장 조작 팁:</b> 하단 상태바의 적색 탭(<code>PLC</code>, <code>SCANNER0</code>, <code>ROBOT0</code>)을
-        <b>Windows는 Ctrl+더블클릭</b>, <b>Mac은 Cmd(⌘) 또는 Option(⌥)+클릭(또는 더블클릭)</b>, <b>모바일은 1회 탭</b>하면 소프트웨어 재연결 테스트가 실행됩니다.
+        💡 <b>현장 조작 팁:</b> 통신 단절 알람 시 하단 상태바의 적색 탭(<code>PLC</code>, <code>SCANNER0</code>, <code>ROBOT0</code>)을
+        <b>Windows는 Ctrl+더블클릭</b>, <b>Mac은 Cmd(⌘) 또는 Option(⌥)+클릭(또는 더블클릭)</b>, <b>모바일은 1회 탭</b>으로 소프트웨어 재연결을 실행해야 복구가 완료됩니다.
       </div>
     </aside>
 
@@ -1146,6 +1211,9 @@
     let curSc = 0;
     let selectedCause = null;
     let selectedAction = null;
+    let hwTriggered = false;
+    let lastHwTriggerTime = 0;
+    let baseOkCount = 124;
     let solvedSet = new Set();
 
     /* 접속 기기 OS / 모바일 자동 감지 안내 */
@@ -1190,9 +1258,20 @@
       selectedCause = null;
       selectedAction = null;
       const sc = scenarios.find(s => s.id === idx) || scenarios[0];
+      hwTriggered = (sc.ctrlDblTarget === null);
 
       initScenarioBar();
       document.getElementById('sc-badge').textContent = `CASE ${sc.id + 1}/${scenarios.length}`;
+
+      // 운전 모드 배지 초기화 (알람 발생 중이므로 MANUAL 대기 상태)
+      const opBadge = document.getElementById('op-mode-badge');
+      opBadge.textContent = 'MANUAL';
+      opBadge.className = 'atmc-op-mode manual';
+
+      // 카운터 표시 갱신
+      const curOk = baseOkCount + solvedSet.size;
+      document.getElementById('cnt-ok').textContent = curOk;
+      document.getElementById('cnt-tot').textContent = curOk + 3;
 
       const banner = document.getElementById('alarm-banner');
       banner.classList.remove('cleared');
@@ -1279,18 +1358,37 @@
       const isActionOk = sc.actions[selectedAction].ok;
 
       if (isCauseOk && isActionOk) {
+        if (sc.ctrlDblTarget && !hwTriggered) {
+          fb.className = 'feedback-box warn';
+          fb.style.display = 'block';
+          fb.innerHTML = `⚠️ <b>거의 완료되었습니다! 마지막 현장 절차:</b><br>하단 상태바의 적색 <b>[${sc.ctrlDblTarget === 'S0' ? 'SCANNER0' : (sc.ctrlDblTarget === 'S1' ? 'SCANNER1' : (sc.ctrlDblTarget === 'ROBOT' ? 'ROBOT0' : 'PLC'))}]</b> LED 탭을 재연결(Win: Ctrl+더블클릭 / Mac: Cmd·Option+클릭 / 모바일: 1회 탭)하여 통신을 복구하세요.`;
+          return;
+        }
         fb.className = 'feedback-box ok';
+        fb.style.display = 'block';
         fb.innerHTML = `✅ <b>진단 및 복구 완료!</b><br>${sc.explain}`;
         applyRecoveryVisuals();
       } else {
         fb.className = 'feedback-box err';
+        fb.style.display = 'block';
         fb.innerHTML = `❌ <b>진단 또는 조치 불일치:</b> 베이지색 로그창의 에러 키워드(<code>${sc.logs.find(l => l.t === 'err').m.slice(15, 56)}...</code>)를 다시 확인해 보세요.`;
       }
     }
 
     function applyRecoveryVisuals() {
+      const wasSolved = solvedSet.has(curSc);
       solvedSet.add(curSc);
       initScenarioBar();
+
+      // OK 카운터 증가 연출
+      const curOk = baseOkCount + solvedSet.size;
+      document.getElementById('cnt-ok').textContent = curOk;
+      document.getElementById('cnt-tot').textContent = curOk + 3;
+
+      // 운전 모드 MANUAL -> AUTO 전환
+      const opBadge = document.getElementById('op-mode-badge');
+      opBadge.textContent = 'AUTO';
+      opBadge.className = 'atmc-op-mode auto';
 
       document.getElementById('alarm-banner').classList.add('cleared');
       ['PLC', 'S0', 'S1', 'ROBOT'].forEach(k => {
@@ -1300,17 +1398,30 @@
       jb.textContent = 'OK';
       jb.className = 'judge-box ok';
 
-      const logEl = document.getElementById('log-terminal');
-      logEl.innerHTML += `<div class="log-line log-ok">[RECOVERY] System restored to normal state. READY = True (OK)</div>`;
-      logEl.scrollTop = logEl.scrollHeight;
+      if (!wasSolved) {
+        const logEl = document.getElementById('log-terminal');
+        logEl.innerHTML += `<div class="log-line log-ok">[RECOVERY] System restored to normal state. MODE = AUTO / READY = True (OK)</div>`;
+        logEl.scrollTop = logEl.scrollHeight;
+      }
     }
 
     function triggerHwReconnect(target) {
+      // macOS에서 Cmd+더블클릭 시 click과 dblclick이 연속 발생해 중복 로그가 찍히는 현상 방지(디바운스 350ms)
+      const now = Date.now();
+      if (now - lastHwTriggerTime < 350) return;
+      lastHwTriggerTime = now;
+
       const sc = scenarios[curSc];
       const logEl = document.getElementById('log-terminal');
       logEl.innerHTML += `<div class="log-line log-info">[USER] Reconnect Trigger on [${target}] -> Attempting reconnect...</div>`;
       if (sc.ctrlDblTarget === target) {
-        logEl.innerHTML += `<div class="log-line log-ok">[${target}] Reconnect signal sent! 우측 패널에서 원인/조치 확인을 완료하세요.</div>`;
+        hwTriggered = true;
+        const ledEl = document.getElementById('led-' + target.toLowerCase());
+        if (ledEl && !solvedSet.has(curSc)) {
+          ledEl.className = 'hw-led reconnected';
+        }
+        logEl.innerHTML += `<div class="log-line log-ok">[${target}] Reconnect signal accepted! 우측 패널의 원인·조치 선택 시 최종 복구됩니다.</div>`;
+        evaluateDiagnosis();
       } else {
         logEl.innerHTML += `<div class="log-line log-warn">[${target}] Already connected or requires parameter/physical check first.</div>`;
       }
