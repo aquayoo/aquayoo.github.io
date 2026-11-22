@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>ATMC Log & Alarm Diagnostics Simulator | Season 2 (8 Cases)</title>
+  <title>ATMC Log & Alarm Diagnostics Simulator | Season 2 (12 Cases)</title>
   <style>
     :root {
       --bg-dark: #06141d;
@@ -109,16 +109,48 @@
     }
     .top-link:hover, .top-link:active { border-color: var(--accent-cyan); color: #fff; }
 
-    /* 상단 리본 & 시나리오 바 */
+    /* 상단 카테고리 필터 + 시나리오 선택 바 */
     .atmc-ribbon {
       background: #081c28;
       border-bottom: 1px solid var(--atmc-border);
-      padding: 7px 12px;
+      padding: 6px 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      flex-shrink: 0;
+    }
+
+    .ribbon-top-row {
       display: flex;
       justify-content: space-between;
       align-items: center;
       gap: 8px;
+    }
+
+    .cat-tabs {
+      display: flex;
+      gap: 5px;
+      overflow-x: auto;
+      scrollbar-width: none;
+    }
+    .cat-tabs::-webkit-scrollbar { display: none; }
+
+    .cat-btn {
+      background: #0b2433;
+      border: 1px solid #1e4860;
+      color: #93b3c7;
+      padding: 4px 10px;
+      border-radius: 12px;
+      font-size: 11px;
+      font-weight: 700;
+      cursor: pointer;
+      white-space: nowrap;
       flex-shrink: 0;
+    }
+    .cat-btn.active {
+      background: var(--accent-cyan);
+      color: #05131c;
+      border-color: var(--accent-cyan);
     }
 
     .scenario-bar {
@@ -136,7 +168,7 @@
       background: #0d2636;
       border: 1px solid #26536b;
       color: #cbe0ec;
-      padding: 6px 11px;
+      padding: 5px 10px;
       border-radius: 5px;
       font-size: 11.5px;
       font-weight: 700;
@@ -161,9 +193,9 @@
       background: var(--ok-green);
       color: #05140c;
       font-weight: 900;
-      padding: 5px 12px;
+      padding: 4px 11px;
       border-radius: 4px;
-      font-size: 12px;
+      font-size: 11.5px;
       letter-spacing: 0.5px;
       flex-shrink: 0;
     }
@@ -192,8 +224,8 @@
       grid-template-columns: 1fr 1fr;
       gap: 4px;
       padding: 4px;
-      height: 40%;
-      min-height: 170px;
+      height: 36%;
+      min-height: 155px;
       background: #040d14;
     }
 
@@ -284,7 +316,7 @@
       border-top: 1px solid var(--atmc-border);
       border-bottom: 1px solid var(--atmc-border);
       background: #0b2230;
-      min-height: 142px;
+      min-height: 136px;
       flex-shrink: 0;
     }
 
@@ -391,7 +423,7 @@
       padding: 8px 10px;
       overflow-y: auto;
       line-height: 1.5;
-      min-height: 135px;
+      min-height: 120px;
     }
     .log-line { white-space: pre-wrap; word-break: break-all; margin-bottom: 2px; }
     .log-err { color: #c0392b; font-weight: 700; background: rgba(231, 76, 60, 0.12); padding: 1px 3px; }
@@ -403,7 +435,7 @@
     .atmc-statusbar {
       background: #030a0f;
       border-top: 1px solid var(--atmc-border);
-      padding: 5px 10px;
+      padding: 6px 10px;
       display: flex;
       justify-content: space-between;
       align-items: center;
@@ -426,6 +458,7 @@
       border-radius: 3px;
       cursor: pointer;
       user-select: none;
+      -webkit-user-select: none;
       transition: transform 0.1s;
     }
     .hw-led:active { transform: scale(0.95); }
@@ -573,7 +606,7 @@
     <div class="app-brand">
       <span class="atm-logo-box">ATM</span>
       <span class="app-name">ATMC.Diagnostics_Trainer</span>
-      <span class="s2-pill">SEASON 2 · 8 CASES</span>
+      <span class="s2-pill">SEASON 2 · 12 CASES</span>
     </div>
     <div class="top-nav-links">
       <a href="field_kit.html" class="top-link">📱 툴킷</a>
@@ -582,10 +615,19 @@
     </div>
   </div>
 
-  <!-- 시나리오 선택 바 -->
+  <!-- 카테고리 탭 + 시나리오 선택 바 -->
   <div class="atmc-ribbon">
+    <div class="ribbon-top-row">
+      <div class="cat-tabs" id="category-tabs">
+        <button class="cat-btn active" onclick="setCategory('ALL', this)">전체 (12)</button>
+        <button class="cat-btn" onclick="setCategory('HW', this)">스캐너·광학 (4)</button>
+        <button class="cat-btn" onclick="setCategory('NET', this)">네트워크·NIC (3)</button>
+        <button class="cat-btn" onclick="setCategory('PLC_ROB', this)">로봇·PLC (3)</button>
+        <button class="cat-btn" onclick="setCategory('CFG', this)">설정·모델파일 (2)</button>
+      </div>
+      <div class="mode-badge" id="progress-badge">완료 0/12</div>
+    </div>
     <div class="scenario-bar" id="scenario-buttons"></div>
-    <div class="mode-badge">AUTO</div>
   </div>
 
   <!-- 메인 2단 그리드 -->
@@ -638,16 +680,16 @@
       <!-- 하단 로그 터미널 -->
       <div class="log-terminal" id="log-terminal"></div>
 
-      <!-- 최하단 상태바 (Windows Ctrl / macOS Cmd / 모바일 Tap 모두 지원) -->
+      <!-- 최하단 상태바 (Windows Ctrl / macOS Cmd·Option / 모바일 Tap 모두 지원) -->
       <div class="atmc-statusbar">
         <div class="hw-tabs">
           <span class="ver-text-hide" style="color:#7c98ab; margin-right:4px;">ver: 1.24.1228</span>
-          <span class="hw-led ok" id="led-plc" onclick="handleHwTouch(event, 'PLC')" ondblclick="handleHwDblClick(event, 'PLC')">PLC</span>
-          <span class="hw-led err" id="led-s0" onclick="handleHwTouch(event, 'S0')" ondblclick="handleHwDblClick(event, 'S0')">SCANNER0</span>
-          <span class="hw-led ok" id="led-s1" onclick="handleHwTouch(event, 'S1')" ondblclick="handleHwDblClick(event, 'S1')">SCANNER1</span>
-          <span class="hw-led ok" id="led-robot" onclick="handleHwTouch(event, 'ROBOT')" ondblclick="handleHwDblClick(event, 'ROBOT')">ROBOT0</span>
+          <span class="hw-led ok" id="led-plc" onclick="handleHwClick(event, 'PLC')" ondblclick="handleHwDblClick(event, 'PLC')">PLC</span>
+          <span class="hw-led err" id="led-s0" onclick="handleHwClick(event, 'S0')" ondblclick="handleHwDblClick(event, 'S0')">SCANNER0</span>
+          <span class="hw-led ok" id="led-s1" onclick="handleHwClick(event, 'S1')" ondblclick="handleHwDblClick(event, 'S1')">SCANNER1</span>
+          <span class="hw-led ok" id="led-robot" onclick="handleHwClick(event, 'ROBOT')" ondblclick="handleHwDblClick(event, 'ROBOT')">ROBOT0</span>
         </div>
-        <span style="color:#7c98ab; font-size:10.5px;" id="os-hint-badge">Win: Ctrl+더블클릭 | Mac: Cmd+더블클릭</span>
+        <span style="color:#7c98ab; font-size:10.5px;" id="os-hint-badge">Win: Ctrl+더블클릭 | Mac: Cmd/Option+클릭</span>
       </div>
     </div>
 
@@ -656,7 +698,7 @@
       <div class="wb-card">
         <div class="wb-title">
           <span>🔍 STEP 1. 로그 기반 원인 판독</span>
-          <span id="sc-badge" style="font-family:var(--font-mono); font-size:11px; color:#f1c40f;">CASE 1/8</span>
+          <span id="sc-badge" style="font-family:var(--font-mono); font-size:11px; color:#f1c40f;">CASE 1/12</span>
         </div>
         <div style="font-size:12px; color:#9ab5c7; margin-bottom:9px;">
           베이지색 로그창의 <b>붉은색 에러 메시지</b>를 읽고 정확한 발생 원인을 선택하세요.
@@ -678,7 +720,7 @@
 
       <div class="hw-shortcut-tip" id="shortcut-guide-box">
         💡 <b>현장 조작 팁:</b> 하단 상태바의 적색 탭(<code>PLC</code>, <code>SCANNER0</code>, <code>ROBOT0</code>)을
-        <b>Windows는 Ctrl+더블클릭</b>, <b>Mac은 Cmd(⌘)+더블클릭</b>(모바일은 1회 탭)하면 소프트웨어 재연결 테스트가 실행됩니다.
+        <b>Windows는 Ctrl+더블클릭</b>, <b>Mac은 Cmd(⌘) 또는 Option(⌥)+클릭(또는 더블클릭)</b>, <b>모바일은 1회 탭</b>하면 소프트웨어 재연결 테스트가 실행됩니다.
       </div>
     </aside>
 
@@ -686,11 +728,12 @@
 
   <script>
     /* =========================================================================
-       현장 실제 로그 및 트러블슈팅 시나리오 8종 (기본 5종 + 신규 3종)
+       현장 실제 로그 및 트러블슈팅 시나리오 12종
        ========================================================================= */
     const scenarios = [
       {
         id: 0,
+        cat: 'HW',
         shortTitle: '1. 스캐너 단선 (Cable)',
         bannerCode: 'SCANNER[0] is not connected!',
         bannerDesc: 'S0 스캐너 통신이 끊어졌습니다. 로그를 분석해 원인을 찾으세요.',
@@ -725,6 +768,7 @@
       },
       {
         id: 1,
+        cat: 'HW',
         shortTitle: '2. 프로젝터 펌웨어 다운',
         bannerCode: 'SCANNER[0] Projector Disconnected',
         bannerDesc: '카메라는 인식되나 구조광 패턴이 투사되지 않습니다.',
@@ -758,6 +802,7 @@
       },
       {
         id: 2,
+        cat: 'PLC_ROB',
         shortTitle: '3. 로봇 HR-RPC 타임아웃',
         bannerCode: 'ROBOT[0] is not connected!',
         bannerDesc: '현대로봇 제어기와 HR-RPC 소켓 통신이 실패했습니다.',
@@ -791,6 +836,7 @@
       },
       {
         id: 3,
+        cat: 'PLC_ROB',
         shortTitle: '4. PLC 어드레스 오설정',
         bannerCode: 'PLC is not connected!',
         bannerDesc: 'PLC 통신 초기화 중 디바이스 어드레스 파싱 오류가 발생했습니다.',
@@ -824,6 +870,7 @@
       },
       {
         id: 4,
+        cat: 'HW',
         shortTitle: '5. 정합 품질 NG (FIT/OVL)',
         bannerCode: 'RESULT NG : FIT / OVL Threshold Exceeded',
         bannerDesc: '장비 통신은 모두 정상이나 3D 정합 품질 불량으로 NG가 발생했습니다.',
@@ -857,6 +904,7 @@
       },
       {
         id: 5,
+        cat: 'CFG',
         shortTitle: '6. HandEye JSON 누락',
         bannerCode: 'CONFIG ERROR : HandEye_S0.json Missing',
         bannerDesc: '프로그램 기동 시 캘리브레이션 변환 행렬 파일을 로드하지 못했습니다.',
@@ -890,6 +938,7 @@
       },
       {
         id: 6,
+        cat: 'CFG',
         shortTitle: '7. 차종 REF 모델(.ply) 누락',
         bannerCode: 'MODEL LOAD ERROR : REF.ply Not Found',
         bannerDesc: 'PLC에서 수신한 차종 번호에 해당하는 기준 3D 모델 파일이 없습니다.',
@@ -923,6 +972,7 @@
       },
       {
         id: 7,
+        cat: 'NET',
         shortTitle: '8. 링크 속도 100Mbps 저하',
         bannerCode: 'SCANNER[1] Frame Drop / Incomplete 3D',
         bannerDesc: '스캐너 연결은 되었으나 3D 점군 데이터가 잘리거나 타임아웃이 빈발합니다.',
@@ -953,9 +1003,146 @@
         ],
         explain: '정확합니다! 3D 구조광 스캐너는 대용량 패턴 이미지를 고속 전송하므로 <b>1.0 Gbps 링크 속도</b>가 필수입니다. 케이블 일부 심선이 단선되면 윈도우에서 <b>100 Mbps</b>로 자동 하향되며(랜포트 LED가 초록+초록으로 점등) 프레임 유실이 발생하므로 즉시 케이블을 교체해야 합니다.',
         ctrlDblTarget: 'S1'
+      },
+      {
+        id: 8,
+        cat: 'NET',
+        shortTitle: '9. Jumbo Frame 미설정',
+        bannerCode: 'GigE Vision Packet Resend Overflow',
+        bannerDesc: 'Basler 카메라 고해상도 연속 촬상 중 패킷 재전송 폭증으로 타임아웃이 발생합니다.',
+        leds: { PLC: 'ok', S0: 'err', S1: 'ok', ROBOT: 'ok' },
+        judge: { text: 'ERR', cls: 'ng' },
+        s0Text: '[ERR] Pylon Grab Failed (0xE1000014)',
+        s1Text: '[READY] PointCloud 48,400 pts',
+        shift: { dx: '0.000', dy: '0.000', dz: '0.000', rx: '0.000', ry: '0.000', rz: '0.000', fit: '0.000', ovl: '0%', bad: true },
+        io: {
+          r: [{ n: '0 RESET', on: false }, { n: '1 START', on: true }, { n: '2 S0_SCAN', on: true }],
+          w: [{ n: '0 READY', on: false }, { n: '1 HW_ERR', err: true }, { n: '15 PCRUN', on: true }]
+        },
+        logs: [
+          { t: 'info', m: '[16:05:12.110] [Basler Pylon] Acquiring structured light image stack...' },
+          { t: 'warn', m: '[16:05:12.340] GigE Stream Warning: Packet resend ratio exceeded 35% (MTU=1500).' },
+          { t: 'err',  m: '[16:05:12.512] GrabResult Error 0xE1000014: The buffer was incompletely grabbed.' },
+          { t: 'err',  m: '[16:05:12.518] [SCANNER0] Trigger grab timeout! Check NIC Jumbo Packet setting.' }
+        ],
+        causes: [
+          { text: '비전 PC 랜카드 속성에서 Jumbo Packet(9014 Bytes) 및 수신 버퍼(Rx Buffers) 미설정', ok: true },
+          { text: '현대로봇 그리퍼 공압 솔레노이드 밸브 고장', ok: false },
+          { text: 'PLC 통신 포트 번호(5020) 중복', ok: false }
+        ],
+        actions: [
+          { text: '장치 관리자 → 네트워크 어댑터 고급 속성에서 Jumbo Packet을 9014 Bytes, Rx Buffers를 최대로 설정', ok: true },
+          { text: '스캐너 전면 유리창에 편광 필름 부착', ok: false },
+          { text: 'Windows 11 정품 인증 키 재입력', ok: false }
+        ],
+        explain: '정확합니다! 산업용 <b>Basler GigE 카메라</b>는 기본 MTU(1500 Bytes) 상태에서는 대용량 패턴 프레임 전송 시 CPU 부하와 패킷 재전송(<code>0xE1000014</code>)이 폭증합니다. 랜카드 고급 속성에서 <b>Jumbo Packet = 9014 Bytes</b>와 <b>Receive Buffers 최대치</b>를 반드시 활성화해야 합니다.',
+        ctrlDblTarget: 'S0'
+      },
+      {
+        id: 9,
+        cat: 'NET',
+        shortTitle: '10. 야간 절전모드 링크 끊김',
+        bannerCode: 'SCANNER[0] / [1] Lost After Idle',
+        bannerDesc: '야간 비가동 또는 점심시간 대기 후 첫 사이클에서 스캐너 연결이 끊어져 있습니다.',
+        leds: { PLC: 'ok', S0: 'err', S1: 'err', ROBOT: 'ok' },
+        judge: { text: 'ERR', cls: 'ng' },
+        s0Text: '[OFFLINE] NIC Power Saving Suspended',
+        s1Text: '[OFFLINE] NIC Power Saving Suspended',
+        shift: { dx: '0.000', dy: '0.000', dz: '0.000', rx: '0.000', ry: '0.000', rz: '0.000', fit: '0.000', ovl: '0%', bad: true },
+        io: {
+          r: [{ n: '0 RESET', on: false }, { n: '1 START', on: true }, { n: '2 S0_SCAN', on: true }],
+          w: [{ n: '0 READY', on: false }, { n: '1 HW_ERR', err: true }, { n: '15 PCRUN', on: true }]
+        },
+        logs: [
+          { t: 'info', m: '[07:55:01.004] Line idle duration: 14h 20m (Night shift standby).' },
+          { t: 'info', m: '[07:55:02.110] PLC[Melsec].DI.START = True (Morning First Cycle)' },
+          { t: 'err',  m: '[07:55:02.115] [SCANNER0] Heartbeat timeout: Device connection lost during idle.' },
+          { t: 'err',  m: '[07:55:02.118] [SCANNER1] Heartbeat timeout: Device connection lost during idle.' }
+        ],
+        causes: [
+          { text: 'Windows 전원 관리(전원 절약을 위해 이 장치를 끔) 및 에너지 효율 이더넷(EEE) 활성화', ok: true },
+          { text: '3D 기준 모델(REF.ply) 좌표계 단위(mm/m) 불일치', ok: false },
+          { text: '현대로봇 툴(TCP) 번호 오지정', ok: false }
+        ],
+        actions: [
+          { text: '랜카드 전원 관리에서 "전원 절약 끄기" 체크 해제 및 고급 탭 Energy-Efficient Ethernet(EEE) 사용 안 함 설정', ok: true },
+          { text: 'AbeoSCAN에서 ICP 반복 횟수(MaxIteration)를 100으로 증가', ok: false },
+          { text: 'PLC 디바이스 어드레스를 D400에서 D500으로 변경', ok: false }
+        ],
+        explain: '정확합니다! Windows OS 업데이트나 신규 PC 셋업 후 랜카드의 <b>전원 절약 옵션</b>과 <b>Energy-Efficient Ethernet(EEE)</b>이 켜져 있으면, 라인 휴식 시간 동안 OS가 랜포트 전원을 차단해 하트비트 타임아웃이 발생합니다. 두 옵션을 모두 <b>사용 안 함(Disable)</b>으로 설정해야 합니다.',
+        ctrlDblTarget: 'S0'
+      },
+      {
+        id: 10,
+        cat: 'HW',
+        shortTitle: '11. 외부 직사광선·난반사 노이즈',
+        bannerCode: 'POINTCLOUD NOISE : High Saturation NG',
+        bannerDesc: '특정 시간대 창가 햇빛 유입 또는 유광 패널 반사로 3D 형상에 구멍(Hole)이 생깁니다.',
+        leds: { PLC: 'ok', S0: 'ok', S1: 'ok', ROBOT: 'ok' },
+        judge: { text: 'NG', cls: 'ng' },
+        s0Text: '[WARN] Saturated Pixels > 28% (Glare)',
+        s1Text: '[OK] PointCloud Acquired (48,700 pts)',
+        shift: { dx: '-12.300', dy: '15.400', dz: '8.900', rx: '2.800', ry: '4.100', rz: '-6.500', fit: '3.920', ovl: '61%', bad: true },
+        io: {
+          r: [{ n: '0 RESET', on: false }, { n: '1 START', on: true }, { n: '2 S0_SCAN', on: false }],
+          w: [{ n: '2 S0_OK', on: false }, { n: '3 S0_NG', err: true }, { n: '15 PCRUN', on: true }]
+        },
+        logs: [
+          { t: 'info', m: '[11:30:14.080] S0 3D Scan triggered (Exposure: 12000 us).' },
+          { t: 'warn', m: '[11:30:14.310] Structured Light Warning: Ambient light saturation detected.' },
+          { t: 'err',  m: '[11:30:14.355] PointCloud density too low (Valid points: 34% < 75%) -> S0_NG' },
+          { t: 'err',  m: '[11:30:14.360] ICP Alignment failed due to missing surface patches.' }
+        ],
+        causes: [
+          { text: '강한 외부 직사광선/용접광 유입 및 유광 표면 포화(Saturation)로 구조광 패턴 소실', ok: true },
+          { text: 'LAN 1번 로봇 HR-RPC 서비스 포트 잠김', ok: false },
+          { text: 'Settings 폴더 내 HandEye_S0.json 삭제', ok: false }
+        ],
+        actions: [
+          { text: '차광막(커튼)으로 외부 직사광선 차단 후 카메라 노출(Exposure)·HDR 다중 노출 파라미터 최적화', ok: true },
+          { text: 'PC 랙 후면 CP 전원을 20초간 내렸다 올리기', ok: false },
+          { text: 'PLC 통신 속도를 100Mbps로 강제 고정', ok: false }
+        ],
+        explain: '정확합니다! 구조광 3D 스캐너는 프로젝터 패턴의 명암 대비로 높이를 복원하므로, 외부 태양광이나 강한 조명이 들어오면 센서가 포화(Saturation)되어 점군에 구멍이 뚫립니다. <b>외부 광원 차광 조치</b>와 함께 <b>노출(Exposure) 및 다중 노출(HDR) 값</b>을 재조정해야 합니다.',
+        ctrlDblTarget: null
+      },
+      {
+        id: 11,
+        cat: 'PLC_ROB',
+        shortTitle: '12. Byte Swap 보정값 반전',
+        bannerCode: 'ROBOT MOTION ALARM : Abnormal Shift Value',
+        bannerDesc: '비전 판정은 OK였으나 로봇 수신 좌표(UF6)가 수백 mm 이상 엉뚱한 값으로 튀었습니다.',
+        leds: { PLC: 'ok', S0: 'ok', S1: 'ok', ROBOT: 'err' },
+        judge: { text: 'ERR', cls: 'ng' },
+        s0Text: '[OK] Vision Calc: ΔX = +2.50 mm',
+        s1Text: '[PLC REG] D400 Read: +640.00 mm (!)',
+        shift: { dx: '640.00', dy: '-512.00', dz: '256.00', rx: '0.100', ry: '0.050', rz: '-0.120', fit: '0.350', ovl: '96%', bad: true },
+        io: {
+          r: [{ n: '0 RESET', on: false }, { n: '1 START', on: true }, { n: '2 S0_SCAN', on: false }],
+          w: [{ n: '2 S0_OK', on: true }, { n: '1 HW_ERR', err: true }, { n: '15 PCRUN', on: true }]
+        },
+        logs: [
+          { t: 'info', m: '[16:48:02.110] Vision Shift Output -> ΔX: +2.50 mm (0x00FA)' },
+          { t: 'warn', m: '[16:48:02.125] PLC/Robot Register D400 Echo -> 0xFA00 (+640.00 mm)' },
+          { t: 'err',  m: '[16:48:02.130] [HyundaiRobot0] Soft Limit / Trajectory Error (Target out of reach!)' },
+          { t: 'err',  m: '[16:48:02.135] Data Endianness Mismatch suspected between PC and PLC/Robot.' }
+        ],
+        causes: [
+          { text: 'PLC/로봇 통신 데이터 워드·바이트 순서(Big Endian vs Little Endian / Byte Swap) 불일치', ok: true },
+          { text: '스캐너 전면 LPF 렌즈에 먼지 부착', ok: false },
+          { text: 'Windows 11 자동 업데이트 재부팅', ok: false }
+        ],
+        actions: [
+          { text: 'CONFIG → 통신 설정에서 Byte/Word Swap(Endian) 옵션을 상대 PLC/로봇 규격과 일치시킴', ok: true },
+          { text: '스캐너 프로젝터 밝기를 50%로 하향 조정', ok: false },
+          { text: '현대로봇 TP의 비상정지 해제 후 고속(100%) 운전 실행', ok: false }
+        ],
+        explain: '정확합니다! 신규 라인 셋업이나 이기종 PLC(Siemens S7 ↔ Melsec) 연동 시 흔히 겪는 <b>엔디안(Endianness / Byte·Word Swap) 불일치</b> 사례입니다. <code>0x00FA</code>(250)가 상위·하위 바이트가 뒤집혀 <code>0xFA00</code>(64000)으로 읽히므로, 통신 설정에서 <b>Byte/Word Swap</b> 옵션을 맞춰야 합니다.',
+        ctrlDblTarget: 'ROBOT'
       }
     ];
 
+    let curCat = 'ALL';
     let curSc = 0;
     let selectedCause = null;
     let selectedAction = null;
@@ -969,29 +1156,43 @@
       if (isTouch) {
         badge.textContent = '📱 모바일/태블릿: 적색 LED 1회 탭으로 재연결';
       } else if (isMac) {
-        badge.textContent = '🍎 macOS 감지: Cmd(⌘) + 더블클릭 지원';
+        badge.textContent = '🍎 macOS 감지: Cmd(⌘) 또는 Option(⌥) + 클릭 지원';
       } else {
         badge.textContent = '🪟 Windows: Ctrl + 더블클릭 지원';
       }
     }
 
+    function setCategory(cat, btn) {
+      curCat = cat;
+      document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      initScenarioBar();
+
+      const filtered = scenarios.filter(s => curCat === 'ALL' || s.cat === curCat);
+      if (filtered.length > 0 && !filtered.some(s => s.id === curSc)) {
+        loadScenario(filtered[0].id);
+      }
+    }
+
     function initScenarioBar() {
       const bar = document.getElementById('scenario-buttons');
-      bar.innerHTML = scenarios.map((s, idx) => {
-        const cls = idx === curSc ? 'active' : (solvedSet.has(idx) ? 'solved' : '');
-        const mark = solvedSet.has(idx) ? '✓ ' : '';
-        return `<button class="sc-btn ${cls}" onclick="loadScenario(${idx})">${mark}${s.shortTitle}</button>`;
+      const filtered = scenarios.filter(s => curCat === 'ALL' || s.cat === curCat);
+      bar.innerHTML = filtered.map((s) => {
+        const cls = s.id === curSc ? 'active' : (solvedSet.has(s.id) ? 'solved' : '');
+        const mark = solvedSet.has(s.id) ? '✓ ' : '';
+        return `<button class="sc-btn ${cls}" onclick="loadScenario(${s.id})">${mark}${s.shortTitle}</button>`;
       }).join('');
+      document.getElementById('progress-badge').textContent = `완료 ${solvedSet.size}/${scenarios.length}`;
     }
 
     function loadScenario(idx) {
       curSc = idx;
       selectedCause = null;
       selectedAction = null;
-      const sc = scenarios[idx];
+      const sc = scenarios.find(s => s.id === idx) || scenarios[0];
 
       initScenarioBar();
-      document.getElementById('sc-badge').textContent = `CASE ${idx + 1}/${scenarios.length}`;
+      document.getElementById('sc-badge').textContent = `CASE ${sc.id + 1}/${scenarios.length}`;
 
       const banner = document.getElementById('alarm-banner');
       banner.classList.remove('cleared');
@@ -1116,24 +1317,29 @@
       logEl.scrollTop = logEl.scrollHeight;
     }
 
-    /* 데스크톱: Windows(Ctrl) 및 macOS(Cmd) + 더블클릭 지원 */
+    /* 데스크톱: Windows(Ctrl) 및 macOS(Cmd / Option) + 더블클릭 지원 */
     function handleHwDblClick(e, target) {
       const logEl = document.getElementById('log-terminal');
-      const isModifier = e.ctrlKey || e.metaKey;
+      const isModifier = e.ctrlKey || e.metaKey || e.altKey;
       if (!isModifier) {
         const isMac = /Mac/.test(navigator.platform);
-        const keyHint = isMac ? 'Cmd(⌘)' : 'Ctrl';
-        logEl.innerHTML += `<div class="log-line log-warn">[UI Tip] 하드웨어 강제 재연결은 <b>${keyHint} 키를 누른 상태에서 더블클릭</b>하세요.</div>`;
+        const keyHint = isMac ? 'Cmd(⌘) 또는 Option(⌥)' : 'Ctrl';
+        logEl.innerHTML += `<div class="log-line log-warn">[UI Tip] 하드웨어 강제 재연결은 <b>${keyHint} 키를 누른 상태에서 클릭/더블클릭</b>하세요.</div>`;
         logEl.scrollTop = logEl.scrollHeight;
         return;
       }
       triggerHwReconnect(target);
     }
 
-    /* 모바일/태블릿(iPhone 14 Pro / Galaxy): 터치 환경에서는 1회 탭으로 즉시 실행 */
-    function handleHwTouch(e, target) {
+    /* 모바일/태블릿 1회 탭 및 macOS Cmd/Option + 1회 클릭 즉시 실행 지원 */
+    function handleHwClick(e, target) {
       const isMobileOrTouch = ('ontouchstart' in window && navigator.maxTouchPoints > 0) || window.innerWidth <= 1024;
       if (isMobileOrTouch) {
+        triggerHwReconnect(target);
+        return;
+      }
+      // macOS Safari/Chrome에서 Cmd+더블클릭이 단일 click으로 들어오는 현상 완벽 대응
+      if (e.metaKey || e.altKey) {
         triggerHwReconnect(target);
       }
     }
