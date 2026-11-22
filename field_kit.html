@@ -1081,8 +1081,7 @@
       if (logTxt) lines.push(`• 로그/키워드: ${logTxt}`);
       lines.push(`• 6-DOF 보정값: ΔX=${dx}mm, ΔY=${dy}mm, ΔZ=${dz}mm / ΔRx=${rx}°, ΔRy=${ry}°, ΔRz=${rz}°`);
       lines.push(`• 조치/메모: ${note}`);
-      return lines.join('
-');
+      return lines.join('\n');
     }
 
     function showToast(msg) {
@@ -1166,11 +1165,7 @@
         showToast('⚠️ 저장된 사례가 없습니다.');
         return;
       }
-      const joined = list.map(x => x.report).join('
-
-------------------------------
-
-');
+      const joined = list.map(x => x.report).join('\n\n------------------------------\n\n');
       navigator.clipboard.writeText(joined).then(() => {
         showToast(`✓ 저장된 ${list.length}건의 사례가 모두 복사되었습니다.`);
       });
