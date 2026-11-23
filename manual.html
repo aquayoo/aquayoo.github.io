@@ -146,6 +146,62 @@
       flex-shrink: 0;
     }
 
+    .main-manual-banner {
+      margin: 10px 10px 4px 10px;
+      padding: 11px 12px;
+      background: linear-gradient(135deg, rgba(21, 101, 192, 0.35), rgba(0, 173, 181, 0.25));
+      border: 1px solid var(--accent-cyan);
+      border-left: 4px solid #38bdf8;
+      border-radius: 7px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      text-decoration: none;
+      color: #ffffff;
+      box-shadow: 0 4px 12px rgba(0, 173, 181, 0.18);
+      transition: all 0.2s ease;
+      flex-shrink: 0;
+    }
+    .main-manual-banner:hover {
+      background: linear-gradient(135deg, rgba(21, 101, 192, 0.55), rgba(0, 173, 181, 0.4));
+      transform: translateY(-1px);
+      box-shadow: 0 6px 16px rgba(0, 173, 181, 0.32);
+    }
+    .mm-info {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+    .mm-badge {
+      display: inline-block;
+      width: fit-content;
+      font-family: var(--font-mono);
+      font-size: 9.5px;
+      font-weight: 800;
+      background: #38bdf8;
+      color: #080d12;
+      padding: 1px 6px;
+      border-radius: 3px;
+      letter-spacing: 0.4px;
+    }
+    .mm-title {
+      font-size: 13px;
+      font-weight: 800;
+      color: #ffffff;
+      line-height: 1.3;
+    }
+    .mm-sub {
+      font-size: 10.5px;
+      color: #bceeff;
+    }
+    .mm-arrow {
+      font-size: 15px;
+      font-weight: 800;
+      color: var(--accent-cyan);
+      flex-shrink: 0;
+    }
+
     .search-wrap {
       padding: 10px 12px;
       background: #101d28;
@@ -551,7 +607,7 @@
     <div class="header-left">
       <span class="ver-badge">V1.0 (Nov.21)</span>
       <span class="main-title">ATM Manual Collection</span>
-      <span class="sub-caption">3D Vision · Robot Calibration · Troubleshooting 기술 자료실</span>
+      <span class="sub-caption">Main Manual(Notion) · 3D Vision · Robot Calibration · Troubleshooting 기술 자료실</span>
     </div>
 
     <a href="index.html" class="home-btn" title="메인 교육 포털(index.html)로 돌아가기">
@@ -570,6 +626,16 @@
         <span>📁 File list (기술 매뉴얼 목록)</span>
         <span id="file-count" style="font-family:var(--font-mono); font-size:11px; color:#8faec4;">22개</span>
       </div>
+
+      <!-- 최상단 고정: Main Manual (Notion 웹 매뉴얼) -->
+      <a href="https://app.notion.com/p/rimryu/3D-1b54d1fd7f764b04a0fc99d0e1ea3511" target="_blank" rel="noopener noreferrer" class="main-manual-banner" title="노션(Notion) 메인 설치 매뉴얼 새 창으로 열기">
+        <div class="mm-info">
+          <span class="mm-badge">★ MAIN MANUAL · NOTION</span>
+          <span class="mm-title">에이티엠 3D 설치 매뉴얼</span>
+          <span class="mm-sub">온라인 통합 기준서 바로가기 (새창)</span>
+        </div>
+        <span class="mm-arrow">↗</span>
+      </a>
 
       <div class="search-wrap">
         <input type="text" id="search-box" class="search-input" placeholder="🔍 파일명, 키워드 검색 (예: TCP, 원점, 에러)..." oninput="renderFileList()">
