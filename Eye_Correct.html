@@ -1,0 +1,2279 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <!-- 
+    ========================================================================================
+    [ATM / 3D Vision 원점보정 (Eye Calibration) Simulator (ver 1.0 - Official PC 1920x1080 Release)]
+    Release Date: November 23, 2026
+    Author: 교육관 유재광 (jaekwang.yoo@atmc.co.kr)
+    
+    [핵심 구현 사양 (Eye_Correct.html V1.0)]
+    ----------------------------------------------------------------------------------------
+    1. 고정 기준 교정물 (calib_plate v91 - 3D 실물 메쉬 & 포인트 클라우드):
+       - 작업대 원점에 고정된 역사각뿔대(호퍼형) 캘리브레이션 지그
+       - 4면 경사면(좌: A, 전: T, 우: M 음각 각인 / 후: 기준면) 및 하단 체결 보스
+       - 중앙 평탄부 3×3 비대칭 기준 관통 홀 패턴 (대/소 직경 조합) 재현
+    2. 원점보정(Eye Calibration) 기하학적 이동 방향 명시:
+       - 기존 기준 위치 스캐너(Master REF Scanner, 딥 네이비 와이어/반투명 + 기준 FOV)에서
+         교체·외란으로 위치가 변경된 새 스캐너(Moved New Scanner, 비비드 오렌지 하이라이트 + 현재 FOV)
+         방향으로 스캐너 모델과 기준 스캔 점군이 이동·정합 수렴
+    3. 순방향 [R | T] 동차변환행렬 및 6-DOF 변위 산출:
+       - P_new = R · P_old + T (기존 스캐너 원점 대비 옮겨진 새 스캐너 위치의 순방향 변환값)
+       - 1920x1080 Full HD 무스크롤 클린 화이트 레이아웃 유지
+    ========================================================================================
+  -->
+  <meta name="application-version" content="1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>3D Vision 원점보정(Eye Calibration) Simulator (ver 1.0)</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Pretendard:wght@400;500;600;700;800;900&display=swap');
+    body { font-family: 'Pretendard', sans-serif; user-select: none; touch-action: manipulation; }
+    .step-btn.active { background-color: #2563eb !important; color: white !important; font-weight: 800; border-color: #1d4ed8; box-shadow: 0 2px 4px rgba(37,99,235,0.25); }
+    .step-btn.active .step-subtag { color: #ffffff !important; opacity: 0.95; font-weight: 700; }
+    .cam-preset-btn.active-cam { background-color: #2563eb !important; color: #ffffff !important; border-color: #1d4ed8 !important; box-shadow: 0 1px 3px rgba(37,99,235,0.3); }
+    #canvas-container canvas { outline: none; display: block; width: 100%; height: 100%; }
+    input[type="range"] { -webkit-appearance: none; appearance: none; }
+    input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 13px; height: 13px; border-radius: 50%; background-color: #facc15; border: 2px solid #ca8a04; box-shadow: 0 1px 2px rgba(0,0,0,0.3); cursor: pointer; transition: transform 0.1s ease; }
+    input[type="range"]::-webkit-slider-thumb:hover { transform: scale(1.2); background-color: #eab308; }
+    input[type="range"]::-moz-range-thumb { width: 13px; height: 13px; border-radius: 50%; background-color: #facc15; border: 2px solid #ca8a04; cursor: pointer; }
+    
+    .btn-running-ok { outline: 2px solid #10b981 !important; box-shadow: 0 0 10px rgba(16, 185, 129, 0.7) !important; }
+    .btn-running-ng { outline: 2px solid #ef4444 !important; box-shadow: 0 0 10px rgba(239, 68, 68, 0.7) !important; }
+    .btn-running-auto { outline: 2px solid #3b82f6 !important; box-shadow: 0 0 10px rgba(59, 130, 246, 0.7) !important; }
+
+    ::-webkit-scrollbar { width: 4px; height: 4px; }
+    ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+    #packetLogList::-webkit-scrollbar { width: 6px; height: 6px; }
+    #packetLogList::-webkit-scrollbar-track { background: #e2e8f0; }
+    #packetLogList::-webkit-scrollbar-thumb { background: #94a3b8; border-radius: 4px; }
+
+    .rt-matrix-table { width: 100%; border-collapse: separate; border-spacing: 1.5px; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; font-size: 9.5px; table-layout: fixed; }
+    .rt-matrix-table td { padding: 2px 2px; text-align: right; border-radius: 3px; font-weight: 700; letter-spacing: -0.03em; overflow: hidden; white-space: nowrap; }
+    .rt-cell-r { background-color: #eff6ff; color: #1e3a8a; border: 1px solid #bfdbfe; }
+    .rt-cell-t { background-color: #fffbeb; color: #b45309; border: 1px solid #fde68a; font-weight: 800 !important; }
+    .rt-cell-h { background-color: #f1f5f9; color: #64748b; border: 1px solid #e2e8f0; text-align: center !important; font-weight: 700; }
+    .rt-cell-ng { background-color: #fef2f2; color: #dc2626; border: 1px solid #fecaca; text-align: center !important; font-weight: 900; }
+
+    #cycleResultBanner {
+      transition: opacity 0.35s cubic-bezier(0.16,1,0.3,1), transform 0.35s cubic-bezier(0.16,1,0.3,1);
+    }
+    #cycleResultBanner.show-banner {
+      opacity: 1 !important;
+      transform: translateY(0) scale(1) !important;
+      pointer-events: auto !important;
+    }
+
+    #goldToastPopup {
+      position: absolute;
+      bottom: 156px;
+      left: 50%;
+      transform: translateX(-50%) translateY(12px) scale(0.96);
+      opacity: 0;
+      pointer-events: none;
+      z-index: 50;
+      transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+      white-space: nowrap;
+    }
+    #goldToastPopup.show-toast {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0) scale(1);
+    }
+  </style>
+</head>
+<body class="bg-slate-100 text-slate-800 h-screen w-screen flex flex-col justify-between p-2 overflow-hidden">
+
+  <!-- Header Section -->
+  <header class="w-full bg-white rounded-xl shadow-xs border border-slate-200 px-4 py-1.5 flex items-center justify-between shrink-0 mb-1.5">
+    <div class="flex items-center gap-2.5">
+      <div class="bg-blue-600 text-white px-2.5 py-0.5 rounded-md shadow-xs flex flex-col items-center justify-center leading-tight">
+        <span class="text-[11px] font-black tracking-tight">V1.0</span>
+        <span class="text-[8.5px] font-bold opacity-90 leading-none">(Nov.23)</span>
+      </div>
+      <h1 class="text-sm md:text-base font-extrabold text-slate-900 tracking-tight whitespace-nowrap">
+        3D Vision 원점보정 (Eye Calibration) Simulator
+      </h1>
+      <span class="hidden xl:inline-block px-2 py-0.5 bg-amber-50 text-amber-800 border border-amber-300 rounded text-[11px] font-extrabold">
+        기준 스캐너(Old) → 변경 스캐너(New) 위치보정
+      </span>
+    </div>
+    
+    <div class="flex items-center gap-3">
+      <!-- 상태 모니터 뱃지 -->
+      <div class="hidden lg:flex items-center gap-3 text-xs font-mono bg-slate-50 px-3.5 py-1 rounded-lg border border-slate-200">
+        <div><span class="text-slate-500 font-bold">TARGET:</span> <span class="font-extrabold text-blue-700">calib_plate v91</span></div>
+        <div class="border-l border-slate-300 pl-2.5"><span class="text-slate-500 font-bold">MODE:</span> <span class="font-extrabold text-slate-900">Eye Origin Calib</span></div>
+        <div class="border-l border-slate-300 pl-2.5"><span class="text-slate-500 font-bold">TOL:</span> <span id="headerTolBadge" class="font-extrabold text-emerald-600">대기 중</span></div>
+        <div class="border-l border-slate-300 pl-2.5"><span class="text-slate-500 font-bold">RMSE:</span> <span id="headerRmseVal" class="font-extrabold text-amber-600">0.00 mm</span></div>
+      </div>
+
+      <!-- 메인 런처 복귀용 홈 버튼 -->
+      <a href="index.html" class="w-8 h-8 rounded-xl bg-slate-100 hover:bg-blue-600 hover:text-white text-slate-700 border border-slate-300 hover:border-blue-700 flex items-center justify-center transition-all shadow-2xs cursor-pointer group" title="메인 런처(index.html)로 복귀">
+        <svg class="w-4 h-4 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <path stroke-linecap="round" stroke-linejoin="round" d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+          <polyline points="9 22 9 12 15 12 15 22"></polyline>
+        </svg>
+      </a>
+    </div>
+  </header>
+
+  <!-- Main 3D Card (FHD 1920x1080 Viewport) -->
+  <main class="w-full flex-1 bg-white rounded-xl shadow-sm border border-slate-300 relative overflow-hidden flex flex-col min-h-0">
+    <div id="canvas-container" class="w-full h-full cursor-grab active:cursor-grabbing relative">
+      
+      <!-- 골드 토스트 팝업 -->
+      <div id="goldToastPopup" class="bg-gradient-to-r from-amber-500 via-yellow-400 to-amber-600 text-slate-900 px-5 py-2.5 rounded-2xl shadow-2xl border-2 border-yellow-200 flex items-center gap-3">
+        <span class="text-2xl animate-bounce">🎓</span>
+        <div class="flex items-center">
+          <span class="text-xs md:text-sm font-black text-slate-900 tracking-tight">🎓 ATM 3D 스캐너 원점보정(Eye Calibration) 연수 과정을 완료하신 것을 축하드립니다. 수고하셨습니다 🎉</span>
+        </div>
+      </div>
+
+      <!-- 상단 카메라 뷰 프리셋 & 시각화 토글 옵션 -->
+      <div class="absolute top-2.5 left-[222px] flex items-center gap-1.5 bg-white/95 backdrop-blur-md p-1.5 rounded-xl border border-slate-300 text-xs z-10 shadow-sm">
+        <button id="camBtn_iso" onclick="setCameraView('iso')" class="cam-preset-btn active-cam px-2.5 py-1 bg-slate-100 hover:bg-blue-600 hover:text-white text-slate-700 rounded-lg transition font-bold border border-slate-200">입체(ISO)</button>
+        <button id="camBtn_top" onclick="setCameraView('top')" class="cam-preset-btn px-2.5 py-1 bg-slate-100 hover:bg-blue-600 hover:text-white text-slate-700 rounded-lg transition font-bold border border-slate-200" title="평면도: 가로 X, 세로 Y">평면도(Top)</button>
+        <button id="camBtn_front" onclick="setCameraView('front')" class="cam-preset-btn px-2.5 py-1 bg-slate-100 hover:bg-blue-600 hover:text-white text-slate-700 rounded-lg transition font-bold border border-slate-200" title="정면도: 가로 X, 수직상하 Z">정면(Front)</button>
+        <button id="camBtn_side" onclick="setCameraView('side')" class="cam-preset-btn px-2.5 py-1 bg-slate-100 hover:bg-blue-600 hover:text-white text-slate-700 rounded-lg transition font-bold border border-slate-200">측면(Side)</button>
+        
+        <!-- 점-대응선(Correspondence Lines) 토글 버튼 -->
+        <button id="btnToggleRays" onclick="toggleCorrespondenceRays()" class="px-2 py-1 bg-purple-100 text-purple-800 rounded-lg transition font-extrabold border border-purple-400 flex items-center gap-1 shadow-2xs" title="기준 스캔 점군(Old) → 변경 스캔 점군(New) 대응선 표시 토글">
+          <span class="w-2 h-2 rounded-full bg-[#8b00ff] inline-block"></span><span>대응선(Rays)</span>
+        </button>
+
+        <!-- 기준 스캐너 FOV 표시 토글 -->
+        <button id="btnToggleRefFov" onclick="toggleRefFov()" class="px-2 py-1 bg-blue-50 text-blue-800 rounded-lg transition font-extrabold border border-blue-300 flex items-center gap-1 shadow-2xs" title="기존 기준 스캐너(Old)의 FOV 영역 표시 토글">
+          <span class="w-2 h-2 rounded-full bg-blue-600 inline-block"></span><span>기준FOV</span>
+        </button>
+
+        <!-- 화각(FOV) 슬라이더 -->
+        <div class="flex items-center gap-1.5 border-l border-slate-300 pl-2 ml-0.5 py-0.5">
+          <span class="text-[10.5px] font-extrabold text-slate-600 font-mono tracking-tight">FOV:</span>
+          <input id="camFovSlider" type="range" min="30" max="75" step="1" value="45" oninput="setCameraFov(this.value)" class="w-14 h-1.5 bg-slate-200 rounded cursor-pointer">
+          <span id="camFovVal" class="text-[11px] font-black text-blue-600 font-mono w-7 text-right">45°</span>
+        </div>
+      </div>
+
+      <!-- 성공/실패 결과 배너 -->
+      <div id="cycleResultBanner" class="pointer-events-none absolute bottom-[146px] right-[326px] w-[240px] z-30 opacity-0 translate-y-2 scale-95 flex flex-col items-stretch">
+        <div id="cycleResultBox" class="w-full bg-white/95 backdrop-blur-md p-2.5 rounded-xl border-2 border-emerald-500 shadow-2xl flex flex-col gap-1">
+          <div class="flex items-center justify-between border-b border-slate-100 pb-1">
+            <div class="flex items-center gap-1.5">
+              <span id="cycleResultIcon" class="w-5 h-5 rounded-full bg-emerald-500 text-white flex items-center justify-center text-xs font-black shadow-xs shrink-0">✓</span>
+              <span id="cycleResultSub" class="text-[9.5px] font-extrabold text-emerald-600 tracking-wider uppercase truncate">Eye Calibration Done</span>
+            </div>
+            <span id="cycleResultTag" class="text-[8.5px] font-mono font-extrabold px-1.5 py-0.2 rounded bg-emerald-50 text-emerald-700 border border-emerald-200">PASSED</span>
+          </div>
+          <div id="cycleResultTitle" class="text-[12.5px] font-black text-slate-900 tracking-tight leading-tight truncate pt-0.5">
+            원점보정 완료 (Calibrated)
+          </div>
+          <div id="cycleResultDesc" class="text-[9px] font-mono text-slate-500 truncate">
+            Old → New 스캐너 변환행렬 [R|T] 산출
+          </div>
+        </div>
+      </div>
+
+      <!-- 좌측 컬럼 (가로폭 w-[208px]): 1. 공정 단계 제어 + 2. [R|T] 행렬 + 3. 카메라 센서뷰 & 제원 카드 -->
+      <div class="absolute top-2.5 left-2.5 w-[208px] z-20 flex flex-col gap-1.5 max-h-[97%] overflow-y-auto pr-0.5">
+        
+        <!-- 1. 공정 단계 제어 패널 -->
+        <div class="bg-white/95 backdrop-blur-md p-2 rounded-xl shadow-lg border border-slate-300 text-xs flex flex-col gap-1 shrink-0">
+          <div class="flex items-center justify-between border-b border-slate-200 pb-1">
+            <div class="flex items-center gap-1.5 font-black text-slate-900 text-xs whitespace-nowrap"><span class="text-blue-600">📋</span><span>원점보정 단계 제어</span></div>
+            <button id="btnToggleStepPanel" onclick="toggleStepPanel()" class="px-2 py-0.5 bg-blue-50 text-blue-700 border border-blue-200 rounded text-[10.5px] font-bold">CLOSE</button>
+          </div>
+          
+          <!-- 원클릭 예제 모드: 예제(OK) vs 예제(NG) -->
+          <div class="grid grid-cols-2 gap-1 p-1 bg-slate-100 rounded-lg border border-slate-200 text-[10.5px] font-bold">
+            <button id="btnDemoOK" onclick="startExampleMode('OK')" class="py-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded transition shadow-xs flex items-center justify-center gap-1" title="공차 내 스캐너 위치 변화(OK) 주입 후 원점보정 완결">
+              <span>🎬 예제(OK)</span>
+            </button>
+            <button id="btnDemoNG" onclick="startExampleMode('NG')" class="py-1 bg-rose-600 hover:bg-rose-700 text-white rounded transition shadow-xs flex items-center justify-center gap-1" title="과도한 스캐너 이탈(NG) 주입 -> STEP 4 스킵 및 알람">
+              <span>⚠️ 예제(NG)</span>
+            </button>
+          </div>
+
+          <div class="flex items-center gap-1.5">
+            <button id="autoPlayBtn" onclick="toggleAutoPlay()" class="flex-1 flex items-center justify-center gap-1 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded-md text-xs font-bold transition shadow-xs">
+              <span id="playIcon">▶</span><span id="playText">자동 재생</span>
+            </button>
+            <button onclick="resetSimulation()" class="px-2.5 py-1 bg-slate-200 hover:bg-slate-300 text-slate-900 rounded-md text-xs font-bold transition border border-slate-300 shrink-0">초기화</button>
+          </div>
+
+          <div class="grid grid-cols-2 gap-1.5">
+            <button id="prevBtn" onclick="prevStep()" class="py-1 bg-white hover:bg-slate-100 text-slate-900 rounded-md text-xs font-bold transition disabled:opacity-40 border border-slate-300 shadow-xs">◀ 이전</button>
+            <button id="nextBtn" onclick="nextStep()" class="py-1 bg-slate-800 hover:bg-slate-900 text-white rounded-md text-xs font-bold transition shadow-xs">다음 ▶</button>
+          </div>
+
+          <div id="stepListContent" class="flex flex-col gap-0.5 pt-1 border-t border-slate-200 text-[10.5px] font-semibold tracking-tight">
+            <button onclick="goToStep(0)" class="step-btn active text-left px-2 py-0.5 rounded-md border border-slate-200 bg-slate-50 hover:bg-slate-100 transition flex items-center justify-between">
+              <span>01. 지그 고정·기준원점</span><span class="step-subtag text-[9px] text-slate-500">calib_plate</span>
+            </button>
+            <button onclick="goToStep(1)" class="step-btn text-left px-2 py-0.5 rounded-md border border-slate-200 bg-slate-50 hover:bg-slate-100 transition flex items-center justify-between">
+              <span>02. 스캐너 위치 변동</span><span class="step-subtag text-[9px] text-slate-500">Old→New 이탈</span>
+            </button>
+            <button onclick="goToStep(2)" class="step-btn text-left px-2 py-0.5 rounded-md border border-slate-200 bg-slate-50 hover:bg-slate-100 transition flex items-center justify-between">
+              <span>03. 교정물 10패턴 스캔</span><span class="step-subtag text-[9px] text-slate-500">A-T-M 취득</span>
+            </button>
+            <button onclick="goToStep(3)" class="step-btn text-left px-2 py-0.5 rounded-md border border-slate-200 bg-slate-50 hover:bg-slate-100 transition flex items-center justify-between">
+              <span>04. 스캐너 원점보정</span><span class="step-subtag text-[9px] text-slate-500">Old→New 이동</span>
+            </button>
+            <button onclick="goToStep(4)" class="step-btn text-left px-2 py-0.5 rounded-md border border-slate-200 bg-slate-50 hover:bg-slate-100 transition flex items-center justify-between">
+              <span>05. [R|T] 캘리브 확정</span><span class="step-subtag text-[9px] text-slate-500">로봇 원점갱신</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- 2. 계산된 [R | T] 동차변환행렬 카드 (Old Scanner -> New Scanner 순방향 변환) -->
+        <div class="bg-white/95 backdrop-blur-md p-2 rounded-xl shadow-lg border border-slate-300 text-xs flex flex-col justify-between shrink-0">
+          <div class="flex items-center justify-between border-b border-slate-200 pb-1 mb-0.5">
+            <div class="flex items-center gap-1 font-black text-slate-900 text-[10.5px] whitespace-nowrap">
+              <span class="text-blue-600">📐</span><span>[R | T] 스캐너 변환행렬</span>
+            </div>
+            <span id="rtStatusBadge" class="px-1.5 py-0.2 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded text-[9px] font-mono font-bold">Old→New</span>
+          </div>
+          <div class="text-[8.5px] font-mono text-slate-500 mb-1 px-0.5 truncate" title="기존 스캐너 원점(P_old)에서 변경된 스캐너 위치(P_new)로의 순방향 변환">
+            P_new = R · P_old + T (순방향)
+          </div>
+
+          <div class="bg-slate-50 p-1 rounded-lg border border-slate-200">
+            <div class="grid grid-cols-4 gap-0.5 text-[8px] font-mono font-extrabold text-center mb-0.5 px-0.5">
+              <span class="text-blue-700 bg-blue-100/70 rounded py-0.2">R (X)</span>
+              <span class="text-blue-700 bg-blue-100/70 rounded py-0.2">R (Y)</span>
+              <span class="text-blue-700 bg-blue-100/70 rounded py-0.2">R (Z)</span>
+              <span class="text-amber-800 bg-amber-100/80 rounded py-0.2">T (이동)</span>
+            </div>
+            <table class="rt-matrix-table">
+              <tbody id="rtMatrixTableBody">
+                <tr><td class="rt-cell-r">1.000</td><td class="rt-cell-r">0.000</td><td class="rt-cell-r">0.000</td><td class="rt-cell-t">+0.0</td></tr>
+                <tr><td class="rt-cell-r">0.000</td><td class="rt-cell-r">1.000</td><td class="rt-cell-r">0.000</td><td class="rt-cell-t">+0.0</td></tr>
+                <tr><td class="rt-cell-r">0.000</td><td class="rt-cell-r">0.000</td><td class="rt-cell-r">1.000</td><td class="rt-cell-t">+0.0</td></tr>
+                <tr><td class="rt-cell-h">0</td><td class="rt-cell-h">0</td><td class="rt-cell-h">0</td><td class="rt-cell-h">1</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="flex flex-col gap-0.5 mt-1 text-[8.5px] font-mono bg-slate-50 p-1 rounded border border-slate-200 text-slate-600">
+            <div id="rtSummaryT" class="font-bold text-amber-800 truncate">T:[+0.0, +0.0, +0.0]mm</div>
+            <div id="rtSummaryR" class="font-bold text-blue-800 truncate">R:[+0.0°, +0.0°, +0.0°]</div>
+          </div>
+        </div>
+
+        <!-- 3. 카메라 센서 뷰파인더 (calib_plate 투영 뷰) & Basler 제원 카드 -->
+        <div class="bg-white/95 backdrop-blur-md p-2 rounded-xl shadow-lg border border-slate-300 text-xs flex flex-col gap-1 shrink-0">
+          <div class="flex items-center justify-between border-b border-slate-200 pb-0.5">
+            <div class="flex items-center gap-1 font-black text-slate-900 text-[10.5px] whitespace-nowrap">
+              <span class="text-emerald-600">📷</span><span>변경 스캐너 센서뷰 (4:3)</span>
+            </div>
+            <span id="sensorBadge" class="px-1.5 py-0.2 bg-slate-100 text-slate-600 border border-slate-300 rounded text-[8.5px] font-mono font-bold">STANDBY</span>
+          </div>
+
+          <!-- 4:3 비율 뷰파인더 캔버스 -->
+          <div class="relative w-full aspect-[4/3] max-h-[126px] bg-slate-950 rounded-lg border border-slate-300 overflow-hidden shadow-inner flex items-center justify-center">
+            <canvas id="sensorViewCanvas" width="240" height="180" class="w-full h-full object-fill"></canvas>
+            <!-- 중앙 광학 십자선 오버레이 -->
+            <div class="absolute inset-0 pointer-events-none flex items-center justify-center opacity-50">
+              <div class="w-6 h-6 border border-emerald-400/60 rounded-full"></div>
+              <div class="w-12 h-[1px] bg-emerald-400/40 absolute"></div>
+              <div class="h-12 w-[1px] bg-emerald-400/40 absolute"></div>
+            </div>
+            <div id="sensorPatternTag" class="absolute bottom-1 right-1.5 text-[8.5px] font-mono text-emerald-300 font-extrabold bg-black/75 px-1.5 py-0.2 rounded">
+              calib_plate Ready
+            </div>
+          </div>
+
+          <!-- 카메라 하드웨어 제원 표기 -->
+          <div class="bg-slate-50 px-1.5 py-1 rounded-md border border-slate-200 font-mono text-[8.5px] text-slate-700 leading-tight space-y-0.5">
+            <div class="flex justify-between items-center whitespace-nowrap">
+              <span class="text-slate-500 font-sans font-bold">카메라:</span>
+              <span class="font-extrabold text-slate-900">Basler acA1600-60GM</span>
+            </div>
+            <div class="flex justify-between items-center whitespace-nowrap">
+              <span class="text-slate-500 font-sans font-bold">교정물:</span>
+              <span class="font-bold text-blue-800">calib_plate (A-T-M / 3×3)</span>
+            </div>
+            <div class="flex justify-between items-center whitespace-nowrap">
+              <span class="text-slate-500 font-sans font-bold">해상도:</span>
+              <span class="font-bold text-emerald-800">1602×1202 (2M pixel)</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- 우측 영역: EyeCalibrator 속성 + 계층 범례 + 대형 6축 LED 모니터 (가로폭 w-[316px]) -->
+      <div class="absolute top-2.5 right-2.5 w-[316px] z-20 flex flex-col gap-2 max-h-[96%] overflow-y-auto pl-0.5">
+        
+        <!-- 1. EyeCalibrator 속성 패널 -->
+        <div id="paramPanel" class="bg-white/95 backdrop-blur-md p-2.5 rounded-xl shadow-lg border border-slate-300 text-xs shrink-0">
+          <div class="flex items-center justify-between border-b border-slate-200 pb-1.5 mb-1.5">
+            <div class="flex items-center gap-1.5 font-black text-slate-900 text-xs whitespace-nowrap">
+              <span class="text-blue-600">⚙️</span><span>EyeCalibrator 원점보정 설정</span>
+            </div>
+            <div class="flex items-center gap-1">
+              <button onclick="applyDefaultPreset()" class="px-2 py-0.5 bg-blue-50 text-blue-700 border border-blue-200 hover:bg-blue-100 rounded text-[11px] font-bold transition">Default</button>
+              <button onclick="applyRandomPreset()" class="px-2 py-0.5 bg-purple-50 text-purple-700 border border-purple-200 hover:bg-purple-100 rounded text-[11px] font-bold transition">Random</button>
+              <button id="btnTogglePanel" onclick="toggleParamPanel()" class="px-2 py-0.5 bg-slate-200 text-slate-800 rounded text-[11px] font-bold">CLOSE</button>
+            </div>
+          </div>
+
+          <div id="paramPanelContent" class="space-y-1.5 text-xs">
+            <!-- ICP 핵심 알고리즘 파라미터 -->
+            <div class="bg-slate-50 p-2 rounded-lg border border-slate-200 space-y-1.5">
+              <div class="flex justify-between items-center">
+                <label class="text-[11px] font-bold text-slate-600">Metric</label>
+                <select id="pMetric" class="bg-white border border-slate-300 rounded px-2 py-0.5 text-[11px] font-bold text-slate-800">
+                  <option value="PointToPlane">PointToPlane (A-T-M 경사면)</option>
+                  <option value="PointToPoint">PointToPoint (Rigid)</option>
+                </select>
+              </div>
+              <div class="flex justify-between items-center">
+                <label class="text-[11px] font-bold text-slate-600">MaxIteration</label>
+                <div class="flex items-center gap-1">
+                  <input type="number" id="pMaxIter" value="35" min="5" max="100" class="w-16 bg-white border border-slate-300 rounded px-1.5 py-0.5 text-right font-mono text-[11px] font-bold">
+                  <span class="text-[10px] text-slate-400">회</span>
+                </div>
+              </div>
+              <div class="flex justify-between items-center">
+                <label class="text-[11px] font-bold text-slate-600">MinError (수렴 공차)</label>
+                <div class="flex items-center gap-1">
+                  <input type="number" id="pMinErr" value="0.015" step="0.005" min="0.001" class="w-16 bg-white border border-slate-300 rounded px-1.5 py-0.5 text-right font-mono text-[11px] font-bold">
+                  <span class="text-[10px] text-slate-400">mm</span>
+                </div>
+              </div>
+              <div class="flex justify-between items-center">
+                <label class="text-[11px] font-bold text-slate-600">Max Distance (거리 거절)</label>
+                <div class="flex items-center gap-1">
+                  <input type="number" id="pMaxDist" value="80" step="5" min="10" class="w-16 bg-white border border-slate-300 rounded px-1.5 py-0.5 text-right font-mono text-[11px] font-bold">
+                  <span class="text-[10px] text-slate-400">mm</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- 스캐너 교체/외란에 의한 6-DOF 위치 변화량 주입 -->
+            <div class="bg-amber-50/80 p-2 rounded-lg border border-amber-200">
+              <div class="flex justify-between items-center mb-1 font-bold text-amber-900 text-xs">
+                <span>📡 스캐너 위치 변화량 (Old → New)</span>
+                <span class="text-[9.5px] text-amber-800 font-mono">OK: ±45mm/±12°/±18°</span>
+              </div>
+
+              <!-- 직진 변위: -60 ~ +60 mm -->
+              <div class="space-y-1 border-b border-amber-200 pb-1.5 mb-1.5">
+                <div class="text-[10px] text-amber-900 font-extrabold flex justify-between">
+                  <span>스캐너 평행 이동 변위 (ΔX, ΔY, ΔZ, mm)</span>
+                </div>
+                <div class="flex items-center gap-1">
+                  <span class="w-6 font-mono text-red-600 font-extrabold text-[11px]">ΔX:</span>
+                  <input type="range" id="sl-dx" min="-60" max="60" step="1" value="18" oninput="onSliderChange()" class="flex-1 h-1.5 bg-amber-200 rounded cursor-pointer">
+                  <span id="txt-dx" class="w-12 font-mono text-right text-slate-900 font-bold text-[11px]">+18mm</span>
+                </div>
+                <div class="flex items-center gap-1">
+                  <span class="w-6 font-mono text-green-600 font-extrabold text-[11px]">ΔY:</span>
+                  <input type="range" id="sl-dy" min="-60" max="60" step="1" value="-14" oninput="onSliderChange()" class="flex-1 h-1.5 bg-amber-200 rounded cursor-pointer">
+                  <span id="txt-dy" class="w-12 font-mono text-right text-slate-900 font-bold text-[11px]">-14mm</span>
+                </div>
+                <div class="flex items-center gap-1">
+                  <span class="w-6 font-mono text-blue-600 font-extrabold text-[11px]">ΔZ:</span>
+                  <input type="range" id="sl-dz" min="-60" max="60" step="1" value="-10" oninput="onSliderChange()" class="flex-1 h-1.5 bg-amber-200 rounded cursor-pointer">
+                  <span id="txt-dz" class="w-12 font-mono text-right text-slate-900 font-bold text-[11px]">-10mm</span>
+                </div>
+              </div>
+
+              <!-- 회전 변위: dRx, dRy ±18° / dRz ±25° -->
+              <div class="space-y-1">
+                <div class="text-[10px] text-amber-900 font-extrabold flex justify-between">
+                  <span>스캐너 자세 뒤틀림 각도 (ZYX Euler, deg)</span>
+                </div>
+                <div class="flex items-center gap-1">
+                  <span class="w-6 font-mono text-red-600 font-extrabold text-[11px]">ΔRx:</span>
+                  <input type="range" id="sl-rx" min="-18" max="18" step="0.5" value="4.5" oninput="onSliderChange()" class="flex-1 h-1.5 bg-amber-200 rounded cursor-pointer">
+                  <span id="txt-rx" class="w-12 font-mono text-right text-slate-900 font-bold text-[11px]">+4.5°</span>
+                </div>
+                <div class="flex items-center gap-1">
+                  <span class="w-6 font-mono text-green-600 font-extrabold text-[11px]">ΔRy:</span>
+                  <input type="range" id="sl-ry" min="-18" max="18" step="0.5" value="-3.5" oninput="onSliderChange()" class="flex-1 h-1.5 bg-amber-200 rounded cursor-pointer">
+                  <span id="txt-ry" class="w-12 font-mono text-right text-slate-900 font-bold text-[11px]">-3.5°</span>
+                </div>
+                <div class="flex items-center gap-1">
+                  <span class="w-6 font-mono text-blue-600 font-extrabold text-[11px]">ΔRz:</span>
+                  <input type="range" id="sl-rz" min="-25" max="25" step="0.5" value="10.0" oninput="onSliderChange()" class="flex-1 h-1.5 bg-amber-200 rounded cursor-pointer">
+                  <span id="txt-rz" class="w-12 font-mono text-right text-slate-900 font-bold text-[11px]">+10.0°</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- 정합 실행 및 1-Step 버튼 -->
+            <div class="grid grid-cols-2 gap-1.5 pt-0.5">
+              <button onclick="stepICPOnce()" id="btnStepIcp" class="py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-800 rounded-lg font-bold border border-slate-300 transition shadow-2xs">
+                🐾 1-Step 보정
+              </button>
+              <button onclick="runFullICP()" id="btnFullIcp" class="py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-bold transition shadow-xs flex items-center justify-center gap-1">
+                <span>▶ 원점보정 실행</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- 2. 원점보정 계층 윈도우 + 대형 6축 공차 LED 모니터 -->
+        <div class="bg-white/95 backdrop-blur-md p-2.5 rounded-xl shadow-lg border border-slate-300 text-xs flex flex-col gap-1.5 shrink-0">
+          <div class="font-black text-slate-900 text-xs border-b border-slate-200 pb-1 flex items-center gap-1.5">
+            <span class="text-blue-600">🗂️</span><span>원점보정 좌표 및 개체 계층</span>
+          </div>
+          <div class="space-y-1 pt-0.5">
+            <div class="flex items-center justify-between bg-slate-50 px-2 py-1 rounded border border-slate-200">
+              <div class="flex items-center gap-2">
+                <span class="w-3 h-3 rounded-xs bg-[#64748b] border border-slate-800 shadow-xs"></span>
+                <span class="font-black text-[11px] text-slate-800">calib_plate (교정물·고정)</span>
+              </div>
+              <span class="font-mono text-[10px] text-slate-600 font-black">Fixed Jig</span>
+            </div>
+            <div class="flex items-center justify-between bg-slate-50 px-2 py-1 rounded border border-slate-200">
+              <div class="flex items-center gap-2">
+                <span class="w-3 h-3 rounded-xs bg-[#0f2b5c] border border-black shadow-xs"></span>
+                <span class="font-black text-[11px] text-[#0f2b5c]">기존 스캐너 (Old · 이동)</span>
+              </div>
+              <span class="font-mono text-[10px] text-blue-800 font-black">Source</span>
+            </div>
+            <div class="flex items-center justify-between bg-slate-50 px-2 py-1 rounded border border-slate-200">
+              <div class="flex items-center gap-2">
+                <span class="w-3 h-3 rounded-xs bg-[#ff5500] border border-black shadow-xs"></span>
+                <span class="font-black text-[11px] text-[#ff5500]">변경 스캐너 (New · 목표)</span>
+              </div>
+              <span class="font-mono text-[10px] text-amber-800 font-black">Target</span>
+            </div>
+          </div>
+
+          <!-- 대형 6축 공차 LED 모니터 -->
+          <div class="mt-1 pt-1.5 border-t border-slate-200 bg-slate-100/80 p-2 rounded-lg border border-slate-200 flex flex-col gap-1.5">
+            <div class="flex justify-between items-center text-[10px] font-mono font-bold text-slate-700 px-0.5">
+              <span>SCANNER SHIFT TOLERANCE</span>
+              <span id="tolLedSummary" class="text-slate-500 font-black">STANDBY</span>
+            </div>
+            <div class="grid grid-cols-6 gap-1 text-center font-mono text-[9px] font-extrabold">
+              <div class="bg-white py-1 rounded border border-slate-200 flex flex-col items-center justify-center gap-1 shadow-2xs">
+                <span id="led_dx" class="w-3 h-3 rounded-full bg-slate-300 border border-slate-400"></span>
+                <span class="text-slate-700 font-black">dX</span>
+              </div>
+              <div class="bg-white py-1 rounded border border-slate-200 flex flex-col items-center justify-center gap-1 shadow-2xs">
+                <span id="led_dy" class="w-3 h-3 rounded-full bg-slate-300 border border-slate-400"></span>
+                <span class="text-slate-700 font-black">dY</span>
+              </div>
+              <div class="bg-white py-1 rounded border border-slate-200 flex flex-col items-center justify-center gap-1 shadow-2xs">
+                <span id="led_dz" class="w-3 h-3 rounded-full bg-slate-300 border border-slate-400"></span>
+                <span class="text-slate-700 font-black">dZ</span>
+              </div>
+              <div class="bg-white py-1 rounded border border-slate-200 flex flex-col items-center justify-center gap-1 shadow-2xs">
+                <span id="led_rx" class="w-3 h-3 rounded-full bg-slate-300 border border-slate-400"></span>
+                <span class="text-slate-700 font-black">dRx</span>
+              </div>
+              <div class="bg-white py-1 rounded border border-slate-200 flex flex-col items-center justify-center gap-1 shadow-2xs">
+                <span id="led_ry" class="w-3 h-3 rounded-full bg-slate-300 border border-slate-400"></span>
+                <span class="text-slate-700 font-black">dRy</span>
+              </div>
+              <div class="bg-white py-1 rounded border border-slate-200 flex flex-col items-center justify-center gap-1 shadow-2xs">
+                <span id="led_rz" class="w-3 h-3 rounded-full bg-slate-300 border border-slate-400"></span>
+                <span class="text-slate-700 font-black">dRz</span>
+              </div>
+            </div>
+            <div id="tolDiagMsg" class="text-[9.5px] font-mono text-center text-slate-500 truncate bg-white py-0.5 px-1 rounded border border-slate-200">
+              STEP 3 교정물 스캔 계측 대기 중...
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- 하단 플로팅 바: 좌측 패킷 로그 터미널 + 우측 슬림 실시간 모니터 -->
+      <div class="absolute bottom-[14px] left-[222px] right-[326px] z-20 flex items-stretch gap-2 pointer-events-none">
+        
+        <!-- 하단 좌측: AbeoSCAN / Hi6 원점보정 패킷 로그 터미널 -->
+        <div id="packetTerminal" class="pointer-events-auto flex-1 min-w-0 h-[126px] bg-white/95 backdrop-blur-md rounded-xl border border-slate-300 shadow-xl flex flex-col overflow-hidden text-xs">
+          <div class="bg-slate-100 px-3 py-1.5 border-b border-slate-200 flex items-center justify-between shrink-0">
+            <div class="flex items-center gap-2">
+              <span class="w-2.5 h-2.5 rounded-full bg-emerald-600" id="termStatusDot"></span>
+              <span class="font-mono font-extrabold text-[11px] text-slate-800 tracking-tight">EYE CALIBRATION LOG <span class="text-slate-500 font-normal">(Scanner_Old → Scanner_New ⇄ Robot)</span></span>
+            </div>
+            <div class="flex items-center gap-2">
+              <span id="tolStatusBadge" class="px-2 py-0.5 bg-emerald-100 text-emerald-800 border border-emerald-300 rounded text-[10px] font-mono font-bold">STATUS: READY</span>
+              <button onclick="clearPacketLogs()" class="px-2 py-0.5 bg-white hover:bg-slate-50 text-slate-700 rounded text-[10px] font-mono font-bold border border-slate-300 shadow-2xs transition">CLEAR</button>
+            </div>
+          </div>
+          <div id="packetLogList" class="flex-1 overflow-y-auto overflow-x-auto px-3 py-1.5 font-mono text-[9.5px] space-y-0.5 select-text bg-slate-50/90">
+            <div class="text-slate-600 whitespace-nowrap">[SYS] AbeoSCAN Eye Calibration Simulator (Eye_Correct ver 1.0) Ready. Target: calib_plate v91</div>
+          </div>
+        </div>
+
+        <!-- 하단 우측: 슬림형 원점보정 실시간 모니터 창 -->
+        <div id="icpMonitorCard" class="pointer-events-auto w-[240px] h-[126px] bg-white/95 backdrop-blur-md p-2 rounded-xl border border-slate-300 shadow-xl flex flex-col justify-between text-xs shrink-0">
+          <div class="flex items-center justify-between border-b border-slate-200 pb-1">
+            <div class="flex items-center gap-1.5 font-black text-slate-900 text-[10.5px] whitespace-nowrap">
+              <span class="w-2 h-2 rounded-full bg-emerald-500" id="monitorStatusDot"></span>
+              <span>원점보정 실시간 모니터</span>
+            </div>
+            <span id="iterationBadge" class="px-1.5 py-0.2 bg-blue-50 text-blue-700 border border-blue-200 rounded text-[9.5px] font-mono font-bold">ITER: 0</span>
+          </div>
+
+          <div class="space-y-1 my-auto">
+            <div class="flex justify-between items-center text-[10px] font-mono">
+              <span class="text-slate-600 font-bold">자세 정합 RMSE:</span>
+              <span id="valRmseDisplay" class="font-black text-amber-600 text-[11px]">0.00 mm</span>
+            </div>
+            <div class="flex justify-between items-center text-[10px] font-mono">
+              <span class="text-slate-600 font-bold">원점 일치율:</span>
+              <span id="valOverlapDisplay" class="font-black text-blue-700 text-[11px]">0 %</span>
+            </div>
+            <div class="w-full h-1.5 bg-slate-200 rounded-full overflow-hidden mt-0.5">
+              <div id="overlapProgressBar" class="h-full bg-emerald-500 transition-all duration-150" style="width: 0%;"></div>
+            </div>
+          </div>
+
+          <div class="text-[9px] font-mono text-slate-500 text-center bg-slate-50 py-0.5 rounded border border-slate-200 truncate">
+            Calib Target Error &lt; 0.015mm
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+
+    <!-- 하단 푸터 바 -->
+    <div class="bg-slate-50 border-t border-slate-200 px-4 py-1.5 flex items-center justify-between gap-3 shrink-0 z-30">
+      <a id="atmLogoBtn" href="http://www.atmc.co.kr" target="_blank" rel="noopener noreferrer" class="flex items-center bg-white hover:bg-slate-100 px-3 py-1 rounded-lg border border-slate-300 hover:border-blue-400 shadow-2xs shrink-0 transition-all cursor-pointer group" title="ATM 로고">
+        <img src="atm_red.png" alt="ATM ROBOT AUTOMATION" class="h-4 w-auto object-contain group-hover:scale-105 transition-transform" onerror="this.style.display='none'; document.getElementById('atmFallbackLogo').style.display='inline';">
+        <span id="atmFallbackLogo" style="display:none;" class="text-red-600 font-black italic tracking-tighter">ATM</span>
+        <span class="ml-2 text-xs font-extrabold text-slate-500 group-hover:text-blue-600 tracking-wider border-l border-slate-300 pl-2 hidden sm:inline">ROBOT AUTOMATION</span>
+      </a>
+
+      <!-- 하단 공정 설명 카드 -->
+      <div id="descCard" class="flex-1 max-w-4xl bg-white px-4 py-1 rounded-lg border border-slate-300 shadow-2xs flex items-center gap-3 overflow-hidden relative">
+        <div id="descIcon" class="p-1 bg-blue-50 text-blue-600 rounded text-base shrink-0 font-bold">🎯</div>
+        <div class="overflow-hidden flex-1">
+          <div class="flex items-center gap-2">
+            <span id="stepBadge" class="bg-blue-600 text-white text-[10px] font-black px-2 py-0.5 rounded transition-all">STEP 1</span>
+            <h4 id="descHeading" class="text-xs font-black text-slate-900 truncate">1. 원점보정용 마스터 지그(calib_plate) 고정 및 기존 스캐너 기준 원점</h4>
+          </div>
+          <p id="descBody" class="text-xs text-slate-600 truncate mt-0.5">작업대 기준 원점에 A-T-M 각인과 3×3 홀이 가공된 calib_plate가 고정되어 있고, 상공에 기존 기준 스캐너(Old)가 위치합니다.</p>
+        </div>
+        <div id="autoPlayProgressWrapper" class="absolute inset-x-0 bottom-0 h-1 bg-slate-100 rounded-full overflow-hidden hidden">
+          <div id="autoPlayProgressBar" class="h-full bg-emerald-500 transition-all duration-75" style="width: 0%;"></div>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-2 shrink-0">
+        <div class="hidden sm:flex items-center gap-1.5 bg-white px-2.5 py-1 rounded-lg border border-slate-300 shadow-2xs text-[11px] font-mono font-bold text-slate-600">
+          <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+          <span class="text-slate-400 font-normal">VISITORS:</span>
+          <span id="visitorCountVal" class="font-extrabold text-blue-700">1,970</span>
+        </div>
+        <div id="authorBadgeBtn" class="bg-white hover:bg-amber-50 px-3.5 py-1 rounded-lg border border-slate-300 hover:border-amber-400 text-xs font-bold text-slate-700 hover:text-amber-800 shadow-2xs flex items-center gap-2 transition-all cursor-pointer" title="교육관 유재광 (연수 완료 골드 세레머니)">
+          <span class="text-blue-600 text-sm">✍️</span><span>교육관 <span class="text-slate-900 font-black">유재광</span></span>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    /* =========================================================================
+       1. 5단계 원점보정(Eye Calibration) 시나리오 데이터 정의
+          - 핵심: 피사체(calib_plate) 고정, 기존 스캐너(Old) -> 옮겨진 스캐너(New) 이동
+       ========================================================================= */
+    const stepData = [
+      { badge: "STEP 1", icon: "🎯", heading: "1. 원점보정용 마스터 지그(calib_plate) 고정 및 기존 스캐너 기준 원점", body: "작업대 원점에 A-T-M 경사면과 3×3 기준 홀을 가진 calib_plate가 고정되어 있고, 상공에 기존 기준 스캐너(Old)가 대기합니다." },
+      { badge: "STEP 2", icon: "📡", heading: "2. 스캐너 교체·외란으로 인한 스캐너 위치/자세 변동 (Old → New)", body: "스캐너 교체나 브라켓 유격으로 새 스캐너(New, 주황색)가 6-DOF 만큼 옮겨진 위치에 장착되며 기준 스캐너(Old)와 이격이 발생합니다." },
+      { badge: "STEP 3", icon: "📸", heading: "3. 변경된 스캐너(New)로 고정 calib_plate 10패턴 스캔 및 판정", body: "옮겨진 새 스캐너의 4:3 FOV에서 10개 구조광 패턴을 투사해 고정된 calib_plate의 A-T-M 면과 3×3 홀 점군을 취득합니다." },
+      { badge: "STEP 4", icon: "✨", heading: "4. 원점보정 수렴 (기존 기준 스캐너 Old → 옮겨진 스캐너 New 이동)", body: "고정된 calib_plate를 기준으로 기존에 있던 스캐너(Old)가 새로 옮겨진 스캐너(New) 위치·자세로 이동·회전하여 일치합니다." },
+      { badge: "STEP 5", icon: "🏁", heading: "5. 스캐너 변화량 [R|T] 행렬 확정 및 로봇-스캐너 원점 캘리브 완료", body: "기존 스캐너에서 새 스캐너로 이동한 순방향 변환행렬 [R|T]를 로봇 제어기에 반영하여 원점보정을 완료합니다." }
+    ];
+
+    let currentStep = 0, isAutoPlaying = false, autoPlayTimeoutId = null, autoStepProgressTimer = null;
+    let isParamPanelCollapsed = false, isStepPanelCollapsed = false;
+    let demoModeType = null, packetSeqNo = 1;
+    let showCorrespondenceRays = true;
+    let showRefFov = true;
+
+    // 스캐너 원점보정 허용 한계값 (OK 범위)
+    const TOL_LIMITS = {
+      dx: 45, dy: 45, dz: 45,
+      rx: 12.0, ry: 12.0, rz: 18.0
+    };
+    let isToleranceNG = false;
+    let ngCausesList = [];
+
+    /* Three.js Context */
+    let scene, camera, renderer, controls;
+    let calibPlateGroup;
+    let baseCalibPoints = [], pointCount = 0;
+
+    // 두 스캐너 3D 그룹 및 점군 (Old Scanner = 이동 Source / New Scanner = 목표 Target)
+    let oldScannerGroup, newScannerGroup;
+    let oldFrustumVol, oldFrustumEdge;
+    let newFrustumVol, newFrustumEdge;
+    let newFlashRingLeft, newFlashRingRight;
+
+    // 스캐너 기준 좌표계 내 점군 표현:
+    // - currentOldScannerPts: 이동하는 기존 스캐너(Old) 기준 스캔 점군 (딥 네이비)
+    // - targetNewScannerPts: 옮겨진 새 스캐너(New) 기준 위치 점군 (비비드 오렌지)
+    let oldScanCloud, newScanCloud, rayLinesMesh = null;
+    let currentOldScannerPts = [];
+    let targetNewScannerPts = [];
+
+    // 기준 스캐너 초기 마운트 높이 (Z-Up 기준 Z=125)
+    const BASE_SCANNER_Z = 125;
+
+    // 현재 보정 애니메이션 상에서 기존 스캐너(Old)가 이동한 누적 포즈 (초기 0 -> 목표 currentShift)
+    let animScannerPose = { dx: 0, dy: 0, dz: 0, rx: 0, ry: 0, rz: 0 };
+
+    // 센서뷰 상태 변수
+    let sensorPatternStep = 0;
+    let isSensorScanning = false;
+
+    // 사용자가 슬라이더로 설정한 '기존 스캐너(Old) 대비 옮겨진 새 스캐너(New)의 6-DOF 변위'
+    const currentShift = { dx: 18, dy: -14, dz: -10, rx: 4.5, ry: -3.5, rz: 10.0 };
+
+    // 산업용 Z-Up 좌표계(X: 좌우, Y: 전후, Z: 수직상하) <-> Three.js World(X, Y=Z, Z=-Y) 변환
+    function modelToWorld(v) {
+      return new THREE.Vector3(v.x, v.z, -v.y);
+    }
+
+    function applyPoseToObject3D(obj3d, basePosModel, shift) {
+      // 모델 좌표계(Z-Up)에서의 기준 위치 + 평행이동
+      const posModel = new THREE.Vector3(
+        basePosModel.x + shift.dx,
+        basePosModel.y + shift.dy,
+        basePosModel.z + shift.dz
+      );
+      obj3d.position.copy(modelToWorld(posModel));
+
+      // 모델 좌표계 ZYX 오일러 회전(rx, ry, rz)을 Three.js World 좌표계 회전으로 변환
+      // Model (x, y, z) -> World (x, z, -y) 이므로:
+      // rotX_model -> rotX_world, rotY_model -> -rotZ_world, rotZ_model -> rotY_world
+      const rxRad = THREE.MathUtils.degToRad(shift.rx);
+      const ryRad = THREE.MathUtils.degToRad(shift.ry);
+      const rzRad = THREE.MathUtils.degToRad(shift.rz);
+
+      const mModel = new THREE.Matrix4().makeRotationFromEuler(new THREE.Euler(rxRad, ryRad, rzRad, 'ZYX'));
+      // 기저 변환 행렬 B: v_world = B * v_model
+      const B = new THREE.Matrix4().set(
+        1,  0,  0, 0,
+        0,  0,  1, 0,
+        0, -1,  0, 0,
+        0,  0,  0, 1
+      );
+      const Binv = B.clone().transpose();
+      const mWorld = new THREE.Matrix4().multiplyMatrices(B, mModel).multiply(Binv);
+      obj3d.quaternion.setFromRotationMatrix(mWorld);
+    }
+
+    /* =========================================================================
+       2. 원점보정용 Object ('calib_plate v91') 3D 실물 메쉬 & 포인트 클라우드 생성
+          - 스크린샷 기반: 외곽 직사각 호퍼(역사각뿔대) + 하단 체결 보스 +
+            4경사면(좌: A, 전: T, 우: M 음각 각인) + 중앙 평탄부 3×3 비대칭 관통 홀
+       ========================================================================= */
+    function buildCalibPlateAndPoints() {
+      calibPlateGroup = new THREE.Group();
+
+      // Z-Up 모델 기준 치수 (단위: mm)
+      // 하단 보스: Z = 0 ~ 6 (34 x 26)
+      // 중앙 평탄부(홀 바닥): Z = 6 ~ 9 (30 x 22)
+      // 외곽 상단 테두리: Z = 26 (86 x 66) -> 4면이 안쪽으로 경사진 역사각뿔대 캐비티
+      const outerW = 86, outerD = 66;
+      const innerW = 30, innerD = 22;
+      const zBossBot = 0, zCavityBot = 7, zTopRim = 25;
+
+      // 1) 하단 안착 사각 보스 (실물 사진의 하부 돌출부)
+      const bossGeo = new THREE.BoxGeometry(34, 8, 26); // World Y-up
+      const plateMat = new THREE.MeshStandardMaterial({
+        color: 0x8b95b0, // 실물 STEP 뷰어의 블루-그레이 아노다이징 톤
+        metalness: 0.35,
+        roughness: 0.42,
+        side: THREE.DoubleSide
+      });
+      const bossMesh = new THREE.Mesh(bossGeo, plateMat);
+      bossMesh.position.set(0, 4.0, 0);
+      calibPlateGroup.add(bossMesh);
+
+      // 2) 역사각뿔대(4면 경사 호퍼) 3D 솔리드 메쉬 구축
+      const ow = outerW / 2, od = outerD / 2;
+      const iw = innerW / 2, id = innerD / 2;
+      const rimThick = 2.2;
+      const owIn = ow - rimThick, odIn = od - rimThick;
+
+      // 모델 좌표(Z-Up) 꼭지점 정의 후 modelToWorld로 변환
+      const vTopOut = [
+        new THREE.Vector3(-ow, -od, zTopRim),
+        new THREE.Vector3( ow, -od, zTopRim),
+        new THREE.Vector3( ow,  od, zTopRim),
+        new THREE.Vector3(-ow,  od, zTopRim)
+      ];
+      const vTopIn = [
+        new THREE.Vector3(-owIn, -odIn, zTopRim),
+        new THREE.Vector3( owIn, -odIn, zTopRim),
+        new THREE.Vector3( owIn,  odIn, zTopRim),
+        new THREE.Vector3(-owIn,  odIn, zTopRim)
+      ];
+      const vBotIn = [
+        new THREE.Vector3(-iw, -id, zCavityBot),
+        new THREE.Vector3( iw, -id, zCavityBot),
+        new THREE.Vector3( iw,  id, zCavityBot),
+        new THREE.Vector3(-iw,  id, zCavityBot)
+      ];
+      const vBotOut = [
+        new THREE.Vector3(-iw - 2, -id - 2, zCavityBot - 1.5),
+        new THREE.Vector3( iw + 2, -id - 2, zCavityBot - 1.5),
+        new THREE.Vector3( iw + 2,  id + 2, zCavityBot - 1.5),
+        new THREE.Vector3(-iw - 2,  id + 2, zCavityBot - 1.5)
+      ];
+
+      const positions = [];
+      const pushTri = (a, b, c) => {
+        const wa = modelToWorld(a), wb = modelToWorld(b), wc = modelToWorld(c);
+        positions.push(wa.x, wa.y, wa.z, wb.x, wb.y, wb.z, wc.x, wc.y, wc.z);
+      };
+      const pushQuad = (a, b, c, d) => {
+        pushTri(a, b, c);
+        pushTri(a, c, d);
+      };
+
+      for (let i = 0; i < 4; i++) {
+        const next = (i + 1) % 4;
+        // 상단 림(테두리)
+        pushQuad(vTopOut[i], vTopOut[next], vTopIn[next], vTopIn[i]);
+        // 내측 4개 경사면 (A, T, M, 기준면)
+        pushQuad(vTopIn[i], vTopIn[next], vBotIn[next], vBotIn[i]);
+        // 외측 4개 경사면
+        pushQuad(vBotOut[i], vBotOut[next], vTopOut[next], vTopOut[i]);
+      }
+      // 중앙 평탄 바닥면
+      pushQuad(vBotIn[0], vBotIn[1], vBotIn[2], vBotIn[3]);
+
+      const hopperGeo = new THREE.BufferGeometry();
+      hopperGeo.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+      hopperGeo.computeVertexNormals();
+      const hopperMesh = new THREE.Mesh(hopperGeo, plateMat);
+      calibPlateGroup.add(hopperMesh);
+
+      // 외곽 및 능선 엣지 라인 강조 (시인성 확보)
+      const edgeLineMat = new THREE.LineBasicMaterial({ color: 0x334155, transparent: true, opacity: 0.65 });
+      const edgePts = [];
+      const addEdge = (a, b) => {
+        const wa = modelToWorld(a), wb = modelToWorld(b);
+        edgePts.push(wa.x, wa.y, wa.z, wb.x, wb.y, wb.z);
+      };
+      for (let i = 0; i < 4; i++) {
+        const next = (i + 1) % 4;
+        addEdge(vTopOut[i], vTopOut[next]);
+        addEdge(vTopIn[i], vTopIn[next]);
+        addEdge(vBotIn[i], vBotIn[next]);
+        addEdge(vTopIn[i], vBotIn[i]);
+      }
+      const edgeGeo = new THREE.BufferGeometry();
+      edgeGeo.setAttribute('position', new THREE.Float32BufferAttribute(edgePts, 3));
+      calibPlateGroup.add(new THREE.LineSegments(edgeGeo, edgeLineMat));
+
+      // 3) 중앙 평탄부 3×3 비대칭 기준 관통 홀 패턴 (9개 홀)
+      const holeXs = [-7.5, 0, 7.5];
+      const holeYs = [-5.5, 0, 5.5];
+      // 실물 스크린샷처럼 일부 홀은 직경이 큰 기준 홀(비대칭 식별용)
+      const largeHoles = new Set(['0,1', '1,1', '2,0', '2,2']);
+      const holeMat = new THREE.MeshBasicMaterial({ color: 0x0f172a });
+
+      holeXs.forEach((hx, ix) => {
+        holeYs.forEach((hy, iy) => {
+          const isLarge = largeHoles.has(`${ix},${iy}`);
+          const r = isLarge ? 1.55 : 1.05;
+          const cyl = new THREE.Mesh(new THREE.CylinderGeometry(r, r, 1.2, 20), holeMat);
+          const wp = modelToWorld(new THREE.Vector3(hx, hy, zCavityBot + 0.1));
+          cyl.position.copy(wp);
+          calibPlateGroup.add(cyl);
+        });
+      });
+
+      // 4) 4면 경사면 음각 문자 각인 ('A' 좌측면, 'T' 전면, 'M' 우측면)
+      const addEngravedChar = (charStr, posModel, normalModel, upModel) => {
+        const cvs = document.createElement('canvas');
+        cvs.width = 128; cvs.height = 128;
+        const ctx = cvs.getContext('2d');
+        ctx.clearRect(0, 0, 128, 128);
+        ctx.font = "900 84px 'Pretendard', sans-serif";
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.strokeStyle = 'rgba(255,255,255,0.7)';
+        ctx.lineWidth = 5;
+        ctx.strokeText(charStr, 64, 66);
+        ctx.fillStyle = '#1e293b';
+        ctx.fillText(charStr, 64, 66);
+
+        const tex = new THREE.CanvasTexture(cvs);
+        const mat = new THREE.MeshBasicMaterial({ map: tex, transparent: true, side: THREE.DoubleSide, depthWrite: false });
+        const plane = new THREE.Mesh(new THREE.PlaneGeometry(13, 13), mat);
+
+        const wPos = modelToWorld(posModel);
+        const wNormal = modelToWorld(normalModel).normalize();
+        const wUp = modelToWorld(upModel).normalize();
+        const wRight = new THREE.Vector3().crossVectors(wUp, wNormal).normalize();
+        const orthoUp = new THREE.Vector3().crossVectors(wNormal, wRight).normalize();
+
+        const rotM = new THREE.Matrix4().makeBasis(wRight, orthoUp, wNormal);
+        plane.quaternion.setFromRotationMatrix(rotM);
+        plane.position.copy(wPos).addScaledVector(wNormal, 0.35);
+        calibPlateGroup.add(plane);
+      };
+
+      // 좌측 경사면 (X < 0, Y = 0) -> 'A'
+      addEngravedChar('A',
+        new THREE.Vector3(-28, 0, 16.2),
+        new THREE.Vector3(18, 0, 26),
+        new THREE.Vector3(-26, 0, 18)
+      );
+      // 전면 경사면 (X = 0, Y < 0) -> 'T'
+      addEngravedChar('T',
+        new THREE.Vector3(0, -21, 16.0),
+        new THREE.Vector3(0, 18, 20),
+        new THREE.Vector3(0, -20, 18)
+      );
+      // 우측 경사면 (X > 0, Y = 0) -> 'M'
+      addEngravedChar('M',
+        new THREE.Vector3(28, 0, 16.2),
+        new THREE.Vector3(-18, 0, 26),
+        new THREE.Vector3(26, 0, 18)
+      );
+
+      // 지그 라벨 태그
+      const jigLabel = createTextSprite("🎯 calib_plate (고정 기준물)", "#1e293b", 26);
+      jigLabel.scale.set(46, 11, 1);
+      jigLabel.position.set(0, 32, 0);
+      calibPlateGroup.add(jigLabel);
+
+      scene.add(calibPlateGroup);
+
+      // 5) ICP 정합 연산 및 점-대응선 시각화를 위한 calib_plate 표면 샘플 포인트 클라우드 생성
+      const pts = [];
+      // 4개 경사면 샘플링
+      const stepsU = 18, stepsV = 10;
+      for (let side = 0; side < 4; side++) {
+        const next = (side + 1) % 4;
+        for (let iu = 0; iu <= stepsU; iu++) {
+          const u = iu / stepsU;
+          const pTop = new THREE.Vector3().lerpVectors(vTopIn[side], vTopIn[next], u);
+          const pBot = new THREE.Vector3().lerpVectors(vBotIn[side], vBotIn[next], u);
+          for (let iv = 0; iv <= stepsV; iv++) {
+            const v = iv / stepsV;
+            pts.push(new THREE.Vector3().lerpVectors(pBot, pTop, v));
+          }
+        }
+      }
+      // 중앙 평탄부 (홀 영역 제외 샘플링)
+      for (let x = -iw + 1.5; x <= iw - 1.5; x += 2.2) {
+        for (let y = -id + 1.5; y <= id - 1.5; y += 2.2) {
+          let inHole = false;
+          holeXs.forEach((hx, ix) => {
+            holeYs.forEach((hy, iy) => {
+              const r = largeHoles.has(`${ix},${iy}`) ? 1.7 : 1.2;
+              if (Math.hypot(x - hx, y - hy) < r) inHole = true;
+            });
+          });
+          if (!inHole) pts.push(new THREE.Vector3(x, y, zCavityBot));
+        }
+      }
+      return pts;
+    }
+
+    /* =========================================================================
+       3. Three.js 초기화 및 씬 구축
+       ========================================================================= */
+    function init3D() {
+      const container = document.getElementById('canvas-container');
+      const width = container.clientWidth, height = container.clientHeight;
+
+      scene = new THREE.Scene();
+      scene.background = new THREE.Color(0xf8fafc);
+
+      camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 1500);
+      camera.position.set(125, 145, 175);
+
+      renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' });
+      renderer.setSize(width, height);
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+      container.appendChild(renderer.domElement);
+
+      controls = new THREE.OrbitControls(camera, renderer.domElement);
+      controls.enableDamping = true;
+      controls.dampingFactor = 0.08;
+      controls.target.set(0, 48, 0);
+
+      scene.add(new THREE.AmbientLight(0xffffff, 0.95));
+      const mainLight = new THREE.DirectionalLight(0xffffff, 0.75);
+      mainLight.position.set(100, 220, 140);
+      scene.add(mainLight);
+
+      const fillLight = new THREE.DirectionalLight(0xe2e8f0, 0.45);
+      fillLight.position.set(-100, 100, -100);
+      scene.add(fillLight);
+
+      buildFloorAndTable();
+      buildBaseCoordinates();
+
+      // 고정 원점보정용 Object(calib_plate) 구축
+      baseCalibPoints = buildCalibPlateAndPoints();
+      pointCount = baseCalibPoints.length;
+      currentOldScannerPts = baseCalibPoints.map(p => p.clone());
+      targetNewScannerPts = baseCalibPoints.map(p => p.clone());
+
+      // 1) 기존 기준 스캐너 (Old Scanner - 이동 Source, 딥 네이비 & 블루 계통)
+      const oldBuilt = buildIndustrialScanner({
+        theme: 'old',
+        label: '📷 기존 스캐너 (Old · 이동)',
+        labelColor: '#0f2b5c',
+        bodyColor: 0x1e3a8a,
+        fovColor: 0x2563eb
+      });
+      oldScannerGroup = oldBuilt.group;
+      oldFrustumVol = oldBuilt.frustumVol;
+      oldFrustumEdge = oldBuilt.frustumEdge;
+      scene.add(oldScannerGroup);
+
+      // 2) 옮겨진 새 스캐너 (New Scanner - 목표 Target, 비비드 오렌지 하이라이트)
+      const newBuilt = buildIndustrialScanner({
+        theme: 'new',
+        label: '📡 변경 스캐너 (New · 목표)',
+        labelColor: '#c2410c',
+        bodyColor: 0x111827,
+        fovColor: 0xf97316
+      });
+      newScannerGroup = newBuilt.group;
+      newFrustumVol = newBuilt.frustumVol;
+      newFrustumEdge = newBuilt.frustumEdge;
+      newFlashRingLeft = newBuilt.flashRingLeft;
+      newFlashRingRight = newBuilt.flashRingRight;
+      scene.add(newScannerGroup);
+
+      // 3) 기존 스캐너 기준 스캔 점군 (Source - 이동, 딥 네이비)
+      const oldCloudGeo = new THREE.BufferGeometry().setFromPoints(currentOldScannerPts.map(p => modelToWorld(p)));
+      oldScanCloud = new THREE.Points(oldCloudGeo, new THREE.PointsMaterial({
+        color: 0x0f2b5c, size: 3.0, transparent: false, opacity: 1.0, depthTest: true
+      }));
+      oldScanCloud.renderOrder = 501;
+      scene.add(oldScanCloud);
+
+      // 4) 옮겨진 새 스캐너 목표 점군 (Target - 고정 목표, 비비드 오렌지)
+      const newCloudGeo = new THREE.BufferGeometry().setFromPoints(targetNewScannerPts.map(p => modelToWorld(p)));
+      newScanCloud = new THREE.Points(newCloudGeo, new THREE.PointsMaterial({
+        color: 0xff5500, size: 3.2, transparent: false, opacity: 1.0, depthTest: true
+      }));
+      newScanCloud.renderOrder = 500;
+      scene.add(newScanCloud);
+
+      // 5) 점-대응선 (Old -> New 이동 벡터 시각화, 보라색)
+      const rayGeo = new THREE.BufferGeometry();
+      const rayMat = new THREE.LineBasicMaterial({
+        color: 0x8b00ff, transparent: true, opacity: 0.85, linewidth: 2, depthTest: true
+      });
+      rayLinesMesh = new THREE.LineSegments(rayGeo, rayMat);
+      rayLinesMesh.renderOrder = 499;
+      scene.add(rayLinesMesh);
+
+      window.addEventListener('resize', onWindowResize);
+      updateFromSliders();
+      updateStepUI();
+      updateSensorViewCanvas();
+      animate();
+    }
+
+    function buildFloorAndTable() {
+      const grid = new THREE.GridHelper(260, 26, 0x94a3b8, 0xe2e8f0);
+      grid.position.y = -0.01;
+      grid.material.depthWrite = false;
+      grid.renderOrder = 0;
+      scene.add(grid);
+
+      const tableGeo = new THREE.BoxGeometry(160, 8, 120);
+      const tableEdge = new THREE.LineSegments(
+        new THREE.EdgesGeometry(tableGeo),
+        new THREE.LineBasicMaterial({ color: 0x94a3b8, transparent: true, opacity: 0.45, depthWrite: false })
+      );
+      tableEdge.position.set(0, -4.0, 0);
+      tableEdge.renderOrder = 1;
+      scene.add(tableEdge);
+    }
+
+    function createTextSprite(text, color = '#0f172a', fontSize = 28) {
+      const canvas = document.createElement('canvas'); canvas.width = 360; canvas.height = 96;
+      const ctx = canvas.getContext('2d');
+      ctx.font = `900 ${fontSize}px 'Pretendard', sans-serif`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 6; ctx.strokeText(text, 180, 48);
+      ctx.fillStyle = color; ctx.fillText(text, 180, 48);
+      const sprite = new THREE.Sprite(new THREE.SpriteMaterial({ map: new THREE.CanvasTexture(canvas), depthTest: false, transparent: true }));
+      sprite.scale.set(18, 4.8, 1);
+      return sprite;
+    }
+
+    function buildBaseCoordinates() {
+      const baseOrigin = new THREE.Vector3(-65, 0.5, 45);
+      const baseGroup = new THREE.Group();
+      baseGroup.position.copy(baseOrigin);
+
+      const axisLen = 24;
+      const radius = 0.85;
+
+      const createAxis = (dirWorld, colorHex, label) => {
+        const ag = new THREE.Group();
+        const mat = new THREE.MeshBasicMaterial({ color: colorHex, depthTest: false, depthWrite: false });
+        const stem = new THREE.Mesh(new THREE.CylinderGeometry(radius, radius, axisLen, 16), mat);
+        stem.position.y = axisLen / 2;
+        stem.renderOrder = 999;
+        const head = new THREE.Mesh(new THREE.ConeGeometry(radius * 2.4, 5.0, 16), mat);
+        head.position.y = axisLen + 2.5;
+        head.renderOrder = 999;
+        ag.add(stem); ag.add(head);
+
+        ag.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), dirWorld.clone().normalize());
+
+        const sp = createTextSprite(label, colorHex, 34);
+        sp.position.copy(dirWorld.clone().multiplyScalar(axisLen + 7.0));
+        sp.renderOrder = 1000;
+        baseGroup.add(ag);
+        baseGroup.add(sp);
+      };
+
+      createAxis(new THREE.Vector3(1, 0, 0), '#dc2626', 'X');
+      createAxis(new THREE.Vector3(0, 0, -1), '#16a34a', 'Y');
+      createAxis(new THREE.Vector3(0, 1, 0), '#2563eb', 'Z');
+
+      const dot = new THREE.Mesh(new THREE.SphereGeometry(2.0, 16, 16), new THREE.MeshBasicMaterial({ color: 0x0284c7, depthTest: false, depthWrite: false }));
+      dot.renderOrder = 1000;
+      baseGroup.add(dot);
+
+      const orgLabel = createTextSprite("Robot Base (0,0,0)", "#0369a1", 22);
+      orgLabel.position.set(0, -4.0, 4.0);
+      orgLabel.renderOrder = 1000;
+      baseGroup.add(orgLabel);
+
+      baseGroup.renderOrder = 999;
+      scene.add(baseGroup);
+    }
+
+    function createATMFrontLogoMesh() {
+      const canvas = document.createElement('canvas'); canvas.width = 256; canvas.height = 96;
+      const ctx = canvas.getContext('2d');
+      ctx.font = "italic 900 80px 'Pretendard', sans-serif"; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      ctx.fillStyle = '#ff0000'; ctx.fillText('ATM', 128, 50);
+      return new THREE.Mesh(new THREE.PlaneGeometry(16, 6), new THREE.MeshBasicMaterial({ map: new THREE.CanvasTexture(canvas), transparent: true, side: THREE.DoubleSide }));
+    }
+
+    /* 4:3 직사각뿔대(Frustum) 공간 FOV 구축 */
+    function buildFrustumFOV(mountH, themeColorHex) {
+      const frustumGroup = new THREE.Group();
+      const yBottom = -mountH;
+      const frustumH = mountH * (3 / 8);
+      const yTop = yBottom + frustumH;
+
+      const wBot = 56.0, dBot = 42.0;
+      const wTop = 35.0, dTop = 26.25;
+
+      const p1 = new THREE.Vector3(-wTop, yTop, -dTop);
+      const p2 = new THREE.Vector3( wTop, yTop, -dTop);
+      const p3 = new THREE.Vector3( wTop, yTop,  dTop);
+      const p4 = new THREE.Vector3(-wTop, yTop,  dTop);
+
+      const p5 = new THREE.Vector3(-wBot, yBottom, -dBot);
+      const p6 = new THREE.Vector3( wBot, yBottom, -dBot);
+      const p7 = new THREE.Vector3( wBot, yBottom,  dBot);
+      const p8 = new THREE.Vector3(-wBot, yBottom,  dBot);
+
+      const vertices = [];
+      const addQuad = (a, b, c, d) => {
+        vertices.push(a.x, a.y, a.z,  b.x, b.y, b.z,  c.x, c.y, c.z);
+        vertices.push(a.x, a.y, a.z,  c.x, c.y, c.z,  d.x, d.y, d.z);
+      };
+      addQuad(p1, p2, p3, p4);
+      addQuad(p1, p5, p6, p2);
+      addQuad(p2, p6, p7, p3);
+      addQuad(p3, p7, p8, p4);
+      addQuad(p4, p8, p5, p1);
+
+      const volGeo = new THREE.BufferGeometry();
+      volGeo.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
+      const volMat = new THREE.MeshBasicMaterial({
+        color: themeColorHex,
+        transparent: true,
+        opacity: 0.0,
+        side: THREE.DoubleSide,
+        depthWrite: false
+      });
+      const frustumVol = new THREE.Mesh(volGeo, volMat);
+      frustumVol.renderOrder = 10;
+      frustumGroup.add(frustumVol);
+
+      const linePos = [], lineCol = [];
+      const addSeg = (a, b, c) => {
+        linePos.push(a.x, a.y, a.z, b.x, b.y, b.z);
+        lineCol.push(c.r, c.g, c.b, c.r, c.g, c.b);
+      };
+      const cEdge = new THREE.Color(themeColorHex);
+      addSeg(p1, p2, cEdge); addSeg(p2, p3, cEdge); addSeg(p3, p4, cEdge); addSeg(p4, p1, cEdge);
+      addSeg(p5, p6, cEdge); addSeg(p6, p7, cEdge); addSeg(p7, p8, cEdge); addSeg(p8, p5, cEdge);
+      addSeg(p1, p5, cEdge); addSeg(p2, p6, cEdge); addSeg(p3, p7, cEdge); addSeg(p4, p8, cEdge);
+
+      const edgeGeo = new THREE.BufferGeometry();
+      edgeGeo.setAttribute('position', new THREE.Float32BufferAttribute(linePos, 3));
+      edgeGeo.setAttribute('color', new THREE.Float32BufferAttribute(lineCol, 3));
+      const edgeMat = new THREE.LineBasicMaterial({
+        vertexColors: true,
+        transparent: true,
+        opacity: 0.0,
+        depthWrite: false
+      });
+      const frustumEdge = new THREE.LineSegments(edgeGeo, edgeMat);
+      frustumEdge.renderOrder = 11;
+      frustumGroup.add(frustumEdge);
+
+      return { frustumGroup, frustumVol, frustumEdge };
+    }
+
+    /* AITZ 3DU[3DM] 구조광 3D 스캐너 구축 (기존 Old vs 변경 New 구분 지원) */
+    function buildIndustrialScanner(opts) {
+      const group = new THREE.Group();
+      const mountH = BASE_SCANNER_Z;
+      const SCALE = 22.0;
+      const isOld = (opts.theme === 'old');
+
+      const mountStem = new THREE.Mesh(
+        new THREE.CylinderGeometry(2.2, 2.2, 34, 16),
+        new THREE.MeshLambertMaterial({ color: isOld ? 0x1e3a8a : 0x1e293b, transparent: isOld, opacity: isOld ? 0.65 : 1.0 })
+      );
+      mountStem.position.set(0, 20, 0);
+      group.add(mountStem);
+
+      const scannerCore = new THREE.Group();
+      scannerCore.scale.set(SCALE, SCALE, SCALE);
+      group.add(scannerCore);
+
+      const wTop = 1.64, wBot = 1.46, hTop = 0.36, hBot = -0.34, bodyDepth = 0.48;
+      const frontShape = new THREE.Shape();
+      frontShape.moveTo(-wTop / 2, hTop);
+      frontShape.quadraticCurveTo(0, hTop + 0.065, wTop / 2, hTop);
+      frontShape.lineTo(wBot / 2, hBot);
+      frontShape.lineTo(0.26, hBot - 0.045);
+      frontShape.quadraticCurveTo(0, hBot - 0.01, -0.26, hBot - 0.045);
+      frontShape.lineTo(-wBot / 2, hBot);
+      frontShape.closePath();
+
+      const bodyGeo = new THREE.ExtrudeGeometry(frontShape, { steps: 1, depth: bodyDepth, bevelEnabled: true, bevelThickness: 0.018, bevelSize: 0.018, bevelSegments: 3 });
+      bodyGeo.translate(0, 0, -bodyDepth / 2);
+
+      const bodyMat = isOld
+        ? new THREE.MeshStandardMaterial({ color: 0x1d4ed8, metalness: 0.3, roughness: 0.5, transparent: true, opacity: 0.52 })
+        : new THREE.MeshStandardMaterial({ color: 0x111827, metalness: 0.65, roughness: 0.35 });
+      const bodyMesh = new THREE.Mesh(bodyGeo, bodyMat);
+      scannerCore.add(bodyMesh);
+
+      const edgeColor = isOld ? 0x2563eb : 0xf97316;
+      scannerCore.add(new THREE.LineSegments(new THREE.EdgesGeometry(bodyGeo, 18), new THREE.LineBasicMaterial({ color: edgeColor })));
+
+      const atmLogoFront = createATMFrontLogoMesh();
+      atmLogoFront.scale.set(0.05, 0.05, 1);
+      atmLogoFront.position.set(0.40, 0.14, bodyDepth / 2 + 0.022);
+      scannerCore.add(atmLogoFront);
+
+      let flashRingLeft = null, flashRingRight = null;
+      const buildAngledFilterUnit = (posX, tiltAngleRad, isCamera) => {
+        const u = new THREE.Group();
+        u.position.set(posX, hBot - 0.018, 0);
+        u.rotation.z = tiltAngleRad;
+        u.add(new THREE.Mesh(new THREE.BoxGeometry(0.38, 0.036, 0.34), new THREE.MeshStandardMaterial({ color: 0x27272a, transparent: isOld, opacity: isOld ? 0.6 : 1.0 })));
+        const g = new THREE.Mesh(new THREE.CylinderGeometry(0.14, 0.145, 0.026, 32), new THREE.MeshStandardMaterial({ color: 0x09090b }));
+        g.position.y = -0.024; u.add(g);
+        const f = new THREE.Mesh(new THREE.CylinderGeometry(0.112, 0.112, 0.022, 32), new THREE.MeshStandardMaterial({ color: isCamera ? 0x2563eb : 0x10b981, emissive: isCamera ? 0x1d4ed8 : 0x059669, emissiveIntensity: 0.6 }));
+        f.position.y = -0.042; u.add(f);
+
+        const flashRing = new THREE.Mesh(new THREE.RingGeometry(0.02, 0.16, 32), new THREE.MeshBasicMaterial({ color: 0xffffff, side: THREE.DoubleSide, transparent: true, opacity: 0 }));
+        flashRing.rotation.x = Math.PI / 2;
+        flashRing.position.y = -0.055;
+        u.add(flashRing);
+        if (posX < 0) flashRingLeft = flashRing; else flashRingRight = flashRing;
+
+        scannerCore.add(u);
+      };
+      buildAngledFilterUnit(-0.48, THREE.MathUtils.degToRad(4.5), false);
+      buildAngledFilterUnit(0.48, THREE.MathUtils.degToRad(-4.5), true);
+
+      // 스캐너 로컬 좌표축 미니 표시 (Tool/Scanner Frame)
+      const localAxes = new THREE.AxesHelper(16);
+      localAxes.position.set(0, -8, 0);
+      scannerCore.add(localAxes);
+
+      const tagSprite = createTextSprite(opts.label, opts.labelColor, 26);
+      tagSprite.scale.set(54, 12, 1);
+      tagSprite.position.set(0, isOld ? 17 : 13, 0);
+      group.add(tagSprite);
+
+      const { frustumGroup, frustumVol, frustumEdge } = buildFrustumFOV(mountH, opts.fovColor);
+      group.add(frustumGroup);
+
+      applyPoseToObject3D(group, new THREE.Vector3(0, 0, mountH), { dx: 0, dy: 0, dz: 0, rx: 0, ry: 0, rz: 0 });
+      return { group, frustumVol, frustumEdge, flashRingLeft, flashRingRight };
+    }
+
+    /* =========================================================================
+       4. 슬라이더 조작 및 스캐너 이동 반영
+          - 핵심: 피사체(calib_plate)는 고정!
+          - 기존 스캐너(Old)는 초기 원점 대기 -> STEP 4에서 새 스캐너(New)로 이동!
+       ========================================================================= */
+    function onSliderChange() {
+      currentShift.dx = parseFloat(document.getElementById('sl-dx').value);
+      currentShift.dy = parseFloat(document.getElementById('sl-dy').value);
+      currentShift.dz = parseFloat(document.getElementById('sl-dz').value);
+      currentShift.rx = parseFloat(document.getElementById('sl-rx').value);
+      currentShift.ry = parseFloat(document.getElementById('sl-ry').value);
+      currentShift.rz = parseFloat(document.getElementById('sl-rz').value);
+
+      document.getElementById('txt-dx').innerText = (currentShift.dx > 0 ? '+' : '') + currentShift.dx + 'mm';
+      document.getElementById('txt-dy').innerText = (currentShift.dy > 0 ? '+' : '') + currentShift.dy + 'mm';
+      document.getElementById('txt-dz').innerText = (currentShift.dz > 0 ? '+' : '') + currentShift.dz + 'mm';
+      document.getElementById('txt-rx').innerText = (currentShift.rx > 0 ? '+' : '') + currentShift.rx.toFixed(1) + '°';
+      document.getElementById('txt-ry').innerText = (currentShift.ry > 0 ? '+' : '') + currentShift.ry.toFixed(1) + '°';
+      document.getElementById('txt-rz').innerText = (currentShift.rz > 0 ? '+' : '') + currentShift.rz.toFixed(1) + '°';
+
+      updateFromSliders();
+      appendPacketLog('SYS', `스캐너 이동량 설정(Old→New): [ΔX:${currentShift.dx}, ΔY:${currentShift.dy}, ΔZ:${currentShift.dz} | ΔRx:${currentShift.rx}°, ΔRy:${currentShift.ry}°, ΔRz:${currentShift.rz}°]`);
+    }
+
+    function updateFromSliders() {
+      // 1) 옮겨진 새 스캐너(New Scanner)를 목표 위치(currentShift)에 배치
+      applyPoseToObject3D(newScannerGroup, new THREE.Vector3(0, 0, BASE_SCANNER_Z), currentShift);
+
+      // 2) 기존 기준 스캐너(Old Scanner)는 초기 기준 원점(0,0,0, 0,0,0)으로 리셋
+      animScannerPose = { dx: 0, dy: 0, dz: 0, rx: 0, ry: 0, rz: 0 };
+      applyPoseToObject3D(oldScannerGroup, new THREE.Vector3(0, 0, BASE_SCANNER_Z), animScannerPose);
+
+      // 3) 점군 업데이트:
+      //    - targetNewScannerPts: 새 스캐너가 옮겨진 변위(currentShift)가 반영된 스캐너 기준 점군
+      //    - currentOldScannerPts: 초기 기준 스캐너 위치의 점군 (STEP 4에서 New로 이동 수렴)
+      const rxRad = THREE.MathUtils.degToRad(currentShift.rx);
+      const ryRad = THREE.MathUtils.degToRad(currentShift.ry);
+      const rzRad = THREE.MathUtils.degToRad(currentShift.rz);
+      const rotMat = new THREE.Matrix4().makeRotationFromEuler(new THREE.Euler(rxRad, ryRad, rzRad, 'ZYX'));
+
+      const oldPosArr = oldScanCloud.geometry.attributes.position.array;
+      const newPosArr = newScanCloud.geometry.attributes.position.array;
+
+      for (let i = 0; i < pointCount; i++) {
+        // 기존 스캐너 기준 점군 (초기 원점)
+        currentOldScannerPts[i].copy(baseCalibPoints[i]);
+        const ow = modelToWorld(currentOldScannerPts[i]);
+        oldPosArr[i * 3] = ow.x;
+        oldPosArr[i * 3 + 1] = ow.y;
+        oldPosArr[i * 3 + 2] = ow.z;
+
+        // 새 스캐너 위치 기준 목표 점군 (Old -> New 변환 적용)
+        const np = baseCalibPoints[i].clone().applyMatrix4(rotMat);
+        np.x += currentShift.dx;
+        np.y += currentShift.dy;
+        np.z += currentShift.dz;
+        targetNewScannerPts[i].copy(np);
+
+        const nw = modelToWorld(np);
+        newPosArr[i * 3] = nw.x;
+        newPosArr[i * 3 + 1] = nw.y;
+        newPosArr[i * 3 + 2] = nw.z;
+      }
+
+      oldScanCloud.geometry.attributes.position.needsUpdate = true;
+      newScanCloud.geometry.attributes.position.needsUpdate = true;
+      currentIteration = 0;
+
+      updateCorrespondenceRays();
+      updateMetricsDisplay(computeCurrentRMSE());
+      updateSensorViewCanvas();
+    }
+
+    function applyDefaultPreset() {
+      document.getElementById('sl-dx').value = 0;
+      document.getElementById('sl-dy').value = 0;
+      document.getElementById('sl-dz').value = 0;
+      document.getElementById('sl-rx').value = 0;
+      document.getElementById('sl-ry').value = 0;
+      document.getElementById('sl-rz').value = 0;
+      onSliderChange();
+      clearPacketLogs("스캐너 위치 변화량이 0으로 초기화되었습니다 (Default).");
+    }
+
+    function applyRandomPreset() {
+      const rnd = (min, max, step) => min + (Math.floor(Math.random() * ((max - min) / step + 1)) * step);
+      document.getElementById('sl-dx').value = rnd(-42, 42, 1);
+      document.getElementById('sl-dy').value = rnd(-42, 42, 1);
+      document.getElementById('sl-dz').value = rnd(-35, 35, 1);
+      document.getElementById('sl-rx').value = rnd(-11, 11, 0.5);
+      document.getElementById('sl-ry').value = rnd(-11, 11, 0.5);
+      document.getElementById('sl-rz').value = rnd(-16, 16, 0.5);
+      onSliderChange();
+      clearPacketLogs("스캐너 6-DOF 위치 변화량이 무작위(Random) 설정되었습니다.");
+    }
+
+    /* =========================================================================
+       5. 점-대응선 (기존 스캐너 기준 점군 Old → 옮겨진 스캐너 기준 점군 New)
+       ========================================================================= */
+    function updateCorrespondenceRays() {
+      if (!showCorrespondenceRays || (currentStep < 1 && currentStep !== 3)) {
+        if (rayLinesMesh) rayLinesMesh.visible = false;
+        return;
+      }
+      rayLinesMesh.visible = true;
+
+      const maxDist = parseFloat(document.getElementById('pMaxDist').value) || 80;
+      const maxDistSq = maxDist * maxDist;
+      const rayPoints = [];
+
+      // 1) 스캐너 본체 중심 간 이동 벡터 강조선 (Old Scanner -> New Scanner)
+      const oldHeadW = modelToWorld(new THREE.Vector3(animScannerPose.dx, animScannerPose.dy, BASE_SCANNER_Z + animScannerPose.dz));
+      const newHeadW = modelToWorld(new THREE.Vector3(currentShift.dx, currentShift.dy, BASE_SCANNER_Z + currentShift.dz));
+      rayPoints.push(oldHeadW.x, oldHeadW.y, oldHeadW.z, newHeadW.x, newHeadW.y, newHeadW.z);
+
+      // 2) 스캐너 기준 스캔 점군 간 대응선
+      for (let i = 0; i < pointCount; i += 5) {
+        const sPt = currentOldScannerPts[i];
+        let minDistSq = Infinity;
+        let bestTarget = targetNewScannerPts[0];
+
+        for (let j = 0; j < pointCount; j++) {
+          const dSq = sPt.distanceToSquared(targetNewScannerPts[j]);
+          if (dSq < minDistSq) {
+            minDistSq = dSq;
+            bestTarget = targetNewScannerPts[j];
+          }
+        }
+
+        if (minDistSq <= maxDistSq) {
+          const sw = modelToWorld(sPt);
+          const tw = modelToWorld(bestTarget);
+          rayPoints.push(sw.x, sw.y, sw.z);
+          rayPoints.push(tw.x, tw.y, tw.z);
+        }
+      }
+
+      rayLinesMesh.geometry.setAttribute('position', new THREE.Float32BufferAttribute(rayPoints, 3));
+      rayLinesMesh.geometry.attributes.position.needsUpdate = true;
+    }
+
+    function toggleCorrespondenceRays() {
+      showCorrespondenceRays = !showCorrespondenceRays;
+      const btn = document.getElementById('btnToggleRays');
+      if (btn) {
+        btn.className = showCorrespondenceRays
+          ? "px-2 py-1 bg-purple-100 text-purple-800 rounded-lg transition font-extrabold border border-purple-400 flex items-center gap-1 shadow-2xs"
+          : "px-2 py-1 bg-slate-100 text-slate-500 rounded-lg transition font-extrabold border border-slate-200 flex items-center gap-1 shadow-2xs";
+      }
+      if (rayLinesMesh) rayLinesMesh.visible = showCorrespondenceRays;
+    }
+
+    function toggleRefFov() {
+      showRefFov = !showRefFov;
+      const btn = document.getElementById('btnToggleRefFov');
+      if (btn) {
+        btn.className = showRefFov
+          ? "px-2 py-1 bg-blue-50 text-blue-800 rounded-lg transition font-extrabold border border-blue-300 flex items-center gap-1 shadow-2xs"
+          : "px-2 py-1 bg-slate-100 text-slate-500 rounded-lg transition font-extrabold border border-slate-200 flex items-center gap-1 shadow-2xs";
+      }
+      if (oldFrustumVol) oldFrustumVol.visible = showRefFov;
+      if (oldFrustumEdge) oldFrustumEdge.visible = showRefFov;
+    }
+
+    /* =========================================================================
+       6. 원점보정 6-DOF ICP 반복 정합 알고리즘
+          - 주의: 기존에 있던 스캐너(Old)가 옮겨진 스캐너(New)로 이동!
+          - 상공의 oldScannerGroup 3D 모델과 currentOldScannerPts 점군이
+            동시에 newScannerGroup 위치·자세로 수렴 이동함!
+       ========================================================================= */
+    let isAligning = false;
+    let currentIteration = 0;
+
+    function computeCurrentRMSE() {
+      let totalSqDist = 0;
+      for (let i = 0; i < pointCount; i++) {
+        totalSqDist += currentOldScannerPts[i].distanceToSquared(targetNewScannerPts[i]);
+      }
+      return Math.sqrt(totalSqDist / pointCount);
+    }
+
+    function stepICPOnce() {
+      if (isAligning) return;
+      performSingleICPIteration();
+    }
+
+    function performSingleICPIteration() {
+      const maxDist = parseFloat(document.getElementById('pMaxDist').value) || 80;
+      const maxDistSq = maxDist * maxDist;
+      const metric = document.getElementById('pMetric').value;
+      const gain = (metric === 'PointToPlane') ? 0.58 : 0.45;
+
+      let cSrc = new THREE.Vector3(0, 0, 0); // 이동할 기존 스캐너 기준 무게중심
+      let cDst = new THREE.Vector3(0, 0, 0); // 목표 새 스캐너 기준 무게중심
+      const pairs = [];
+
+      for (let i = 0; i < pointCount; i++) {
+        const s = currentOldScannerPts[i];
+        let minD = Infinity;
+        let bestTarget = targetNewScannerPts[0];
+
+        for (let j = 0; j < pointCount; j++) {
+          const d = s.distanceToSquared(targetNewScannerPts[j]);
+          if (d < minD) {
+            minD = d;
+            bestTarget = targetNewScannerPts[j];
+          }
+        }
+        if (minD <= maxDistSq) {
+          pairs.push({ s, d: bestTarget });
+          cSrc.add(s);
+          cDst.add(bestTarget);
+        }
+      }
+
+      const validPairsCount = pairs.length;
+      if (validPairsCount < 10) return false;
+
+      cSrc.divideScalar(validPairsCount);
+      cDst.divideScalar(validPairsCount);
+
+      let Hxx = 0, Hxy = 0, Hxz = 0;
+      let Hyx = 0, Hyy = 0, Hyz = 0;
+      let Hzx = 0, Hzy = 0, Hzz = 0;
+
+      for (let i = 0; i < validPairsCount; i++) {
+        const p = pairs[i].s.clone().sub(cSrc);
+        const q = pairs[i].d.clone().sub(cDst);
+        Hxx += p.x * q.x; Hxy += p.x * q.y; Hxz += p.x * q.z;
+        Hyx += p.y * q.x; Hyy += p.y * q.y; Hyz += p.y * q.z;
+        Hzx += p.z * q.x; Hzy += p.z * q.y; Hzz += p.z * q.z;
+      }
+
+      const dRotX = (Hyz - Hzy) / (Hyy + Hzz + 1e-6);
+      const dRotY = (Hzx - Hxz) / (Hxx + Hzz + 1e-6);
+      const dRotZ = (Hxy - Hyx) / (Hxx + Hyy + 1e-6);
+
+      const deltaEuler = new THREE.Euler(dRotX * gain, dRotY * gain, dRotZ * gain, 'ZYX');
+      const dRotMat = new THREE.Matrix4().makeRotationFromEuler(deltaEuler);
+      const trans = cDst.clone().sub(cSrc.clone().applyMatrix4(dRotMat)).multiplyScalar(gain);
+
+      // 1) 기존 스캐너 점군(currentOldScannerPts)이 새 스캐너 점군(targetNewScannerPts)으로 이동
+      const oldPosArr = oldScanCloud.geometry.attributes.position.array;
+      for (let i = 0; i < pointCount; i++) {
+        const pt = currentOldScannerPts[i];
+        const newPt = pt.clone().sub(cSrc).applyMatrix4(dRotMat).add(cSrc).add(trans);
+        pt.lerp(newPt, 0.75);
+
+        const wp = modelToWorld(pt);
+        oldPosArr[i * 3] = wp.x;
+        oldPosArr[i * 3 + 1] = wp.y;
+        oldPosArr[i * 3 + 2] = wp.z;
+      }
+      oldScanCloud.geometry.attributes.position.needsUpdate = true;
+
+      // 2) [핵심] 상공의 '기존 스캐너 3D 본체(oldScannerGroup)' 역시 옮겨진 새 스캐너(newScannerGroup) 위치·자세로 수렴 이동!
+      const lerpAlpha = 0.28;
+      animScannerPose.dx += (currentShift.dx - animScannerPose.dx) * lerpAlpha;
+      animScannerPose.dy += (currentShift.dy - animScannerPose.dy) * lerpAlpha;
+      animScannerPose.dz += (currentShift.dz - animScannerPose.dz) * lerpAlpha;
+      animScannerPose.rx += (currentShift.rx - animScannerPose.rx) * lerpAlpha;
+      animScannerPose.ry += (currentShift.ry - animScannerPose.ry) * lerpAlpha;
+      animScannerPose.rz += (currentShift.rz - animScannerPose.rz) * lerpAlpha;
+      applyPoseToObject3D(oldScannerGroup, new THREE.Vector3(0, 0, BASE_SCANNER_Z), animScannerPose);
+
+      currentIteration++;
+      const rmse = computeCurrentRMSE();
+      updateCorrespondenceRays();
+      updateMetricsDisplay(rmse);
+      return rmse;
+    }
+
+    async function runFullICP() {
+      if (isAligning) return;
+      isAligning = true;
+      document.getElementById('btnFullIcp').disabled = true;
+      document.getElementById('btnStepIcp').disabled = true;
+
+      const maxIter = parseInt(document.getElementById('pMaxIter').value) || 35;
+      const minErr = parseFloat(document.getElementById('pMinErr').value) || 0.015;
+      const metric = document.getElementById('pMetric').value;
+
+      appendPacketLog('TX', `EyeCalibrator 시작 [${metric}] (기존 스캐너 Old → 변경 스캐너 New 이동, MaxIter: ${maxIter})`);
+
+      for (let iter = 1; iter <= maxIter; iter++) {
+        const rmse = performSingleICPIteration();
+        if (iter % 3 === 0 || iter === maxIter || rmse < minErr) {
+          appendPacketLog('RX', `iter: ${iter.toString().padStart(2, '0')}, Scanner Pose RMSE: ${rmse.toFixed(3)} mm`);
+        }
+
+        if (rmse < minErr) {
+          // 최종 수렴 시 정확히 새 스캐너 위치와 일치
+          animScannerPose = { ...currentShift };
+          applyPoseToObject3D(oldScannerGroup, new THREE.Vector3(0, 0, BASE_SCANNER_Z), animScannerPose);
+          updateMetricsDisplay(rmse);
+          appendPacketLog('SYS', `[SUCCESS] 기존 스캐너(Old)가 새 스캐너(New) 위치로 원점보정 완료 (RMSE: ${rmse.toFixed(3)} mm)`);
+          break;
+        }
+        await new Promise(res => setTimeout(res, 35));
+      }
+
+      isAligning = false;
+      document.getElementById('btnFullIcp').disabled = false;
+      document.getElementById('btnStepIcp').disabled = false;
+      
+      if (currentStep === 3) goToStep(4);
+    }
+
+    /* =========================================================================
+       7. 메트릭 디스플레이 & [R|T] 동차변환행렬 카드 갱신
+          - 주의: 기존 스캐너 원점(P_old)에서 옮겨진 새 스캐너 위치(P_new)로의
+            순방향 변환값 [R|T] (P_new = R * P_old + T) 를 정확히 표시!
+       ========================================================================= */
+    function updateMetricsDisplay(rmse) {
+      document.getElementById('iterationBadge').innerText = `ITER: ${currentIteration}`;
+      document.getElementById('valRmseDisplay').innerText = `${rmse.toFixed(2)} mm`;
+      document.getElementById('headerRmseVal').innerText = `${rmse.toFixed(2)} mm`;
+
+      const overlapPct = Math.max(0, Math.min(100, Math.round(100 - (rmse * 3.5))));
+      document.getElementById('valOverlapDisplay').innerText = `${overlapPct} %`;
+      const pBar = document.getElementById('overlapProgressBar');
+      if (pBar) pBar.style.width = `${overlapPct}%`;
+
+      const tbody = document.getElementById('rtMatrixTableBody');
+      const sT = document.getElementById('rtSummaryT'), sR = document.getElementById('rtSummaryR');
+      const badge = document.getElementById('rtStatusBadge');
+
+      if (isToleranceNG && currentStep === 4) {
+        if (badge) {
+          badge.innerText = "ALARM NG [?]";
+          badge.className = "px-1.5 py-0.2 bg-rose-50 text-rose-700 border border-rose-300 rounded text-[9px] font-mono font-bold animate-pulse";
+        }
+        if (tbody) {
+          tbody.innerHTML = `
+            <tr><td class="rt-cell-ng">?</td><td class="rt-cell-ng">?</td><td class="rt-cell-ng">?</td><td class="rt-cell-ng">?</td></tr>
+            <tr><td class="rt-cell-ng">?</td><td class="rt-cell-ng">?</td><td class="rt-cell-ng">?</td><td class="rt-cell-ng">?</td></tr>
+            <tr><td class="rt-cell-ng">?</td><td class="rt-cell-ng">?</td><td class="rt-cell-ng">?</td><td class="rt-cell-ng">?</td></tr>
+            <tr><td class="rt-cell-h">0</td><td class="rt-cell-h">0</td><td class="rt-cell-h">0</td><td class="rt-cell-h">1</td></tr>
+          `;
+        }
+        if (sT) sT.innerText = "T:[ ?, ?, ? ] (이탈 초과)";
+        if (sR) sR.innerText = "R:[ ?, ?, ? ] (이탈 초과)";
+        return;
+      }
+
+      if (badge) {
+        badge.innerText = "Old→New";
+        badge.className = "px-1.5 py-0.2 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded text-[9px] font-mono font-bold";
+      }
+
+      // 기존 스캐너 초기 원점(0,0,0) 대비 현재 이동 수렴 중인 스캐너(currentOldScannerPts / animScannerPose)의 순방향 변환량 산출
+      let cx = 0, cy = 0, cz = 0;
+      for (let i = 0; i < pointCount; i++) {
+        cx += currentOldScannerPts[i].x - baseCalibPoints[i].x;
+        cy += currentOldScannerPts[i].y - baseCalibPoints[i].y;
+        cz += currentOldScannerPts[i].z - baseCalibPoints[i].z;
+      }
+      cx /= pointCount; cy /= pointCount; cz /= pointCount;
+
+      // 회전 성분 역시 기존 스캐너 -> 새 스캐너로 이동한 순방향 각도(animScannerPose / 수렴 비율 반영) 산출
+      const totalShiftMag = Math.hypot(currentShift.dx, currentShift.dy, currentShift.dz);
+      const ratio = (totalShiftMag > 1e-4)
+        ? Math.min(1.0, Math.hypot(cx, cy, cz) / totalShiftMag)
+        : (currentIteration > 0 ? Math.min(1.0, currentIteration / 15) : 0);
+
+      const rxDeg = (currentIteration > 0) ? currentShift.rx * ratio : 0;
+      const ryDeg = (currentIteration > 0) ? currentShift.ry * ratio : 0;
+      const rzDeg = (currentIteration > 0) ? currentShift.rz * ratio : 0;
+
+      const rx = THREE.MathUtils.degToRad(rxDeg);
+      const ry = THREE.MathUtils.degToRad(ryDeg);
+      const rz = THREE.MathUtils.degToRad(rzDeg);
+
+      const euler = new THREE.Euler(rx, ry, rz, 'ZYX');
+      const m = new THREE.Matrix4().makeRotationFromEuler(euler);
+      m.setPosition(cx, cy, cz);
+      const te = m.elements;
+
+      const fmtR = (v) => (Math.abs(v) < 1e-3 ? "0.00" : (v >= 0 ? "+" : "") + v.toFixed(2));
+      const fmtT = (v) => (Math.abs(v) < 1e-3 ? "0.0" : (v >= 0 ? "+" : "") + v.toFixed(1));
+
+      if (tbody) {
+        tbody.innerHTML = `
+          <tr><td class="rt-cell-r">${fmtR(te[0])}</td><td class="rt-cell-r">${fmtR(te[4])}</td><td class="rt-cell-r">${fmtR(te[8])}</td><td class="rt-cell-t">${fmtT(te[12])}</td></tr>
+          <tr><td class="rt-cell-r">${fmtR(te[1])}</td><td class="rt-cell-r">${fmtR(te[5])}</td><td class="rt-cell-r">${fmtR(te[9])}</td><td class="rt-cell-t">${fmtT(te[13])}</td></tr>
+          <tr><td class="rt-cell-r">${fmtR(te[2])}</td><td class="rt-cell-r">${fmtR(te[6])}</td><td class="rt-cell-r">${fmtR(te[10])}</td><td class="rt-cell-t">${fmtT(te[14])}</td></tr>
+          <tr><td class="rt-cell-h">0</td><td class="rt-cell-h">0</td><td class="rt-cell-h">0</td><td class="rt-cell-h">1</td></tr>
+        `;
+      }
+
+      if (sT) sT.innerText = `T:[${fmtT(cx)}, ${fmtT(cy)}, ${fmtT(cz)}]mm`;
+      if (sR) sR.innerText = `R:[${(rxDeg >= 0 ? '+' : '') + rxDeg.toFixed(1)}°, ${(ryDeg >= 0 ? '+' : '') + ryDeg.toFixed(1)}°, ${(rzDeg >= 0 ? '+' : '') + rzDeg.toFixed(1)}°]`;
+    }
+
+    /* =========================================================================
+       8. 좌측 하단 카메라 센서뷰 (변경된 스캐너 시점에서 본 고정 calib_plate 투영)
+          - 스캐너가 +ΔX, +ΔY, +ΔRz 만큼 이동하면, 센서 화면 상에서 피사체는 반대(-ΔX, -ΔY, -ΔRz)로 치우쳐 보임!
+       ========================================================================= */
+    function updateSensorViewCanvas() {
+      const cvs = document.getElementById('sensorViewCanvas');
+      if (!cvs) return;
+      const ctx = cvs.getContext('2d');
+      const w = cvs.width, h = cvs.height;
+
+      ctx.fillStyle = '#090d16';
+      ctx.fillRect(0, 0, w, h);
+
+      // 1) STEP 3 스캔 중일 때: 1 ~ 10 패턴 투사 (Gray Code 6종 + Phase Shift 4종)
+      if (isSensorScanning && sensorPatternStep >= 1 && sensorPatternStep <= 10) {
+        if (sensorPatternStep <= 6) {
+          const numStripes = Math.pow(2, sensorPatternStep);
+          const stripeW = w / numStripes;
+          for (let i = 0; i < numStripes; i++) {
+            if (i % 2 === 1) {
+              ctx.fillStyle = '#f8fafc';
+              ctx.fillRect(i * stripeW, 0, stripeW, h);
+            }
+          }
+        } else {
+          const phaseIdx = sensorPatternStep - 7;
+          const phaseAngle = (phaseIdx * Math.PI) / 2;
+          const freq = 10;
+          for (let x = 0; x < w; x++) {
+            const intensity = Math.sin((x / w) * freq * Math.PI * 2 + phaseAngle) * 0.5 + 0.5;
+            const val = Math.floor(intensity * 255);
+            ctx.fillStyle = `rgb(${val},${val},${val})`;
+            ctx.fillRect(x, 0, 1, h);
+          }
+        }
+      } else {
+        ctx.strokeStyle = 'rgba(148, 163, 184, 0.25)';
+        ctx.lineWidth = 1;
+        for (let gx = 30; gx < w; gx += 30) {
+          ctx.beginPath(); ctx.moveTo(gx, 0); ctx.lineTo(gx, h); ctx.stroke();
+        }
+        for (let gy = 30; gy < h; gy += 30) {
+          ctx.beginPath(); ctx.moveTo(0, gy); ctx.lineTo(w, gy); ctx.stroke();
+        }
+      }
+
+      // 2) 고정된 calib_plate 투영 실루엣 오버레이 (스캐너가 이동했으므로 상대 투영 위치가 반대로 이동)
+      ctx.save();
+      const relX = (currentStep >= 1) ? -currentShift.dx * 1.35 : 0;
+      const relY = (currentStep >= 1) ? currentShift.dy * 1.35 : 0;
+      const relRot = (currentStep >= 1) ? THREE.MathUtils.degToRad(currentShift.rz) : 0;
+      const zScale = (currentStep >= 1) ? (125 / Math.max(70, 125 + currentShift.dz)) : 1.0;
+
+      ctx.translate((w / 2) + relX, (h / 2) + relY);
+      ctx.rotate(relRot);
+      ctx.scale(zScale, zScale);
+
+      const isAcquired = (sensorPatternStep === 11);
+      ctx.fillStyle = isAcquired ? 'rgba(255, 85, 0, 0.38)' : 'rgba(56, 189, 248, 0.22)';
+      ctx.strokeStyle = isAcquired ? '#ff5500' : '#38bdf8';
+      ctx.lineWidth = isAcquired ? 2.0 : 1.4;
+
+      // calib_plate 외곽 직사각 호퍼(112 x 86) & 내측 평탄부(40 x 30)
+      const ow = 112, oh = 86;
+      const iw = 40, ih = 30;
+      ctx.strokeRect(-ow / 2, -oh / 2, ow, oh);
+      ctx.fillRect(-ow / 2, -oh / 2, ow, oh);
+      ctx.strokeRect(-iw / 2, -ih / 2, iw, ih);
+
+      // 4개 능선 대각선
+      ctx.beginPath();
+      ctx.moveTo(-ow / 2, -oh / 2); ctx.lineTo(-iw / 2, -ih / 2);
+      ctx.moveTo( ow / 2, -oh / 2); ctx.lineTo( iw / 2, -ih / 2);
+      ctx.moveTo( ow / 2,  oh / 2); ctx.lineTo( iw / 2,  ih / 2);
+      ctx.moveTo(-ow / 2,  oh / 2); ctx.lineTo(-iw / 2,  ih / 2);
+      ctx.stroke();
+
+      // A - T - M 각인 문자 표기
+      ctx.fillStyle = isAcquired ? '#fed7aa' : '#bae6fd';
+      ctx.font = "900 11px 'Pretendard', sans-serif";
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText('A', -38, 0);
+      ctx.fillText('T', 0, 29);
+      ctx.fillText('M', 38, 0);
+
+      // 중앙 3×3 홀 도트
+      [-10, 0, 10].forEach(hx => {
+        [-7, 0, 7].forEach(hy => {
+          ctx.beginPath();
+          ctx.arc(hx, hy, 1.8, 0, Math.PI * 2);
+          ctx.fillStyle = '#090d16';
+          ctx.fill();
+        });
+      });
+
+      ctx.restore();
+
+      // 3) 4:3 유효 FOV 내측 안전 테두리 프레임
+      ctx.strokeStyle = isSensorScanning ? '#f43f5e' : '#10b981';
+      ctx.lineWidth = 1.5;
+      ctx.strokeRect(14, 10, w - 28, h - 20);
+
+      // 4) 배지 및 하단 태그 갱신
+      const badgeEl = document.getElementById('sensorBadge');
+      const tagEl = document.getElementById('sensorPatternTag');
+      if (isSensorScanning && sensorPatternStep >= 1 && sensorPatternStep <= 10) {
+        if (badgeEl) {
+          badgeEl.innerText = `SCAN ${sensorPatternStep}/10`;
+          badgeEl.className = "px-1.5 py-0.2 bg-rose-100 text-rose-700 border border-rose-300 rounded text-[8.5px] font-mono font-bold animate-pulse";
+        }
+        if (tagEl) {
+          tagEl.innerText = sensorPatternStep <= 6
+            ? `P${sensorPatternStep}: Gray Code #${sensorPatternStep}`
+            : `P${sensorPatternStep}: Phase ${(sensorPatternStep - 7) * 90}°`;
+        }
+      } else if (sensorPatternStep === 11) {
+        if (badgeEl) {
+          badgeEl.innerText = "ACQUIRED";
+          badgeEl.className = "px-1.5 py-0.2 bg-emerald-100 text-emerald-800 border border-emerald-300 rounded text-[8.5px] font-mono font-bold";
+        }
+        if (tagEl) tagEl.innerText = "calib_plate Cloud Acquired";
+      } else {
+        if (badgeEl) {
+          badgeEl.innerText = "STANDBY";
+          badgeEl.className = "px-1.5 py-0.2 bg-slate-100 text-slate-600 border border-slate-300 rounded text-[8.5px] font-mono font-bold";
+        }
+        if (tagEl) tagEl.innerText = "New Scanner View";
+      }
+    }
+
+    /* =========================================================================
+       9. 대형 6-DOF 공차 LED 점등 및 판정 로직
+       ========================================================================= */
+    function evaluateToleranceLEDs(turnOn = true) {
+      if (!turnOn) {
+        ['dx','dy','dz','rx','ry','rz'].forEach(k => {
+          const led = document.getElementById(`led_${k}`);
+          if (led) led.className = "w-3 h-3 rounded-full bg-slate-300 border border-slate-400";
+        });
+        document.getElementById('tolLedSummary').innerText = "STANDBY";
+        document.getElementById('tolLedSummary').className = "text-slate-500 font-black";
+        document.getElementById('tolDiagMsg').innerText = "STEP 3 교정물 스캔 계측 대기 중...";
+        document.getElementById('headerTolBadge').innerText = "대기 중";
+        document.getElementById('headerTolBadge').className = "font-extrabold text-slate-500";
+        isToleranceNG = false;
+        ngCausesList = [];
+        return;
+      }
+
+      const dx = Math.abs(currentShift.dx);
+      const dy = Math.abs(currentShift.dy);
+      const dz = Math.abs(currentShift.dz);
+      const rx = Math.abs(currentShift.rx);
+      const ry = Math.abs(currentShift.ry);
+      const rz = Math.abs(currentShift.rz);
+
+      const isDxNg = dx > TOL_LIMITS.dx;
+      const isDyNg = dy > TOL_LIMITS.dy;
+      const isDzNg = dz > TOL_LIMITS.dz;
+      const isRxNg = rx > TOL_LIMITS.rx;
+      const isRyNg = ry > TOL_LIMITS.ry;
+      const isRzNg = rz > TOL_LIMITS.rz;
+
+      isToleranceNG = (isDxNg || isDyNg || isDzNg || isRxNg || isRyNg || isRzNg);
+      ngCausesList = [];
+      if (isDxNg) ngCausesList.push(`dX(${currentShift.dx > 0 ? '+' : ''}${currentShift.dx}mm)`);
+      if (isDyNg) ngCausesList.push(`dY(${currentShift.dy > 0 ? '+' : ''}${currentShift.dy}mm)`);
+      if (isDzNg) ngCausesList.push(`dZ(${currentShift.dz > 0 ? '+' : ''}${currentShift.dz}mm)`);
+      if (isRxNg) ngCausesList.push(`dRx(${currentShift.rx > 0 ? '+' : ''}${currentShift.rx}°)`);
+      if (isRyNg) ngCausesList.push(`dRy(${currentShift.ry > 0 ? '+' : ''}${currentShift.ry}°)`);
+      if (isRzNg) ngCausesList.push(`dRz(${currentShift.rz > 0 ? '+' : ''}${currentShift.rz}°)`);
+
+      const setLed = (id, isNg) => {
+        const el = document.getElementById(id);
+        if (el) el.className = isNg ? "w-3 h-3 rounded-full bg-rose-600 animate-ping border border-rose-800" : "w-3 h-3 rounded-full bg-emerald-500 border border-emerald-700 shadow-xs";
+      };
+
+      setLed('led_dx', isDxNg);
+      setLed('led_dy', isDyNg);
+      setLed('led_dz', isDzNg);
+      setLed('led_rx', isRxNg);
+      setLed('led_ry', isRyNg);
+      setLed('led_rz', isRzNg);
+
+      const sumEl = document.getElementById('tolLedSummary');
+      const diagEl = document.getElementById('tolDiagMsg');
+      const hBadge = document.getElementById('headerTolBadge');
+
+      if (isToleranceNG) {
+        if (sumEl) { sumEl.innerText = "ALARM NG"; sumEl.className = "text-rose-600 font-extrabold animate-pulse"; }
+        if (diagEl) { diagEl.innerText = `[CALIB_NG] FOV/이탈 초과 축: ${ngCausesList.join(', ')}`; diagEl.className = "text-[9.5px] font-mono text-center text-rose-700 font-bold truncate bg-rose-50 py-0.5 px-1 rounded border border-rose-200 animate-pulse"; }
+        if (hBadge) { hBadge.innerText = "이탈 초과 (NG)"; hBadge.className = "font-extrabold text-rose-600"; }
+        appendPacketLog('WARN', `ALARM_EYE_CALIB_OVER :: 스캐너 위치 이탈 초과 [${ngCausesList.join(', ')}]`);
+      } else {
+        if (sumEl) { sumEl.innerText = "ALL OK"; sumEl.className = "text-emerald-600 font-extrabold"; }
+        if (diagEl) { diagEl.innerText = "[SYSTEM] 스캐너 위치 변동이 원점보정 허용 범위 이내입니다."; diagEl.className = "text-[9.5px] font-mono text-center text-slate-600 truncate bg-white py-0.5 px-1 rounded border border-slate-200"; }
+        if (hBadge) { hBadge.innerText = "보정 가능 (OK)"; hBadge.className = "font-extrabold text-emerald-600"; }
+        appendPacketLog('SYS', `EYE_CALIB_CHECK_PASSED :: 스캐너 6축 변동량 정상 범위(OK)`);
+      }
+    }
+
+    /* =========================================================================
+       10. 5단계 원점보정 시나리오 전이 및 Area Scan 10패턴 세레모니
+       ========================================================================= */
+    function goToStep(idx, options = {}) {
+      if (!options.fromAutoPlay && isAutoPlaying) stopAutoPlay();
+      currentStep = idx;
+      isSensorScanning = false;
+
+      const banner = document.getElementById('cycleResultBanner');
+      const box = document.getElementById('cycleResultBox');
+      const icon = document.getElementById('cycleResultIcon');
+      const sub = document.getElementById('cycleResultSub');
+      const tag = document.getElementById('cycleResultTag');
+      const title = document.getElementById('cycleResultTitle');
+      const desc = document.getElementById('cycleResultDesc');
+
+      if (currentStep === 0) {
+        updateFromSliders();
+        oldScannerGroup.visible = true;
+        newScannerGroup.visible = false; // STEP 1: 기존 기준 스캐너만 원점 대기
+        oldScanCloud.visible = true;
+        newScanCloud.visible = false;
+        if (rayLinesMesh) rayLinesMesh.visible = false;
+        if (oldFrustumVol) oldFrustumVol.material.opacity = showRefFov ? 0.06 : 0;
+        if (oldFrustumEdge) oldFrustumEdge.material.opacity = showRefFov ? 0.55 : 0;
+        if (newFrustumVol) newFrustumVol.material.opacity = 0;
+        if (newFrustumEdge) newFrustumEdge.material.opacity = 0;
+        sensorPatternStep = 0;
+        updateSensorViewCanvas();
+        evaluateToleranceLEDs(false);
+        if (banner) banner.classList.remove('show-banner');
+        appendPacketLog('SYS', `STEP 1 :: calib_plate 고정 및 기존 기준 스캐너(Old) 원점 대기.`);
+      } else if (currentStep === 1) {
+        updateFromSliders();
+        oldScannerGroup.visible = true;
+        newScannerGroup.visible = true; // STEP 2: 기존 스캐너(Old)와 옮겨진 새 스캐너(New) 동시 비교
+        oldScanCloud.visible = true;
+        newScanCloud.visible = true;
+        updateCorrespondenceRays();
+        if (oldFrustumVol) oldFrustumVol.material.opacity = showRefFov ? 0.04 : 0;
+        if (oldFrustumEdge) oldFrustumEdge.material.opacity = showRefFov ? 0.45 : 0;
+        if (newFrustumVol) newFrustumVol.material.opacity = 0.05;
+        if (newFrustumEdge) newFrustumEdge.material.opacity = 0.65;
+        sensorPatternStep = 0;
+        updateSensorViewCanvas();
+        evaluateToleranceLEDs(false);
+        if (banner) banner.classList.remove('show-banner');
+        appendPacketLog('SYS', `STEP 2 :: 스캐너 교체/외란 발생 -> 새 스캐너(New) 위치 이격 확인.`);
+      } else if (currentStep === 2) {
+        oldScannerGroup.visible = true;
+        newScannerGroup.visible = true;
+        oldScanCloud.visible = true;
+        newScanCloud.visible = true;
+        if (banner) banner.classList.remove('show-banner');
+        triggerAreaScanCeremony();
+        appendPacketLog('TX', `STEP 3 :: 변경된 새 스캐너(New)로 고정 calib_plate 10패턴 구조광 스캔 실행.`);
+      } else if (currentStep === 3) {
+        if (isToleranceNG) {
+          appendPacketLog('WARN', `INTERLOCK TRIPPED :: 스캐너 위치 이탈 초과로 원점보정(STEP 4)을 차단하고 STEP 5로 직행합니다!`);
+          goToStep(4, options);
+          return;
+        }
+        oldScannerGroup.visible = true;
+        newScannerGroup.visible = true;
+        oldScanCloud.visible = true;
+        newScanCloud.visible = true;
+        if (newFrustumVol) newFrustumVol.material.opacity = 0.04;
+        if (newFrustumEdge) newFrustumEdge.material.opacity = 0.50;
+        sensorPatternStep = 11;
+        updateSensorViewCanvas();
+        updateCorrespondenceRays();
+        if (banner) banner.classList.remove('show-banner');
+        appendPacketLog('TX', `STEP 4 :: 원점보정 정합 실행 (기존 스캐너 Old → 옮겨진 스캐너 New로 이동).`);
+      } else if (currentStep === 4) {
+        oldScannerGroup.visible = true;
+        newScannerGroup.visible = true;
+        oldScanCloud.visible = true;
+        newScanCloud.visible = true;
+        sensorPatternStep = 11;
+        updateSensorViewCanvas();
+        updateCorrespondenceRays();
+        updateMetricsDisplay(computeCurrentRMSE());
+
+        if (banner && box) {
+          if (isToleranceNG) {
+            box.className = "w-full bg-rose-50/95 backdrop-blur-md p-2.5 rounded-xl border-2 border-rose-500 shadow-2xl flex flex-col gap-1";
+            icon.className = "w-5 h-5 rounded-full bg-rose-600 text-white flex items-center justify-center text-xs font-black shadow-xs shrink-0";
+            icon.innerText = "✕";
+            sub.className = "text-[9.5px] font-extrabold text-rose-600 tracking-wider uppercase truncate";
+            sub.innerText = "Calibration Aborted";
+            tag.className = "text-[8.5px] font-mono font-extrabold px-1.5 py-0.2 rounded bg-rose-100 text-rose-800 border border-rose-300";
+            tag.innerText = "SHIFT_OVER";
+            title.className = "text-[12.5px] font-black text-rose-950 tracking-tight leading-tight truncate pt-0.5";
+            title.innerText = "원점보정 실패 (재조정 필요)";
+            desc.className = "text-[9px] font-mono text-rose-700 font-bold truncate";
+            desc.innerText = `초과: ${ngCausesList.join(', ')}`;
+            banner.classList.add('show-banner');
+            appendPacketLog('WARN', `EYE_CALIB_FAILED :: 스캐너 위치 이탈 한계 초과로 원점 갱신 보류`);
+          } else {
+            box.className = "w-full bg-white/95 backdrop-blur-md p-2.5 rounded-xl border-2 border-emerald-500 shadow-2xl flex flex-col gap-1";
+            icon.className = "w-5 h-5 rounded-full bg-emerald-500 text-white flex items-center justify-center text-xs font-black shadow-xs shrink-0";
+            icon.innerText = "✓";
+            sub.className = "text-[9.5px] font-extrabold text-emerald-600 tracking-wider uppercase truncate";
+            sub.innerText = "Eye Calibration Done";
+            tag.className = "text-[8.5px] font-mono font-extrabold px-1.5 py-0.2 rounded bg-emerald-50 text-emerald-700 border border-emerald-200";
+            tag.innerText = "CALIBRATED";
+            title.className = "text-[12.5px] font-black text-slate-900 tracking-tight leading-tight truncate pt-0.5";
+            title.innerText = "원점보정 완료 (Calibrated)";
+            desc.className = "text-[9px] font-mono text-slate-500 truncate";
+            desc.innerText = "Old→New 스캐너 [R|T] 로봇 제어기 반영";
+            banner.classList.add('show-banner');
+            appendPacketLog('SYS', `EYE_CALIB_COMPLETED :: 기존 스캐너→새 스캐너 순방향 [R|T] 행렬 확정!`);
+          }
+        }
+      }
+
+      updateStepUI();
+    }
+
+    function triggerAreaScanCeremony() {
+      let startTime = performance.now();
+      const duration = 2200;
+      isSensorScanning = true;
+      sensorPatternStep = 1;
+
+      function scanAnim(now) {
+        if (currentStep !== 2) {
+          isSensorScanning = false;
+          if (newFrustumVol) newFrustumVol.material.opacity = 0;
+          if (newFrustumEdge) newFrustumEdge.material.opacity = 0;
+          if (newFlashRingLeft) newFlashRingLeft.material.opacity = 0;
+          if (newFlashRingRight) newFlashRingRight.material.opacity = 0;
+          return;
+        }
+
+        const elapsed = now - startTime;
+        const progress = Math.min(1.0, elapsed / duration);
+        const stepIdx = Math.min(10, Math.floor(progress * 10) + 1);
+        const subPhase = (progress * 10) % 1.0;
+
+        if (sensorPatternStep !== stepIdx) {
+          sensorPatternStep = stepIdx;
+          updateSensorViewCanvas();
+        }
+
+        const pulse = Math.sin(subPhase * Math.PI);
+        if (newFrustumVol) newFrustumVol.material.opacity = 0.08 + 0.22 * pulse;
+        if (newFrustumEdge) newFrustumEdge.material.opacity = 0.55 + 0.45 * pulse;
+
+        if (newFlashRingLeft) newFlashRingLeft.material.opacity = pulse > 0.35 ? 1.0 : 0.0;
+        if (newFlashRingRight) newFlashRingRight.material.opacity = pulse > 0.35 ? 1.0 : 0.0;
+
+        if (progress < 1.0) {
+          requestAnimationFrame(scanAnim);
+        } else {
+          isSensorScanning = false;
+          sensorPatternStep = 11;
+          updateSensorViewCanvas();
+
+          if (newFrustumVol) newFrustumVol.material.opacity = 0.05;
+          if (newFrustumEdge) newFrustumEdge.material.opacity = 0.50;
+          if (newFlashRingLeft) newFlashRingLeft.material.opacity = 0;
+          if (newFlashRingRight) newFlashRingRight.material.opacity = 0;
+          
+          evaluateToleranceLEDs(true);
+          markStepCompleted();
+          appendPacketLog('RX', `CALIB_SCAN_DONE :: calib_plate A-T-M 경사면 및 3×3 홀 10패턴 취득 완료.`);
+        }
+      }
+      requestAnimationFrame(scanAnim);
+    }
+
+    function updateStepUI() {
+      const data = stepData[currentStep];
+      document.getElementById('stepBadge').innerText = data.badge;
+      document.getElementById('stepBadge').className = "bg-blue-600 text-white text-[10px] font-black px-2 py-0.5 rounded transition-all";
+      document.getElementById('descIcon').innerText = data.icon;
+      document.getElementById('descHeading').innerHTML = data.heading;
+      document.getElementById('descBody').innerHTML = data.body;
+
+      document.querySelectorAll('.step-btn').forEach((btn, idx) => {
+        if (idx === currentStep) btn.classList.add('active');
+        else btn.classList.remove('active');
+      });
+
+      document.getElementById('prevBtn').disabled = (currentStep === 0);
+      document.getElementById('nextBtn').disabled = (currentStep === stepData.length - 1);
+    }
+
+    function markStepCompleted() {
+      const badgeEl = document.getElementById('stepBadge');
+      if (badgeEl) {
+        badgeEl.innerText = `${stepData[currentStep].badge} DONE ✓`;
+        badgeEl.className = "bg-emerald-600 text-white text-[10px] font-black px-2 py-0.5 rounded transition-all transform scale-105 shadow-xs";
+      }
+    }
+
+    function nextStep() { if (currentStep < stepData.length - 1) goToStep(currentStep + 1); }
+    function prevStep() { if (currentStep > 0) goToStep(currentStep - 1); }
+
+    /* =========================================================================
+       11. 예제(OK) vs 예제(NG) 원클릭 실행 모드
+       ========================================================================= */
+    function startExampleMode(type) {
+      if (isAutoPlaying) stopAutoPlay();
+      demoModeType = type;
+      updateButtonActiveStates();
+
+      const rnd = (min, max, step) => min + (Math.floor(Math.random() * ((max - min) / step + 1)) * step);
+
+      if (type === 'OK') {
+        document.getElementById('sl-dx').value = rnd(-28, 28, 1);
+        document.getElementById('sl-dy').value = rnd(-25, 25, 1);
+        document.getElementById('sl-dz').value = rnd(-20, 20, 1);
+        document.getElementById('sl-rx').value = rnd(-8, 8, 0.5);
+        document.getElementById('sl-ry').value = rnd(-8, 8, 0.5);
+        document.getElementById('sl-rz').value = rnd(-12, 12, 0.5);
+        onSliderChange();
+        clearPacketLogs(`[예제: OK] 공차 내 스캐너 위치 변동 시연 시작 (Old → New 원점보정 수렴)`);
+      } else {
+        document.getElementById('sl-dx').value = rnd(50, 60, 1);
+        document.getElementById('sl-dy').value = rnd(-25, 25, 1);
+        document.getElementById('sl-dz').value = rnd(-20, 20, 1);
+        document.getElementById('sl-rx').value = rnd(-8, 8, 0.5);
+        document.getElementById('sl-ry').value = rnd(-8, 8, 0.5);
+        document.getElementById('sl-rz').value = 22.0;
+        onSliderChange();
+        clearPacketLogs(`[예제: NG] 스캐너 위치 이탈 초과 시연 시작 (원점보정 인터록 차단)`);
+      }
+
+      goToStep(0);
+      startAutoPlay();
+    }
+
+    function updateButtonActiveStates() {
+      const bOK = document.getElementById('btnDemoOK');
+      const bNG = document.getElementById('btnDemoNG');
+      const bAuto = document.getElementById('autoPlayBtn');
+
+      if (bOK) {
+        if (demoModeType === 'OK') bOK.classList.add('btn-running-ok', 'animate-pulse');
+        else bOK.classList.remove('btn-running-ok', 'animate-pulse');
+      }
+      if (bNG) {
+        if (demoModeType === 'NG') bNG.classList.add('btn-running-ng', 'animate-pulse');
+        else bNG.classList.remove('btn-running-ng', 'animate-pulse');
+      }
+      if (bAuto) {
+        if (isAutoPlaying && !demoModeType) bAuto.classList.add('btn-running-auto', 'animate-pulse');
+        else bAuto.classList.remove('btn-running-auto', 'animate-pulse');
+      }
+    }
+
+    /* =========================================================================
+       12. 자동 재생 (Auto-Play) & 타이머 게이지
+       ========================================================================= */
+    function toggleAutoPlay() {
+      if (isAutoPlaying) stopAutoPlay();
+      else {
+        if (currentStep === stepData.length - 1) goToStep(0);
+        startAutoPlay();
+      }
+    }
+
+    function startAutoPlay() {
+      if (isAutoPlaying) return;
+      isAutoPlaying = true;
+      document.getElementById('playIcon').innerText = '⏸';
+      document.getElementById('playText').innerText = '일시 정지';
+      updateButtonActiveStates();
+      scheduleNextAutoStep();
+    }
+
+    function stopAutoPlay() {
+      isAutoPlaying = false;
+      if (autoPlayTimeoutId) { clearTimeout(autoPlayTimeoutId); autoPlayTimeoutId = null; }
+      if (autoStepProgressTimer) { clearInterval(autoStepProgressTimer); autoStepProgressTimer = null; }
+      const pWrap = document.getElementById('autoPlayProgressWrapper');
+      if (pWrap) pWrap.classList.add('hidden');
+      document.getElementById('playIcon').innerText = '▶';
+      document.getElementById('playText').innerText = '자동 재생';
+      demoModeType = null;
+      updateButtonActiveStates();
+    }
+
+    function scheduleNextAutoStep() {
+      if (!isAutoPlaying) return;
+      if (autoPlayTimeoutId) clearTimeout(autoPlayTimeoutId);
+
+      let waitTime = 2600;
+      if (currentStep === 2) waitTime = 2500;
+      else if (currentStep === 3) {
+        waitTime = 3400;
+        runFullICP();
+      }
+
+      const pWrap = document.getElementById('autoPlayProgressWrapper');
+      const pBar = document.getElementById('autoPlayProgressBar');
+      if (pWrap && pBar) {
+        pWrap.classList.remove('hidden');
+        pBar.style.width = '0%';
+        const pStart = performance.now();
+        if (autoStepProgressTimer) clearInterval(autoStepProgressTimer);
+        autoStepProgressTimer = setInterval(() => {
+          if (!isAutoPlaying) { clearInterval(autoStepProgressTimer); return; }
+          const elapsed = performance.now() - pStart;
+          const pct = Math.min(100, (elapsed / waitTime) * 100);
+          pBar.style.width = `${pct}%`;
+          if (pct >= 100) clearInterval(autoStepProgressTimer);
+        }, 50);
+      }
+
+      autoPlayTimeoutId = setTimeout(() => {
+        autoPlayTimeoutId = null;
+        if (!isAutoPlaying) return;
+        if (autoStepProgressTimer) clearInterval(autoStepProgressTimer);
+        if (pWrap) pWrap.classList.add('hidden');
+
+        if (currentStep < stepData.length - 1) {
+          goToStep(currentStep + 1, { fromAutoPlay: true });
+          scheduleNextAutoStep();
+        } else {
+          stopAutoPlay();
+        }
+      }, waitTime);
+    }
+
+    function resetSimulation() {
+      stopAutoPlay();
+      applyDefaultPreset();
+      currentIteration = 0;
+      goToStep(0);
+      clearPacketLogs("원점보정 시뮬레이터가 초기화되었습니다.");
+    }
+
+    /* =========================================================================
+       13. UI 패널 토글 & 카메라 프리셋
+       ========================================================================= */
+    function toggleParamPanel() {
+      const content = document.getElementById('paramPanelContent');
+      const btn = document.getElementById('btnTogglePanel');
+      isParamPanelCollapsed = !isParamPanelCollapsed;
+      if (isParamPanelCollapsed) { content.classList.add('hidden'); btn.innerText = "OPEN"; }
+      else { content.classList.remove('hidden'); btn.innerText = "CLOSE"; }
+    }
+
+    function toggleStepPanel() {
+      const content = document.getElementById('stepListContent');
+      const btn = document.getElementById('btnToggleStepPanel');
+      isStepPanelCollapsed = !isStepPanelCollapsed;
+      if (isStepPanelCollapsed) { content.classList.add('hidden'); btn.innerText = "OPEN"; }
+      else { content.classList.remove('hidden'); btn.innerText = "CLOSE"; }
+    }
+
+    function setCameraView(view) {
+      document.querySelectorAll('.cam-preset-btn').forEach(b => b.classList.remove('active-cam'));
+      const activeBtn = document.getElementById(`camBtn_${view}`);
+      if (activeBtn) activeBtn.classList.add('active-cam');
+
+      if (view === 'iso') {
+        camera.position.set(125, 145, 175);
+        controls.target.set(0, 48, 0);
+      } else if (view === 'top') {
+        camera.position.set(0, 270, 0);
+        controls.target.set(0, 20, 0);
+      } else if (view === 'front') {
+        camera.position.set(0, 55, 260);
+        controls.target.set(0, 55, 0);
+      } else if (view === 'side') {
+        camera.position.set(260, 55, 0);
+        controls.target.set(0, 55, 0);
+      }
+      controls.update();
+    }
+
+    function setCameraFov(val) {
+      const num = Number(val);
+      camera.fov = num;
+      camera.updateProjectionMatrix();
+      document.getElementById('camFovVal').innerText = `${num}°`;
+    }
+
+    /* =========================================================================
+       14. 로그 패킷 터미널 & 이스터에그
+       ========================================================================= */
+    function getFormattedTimestamp() {
+      const n = new Date();
+      return `${String(n.getHours()).padStart(2,'0')}:${String(n.getMinutes()).padStart(2,'0')}:${String(n.getSeconds()).padStart(2,'0')}.${String(n.getMilliseconds()).padStart(3,'0')}`;
+    }
+
+    function appendPacketLog(type, message) {
+      const listEl = document.getElementById('packetLogList');
+      if (!listEl) return;
+      const row = document.createElement('div');
+      row.className = "leading-snug whitespace-nowrap flex items-center gap-1.5";
+      const timeStr = getFormattedTimestamp(), seqStr = String(packetSeqNo++).padStart(3, '0');
+      let tagHtml = `<span class="text-blue-700 font-semibold shrink-0">[SYS #${seqStr}]</span>`;
+      let msgColorClass = 'text-slate-700 font-normal';
+
+      if (type === 'TX') {
+        tagHtml = `<span class="text-emerald-700 font-bold shrink-0">[TX #${seqStr}]</span>`;
+        msgColorClass = 'text-emerald-900 font-medium';
+      } else if (type === 'RX') {
+        tagHtml = `<span class="text-amber-700 font-bold shrink-0">[RX #${seqStr}]</span>`;
+        msgColorClass = 'text-amber-900 font-medium';
+      } else if (type === 'WARN') {
+        tagHtml = `<span class="text-rose-600 font-bold shrink-0">[WARN #${seqStr}]</span>`;
+        msgColorClass = 'text-rose-900 font-semibold';
+      }
+
+      row.innerHTML = `<span class="text-slate-500 font-mono shrink-0">[${timeStr}]</span>${tagHtml}<span class="${msgColorClass}">${message}</span>`;
+      listEl.appendChild(row);
+      while (listEl.children.length > 80) listEl.removeChild(listEl.firstChild);
+      listEl.scrollTop = listEl.scrollHeight;
+    }
+
+    function clearPacketLogs(customNotice = null) {
+      const listEl = document.getElementById('packetLogList');
+      if (!listEl) return;
+      packetSeqNo = 1;
+      listEl.innerHTML = `<div class="text-slate-700 font-bold whitespace-nowrap">[${getFormattedTimestamp()}] [SYS] ${customNotice || "로그가 초기화되었습니다."}</div>`;
+    }
+
+    function showGoldToast() {
+      const toast = document.getElementById('goldToastPopup');
+      if (!toast) return;
+      toast.classList.add('show-toast');
+      setTimeout(() => toast.classList.remove('show-toast'), 3600);
+    }
+
+    function initVisitorCounter() {
+      const el = document.getElementById('visitorCountVal');
+      if (!el) return;
+      let count = parseInt(localStorage.getItem('atm_eye_calib_visitors') || '1970', 10);
+      count += 1;
+      localStorage.setItem('atm_eye_calib_visitors', count);
+      el.innerText = count.toLocaleString();
+    }
+
+    /* =========================================================================
+       15. 렌더 루프 및 리사이즈
+       ========================================================================= */
+    function animate() {
+      requestAnimationFrame(animate);
+      controls.update();
+      renderer.render(scene, camera);
+    }
+
+    function onWindowResize() {
+      const container = document.getElementById('canvas-container');
+      const width = container.clientWidth, height = container.clientHeight;
+      camera.aspect = width / height;
+      camera.updateProjectionMatrix();
+      renderer.setSize(width, height);
+    }
+
+    window.onload = function() {
+      init3D();
+      initVisitorCounter();
+      document.getElementById('authorBadgeBtn').addEventListener('mouseenter', showGoldToast);
+    };
+  </script>
+</body>
+</html>

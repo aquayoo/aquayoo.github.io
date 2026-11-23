@@ -228,7 +228,7 @@
       background: var(--card-border);
     }
 
-    /* SEASON 1: 7개 정식 프로젝트 (상단 4개 + 하단 3개) */
+    /* SEASON 1: 8개 정식 프로젝트 (상단 4개 + 하단 4개 균형 배치) */
     .s1-wrapper {
       display: flex;
       flex-direction: column;
@@ -240,17 +240,6 @@
       display: grid;
       grid-template-columns: repeat(4, 1fr);
       gap: 1.5rem 2rem;
-      justify-items: center;
-      align-items: start;
-    }
-
-    .modules-row-3 {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 1.5rem 2rem;
-      max-width: 780px;
-      width: 100%;
-      margin: 0 auto;
       justify-items: center;
       align-items: start;
     }
@@ -274,7 +263,7 @@
       text-decoration: none;
       color: inherit;
       width: 100%;
-      max-width: 170px;
+      max-width: 175px;
       position: relative;
       transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
     }
@@ -342,12 +331,26 @@
       color: #0f172a;
     }
 
-    /* 시즌 2 BETA 뱃지 */
+    /* NEW / BETA 뱃지 */
     .beta-badge {
       position: absolute;
       top: 0px;
       right: 2px;
       background: var(--accent-amber);
+      color: #0f172a;
+      font-size: 0.65rem;
+      font-weight: 800;
+      padding: 0.15rem 0.42rem;
+      border-radius: 0.35rem;
+      letter-spacing: 0.04em;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.45);
+    }
+
+    .new-badge {
+      position: absolute;
+      top: 0px;
+      right: 2px;
+      background: var(--accent-green);
       color: #0f172a;
       font-size: 0.65rem;
       font-weight: 800;
@@ -383,7 +386,6 @@
       }
 
       .modules-row-4,
-      .modules-row-3,
       .s2-wrapper {
         gap: 1.5rem 1rem;
       }
@@ -456,7 +458,6 @@
       }
 
       .modules-row-4,
-      .modules-row-3,
       .s2-wrapper {
         grid-template-columns: repeat(2, 1fr);
         gap: 1.25rem 0.75rem;
@@ -515,15 +516,15 @@
         <span class="notice-tag">NOTICE</span>
         <div class="notice-list">
           <span>1. 기본 모듈은 PC(1920×1080) 해상도에 최적화되어 있으며, (Mobile) 표기 모듈은 iPhone 14 Pro 화면 해상도에 최적화되어 있습니다.</span>
-          <span>2. <strong>SEASON 1 (7개 프로젝트)</strong>는 정식 버전으로 공개되며, <strong>SEASON 2 (매뉴얼·필드 툴킷·로그 진단)</strong>는 현재 <strong>BETA TEST 중</strong>입니다.</span>
+          <span>2. <strong>SEASON 1 (8개 프로젝트)</strong>는 정식 버전으로 공개되며(<strong>원점보정 Eye_Correct</strong> 신규 추가), <strong>SEASON 2 (매뉴얼·필드 툴킷·로그 진단)</strong>는 현재 <strong>BETA TEST 중</strong>입니다.</span>
         </div>
       </div>
     </section>
 
-    <!-- 3. SEASON 1: 7개 정식 프로젝트 (BETA 라벨 제거) -->
+    <!-- 3. SEASON 1: 8개 정식 프로젝트 (4 × 2 그리드 배치) -->
     <div class="section-divider">
       <span class="season-pill">SEASON 1 · 정식 공개</span>
-      <span class="section-label">기초 이론 · 좌표계 · 공정 시뮬레이터 (7종)</span>
+      <span class="section-label">기초 이론 · 좌표계 · 공정 시뮬레이터 (8종)</span>
       <span class="divider-line"></span>
     </div>
 
@@ -550,7 +551,18 @@
           <div class="module-desc">포인트클라우드 정합</div>
         </a>
 
-        <!-- ③ 구조광 3D Scan -->
+        <!-- ③ 원점보정 (Eye Calibration) - 신규 추가 -->
+        <a href="Eye_Correct.html" class="module-item">
+          <div class="circle-btn">
+            <span class="new-badge">NEW</span>
+            <span class="btn-icon">📡</span>
+            <span class="btn-code">Eye_Correct</span>
+          </div>
+          <div class="module-title">원점보정(Eye Calib)</div>
+          <div class="module-desc">스캐너 위치변동 [R|T] 교정</div>
+        </a>
+
+        <!-- ④ 구조광 3D Scan -->
         <a href="3D_scan.html" class="module-item">
           <div class="circle-btn">
             <span class="btn-icon">📸</span>
@@ -559,8 +571,11 @@
           <div class="module-title">구조광 3D Scan[축좌표계JOG]</div>
           <div class="module-desc">Pointcloud 생성</div>
         </a>
+      </div>
 
-        <!-- ④ PLC-Robot 통신 -->
+      <!-- 하단 행: 4개 모듈 -->
+      <div class="modules-row-4">
+        <!-- ⑤ PLC-Robot 통신 -->
         <a href="net_comm.html" class="module-item">
           <div class="circle-btn">
             <span class="btn-icon">🔌</span>
@@ -569,11 +584,8 @@
           <div class="module-title">PLC-Robot 통신</div>
           <div class="module-desc">3D Vision IP</div>
         </a>
-      </div>
 
-      <!-- 하단 행: 3개 모듈 -->
-      <div class="modules-row-3">
-        <!-- ⑤ UF6 3D (Mobile) -->
+        <!-- ⑥ UF6 3D (Mobile) -->
         <a href="uf6_mo.html" class="module-item">
           <div class="circle-btn">
             <span class="btn-icon">📱</span>
@@ -583,7 +595,7 @@
           <div class="module-desc">현장 터치 최적화 뷰어</div>
         </a>
 
-        <!-- ⑥ FOV-WD (Mobile) -->
+        <!-- ⑦ FOV-WD (Mobile) -->
         <a href="fov_mo.html" class="module-item">
           <div class="circle-btn">
             <span class="btn-icon">📐</span>
@@ -593,7 +605,7 @@
           <div class="module-desc">3D & 2D FOV-WD</div>
         </a>
 
-        <!-- ⑦ 공통좌표(CC) -->
+        <!-- ⑧ 공통좌표(CC) -->
         <a href="comm_uf.html" class="module-item">
           <div class="circle-btn">
             <span class="btn-icon">🧭</span>
@@ -613,7 +625,7 @@
     </div>
 
     <nav class="s2-wrapper">
-      <!-- ⑧ ATM 사용자설명서 -->
+      <!-- ⑨ ATM 사용자설명서 -->
       <a href="manual.html" class="module-item is-s2">
         <div class="circle-btn">
           <span class="beta-badge">BETA</span>
@@ -624,7 +636,7 @@
         <div class="module-desc">사내 표준 매뉴얼 22종 포털</div>
       </a>
 
-      <!-- ⑨ 현장 필드 툴킷 -->
+      <!-- ⑩ 현장 필드 툴킷 -->
       <a href="field_kit.html" class="module-item is-s2">
         <div class="circle-btn">
           <span class="beta-badge">BETA</span>
@@ -635,7 +647,7 @@
         <div class="module-desc">IP 체커 · 1분 긴급조치 · LED</div>
       </a>
 
-      <!-- ⑩ 로그·알람 진단 훈련 -->
+      <!-- ⑪ 로그·알람 진단 훈련 -->
       <a href="log_diag.html" class="module-item is-s2">
         <div class="circle-btn">
           <span class="beta-badge">BETA</span>
