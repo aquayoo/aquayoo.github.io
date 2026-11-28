@@ -208,7 +208,7 @@
             <button onclick="goToStep(4)" class="step-btn text-left px-2 py-1 rounded-md border border-slate-200 bg-slate-50 hover:bg-slate-100 transition flex items-center justify-between"><span>05. A-B-C(U5) 티칭</span><span class="step-subtag text-[9.5px] text-slate-500">3구간 티칭</span></button>
             <button onclick="goToStep(5)" class="step-btn text-left px-2 py-1 rounded-md border border-slate-200 bg-slate-50 hover:bg-slate-100 transition flex items-center justify-between"><span>06. A-B-C(U5) 검증</span><span class="step-subtag text-[9.5px] text-slate-500">사선 궤적 검증</span></button>
             <button onclick="goToStep(6)" class="step-btn text-left px-2 py-1 rounded-md border border-slate-200 bg-slate-50 hover:bg-slate-100 transition flex items-center justify-between"><span>07. 부품 변위 인입</span><span class="step-subtag text-[9.5px] text-slate-500">3점 변위 화살표</span></button>
-            <button onclick="goToStep(7)" class="step-btn text-left px-2 py-1 rounded-md border border-slate-200 bg-slate-50 hover:bg-slate-100 transition flex items-center justify-between"><span>08. 구조광 위상천이 스캔</span><span class="step-subtag text-[9.5px] text-slate-500">0.3s 교대 점멸</span></button>
+            <button onclick="goToStep(7)" class="step-btn text-left px-2 py-1 rounded-md border border-slate-200 bg-slate-50 hover:bg-slate-100 transition flex items-center justify-between"><span>08. 구조광 위상천이 스캔</span><span class="step-subtag text-[9.5px] text-slate-500">3회 교대 점멸</span></button>
             <button onclick="goToStep(8)" class="step-btn text-left px-2 py-1 rounded-md border border-slate-200 bg-slate-50 hover:bg-slate-100 transition flex items-center justify-between"><span>09. UF6 연산 확정</span><span class="step-subtag text-[9.5px] text-slate-500">[R:T] 생성</span></button>
             <button onclick="goToStep(9)" class="step-btn text-left px-2 py-1 rounded-md border border-slate-200 bg-slate-50 hover:bg-slate-100 transition flex items-center justify-between">
               <span>10. 6자유도 보정주행</span>
@@ -350,6 +350,7 @@
                 <div class="job-line" id="lineWORK_8"><span class="cmd-part text-blue-700">0008 MOVE L, P_B</span><span class="cmt-part">' [L] B(U5) 수직하강 티칭</span></div>
                 <div class="job-line" id="lineWORK_9"><span class="cmd-part text-blue-700">0009 MOVE P, P_C_UP</span><span class="cmt-part">' [P] C(U5) 상공 점프</span></div>
                 <div class="job-line" id="lineWORK_10"><span class="cmd-part text-blue-700">0010 MOVE L, P_C</span><span class="cmt-part">' [L] C(U5) 사선 위치 티칭</span></div>
+                <div class="job-line" id="lineWORK_10b"><span class="cmd-part text-blue-700">0010b MOVE P, P_READY</span><span class="cmt-part">' [P] 티칭 완료 대기 복귀</span></div>
                 <div class="job-line" id="lineWORK_11"><span class="cmd-part text-blue-700">0011 MOVE L, P_A</span><span class="cmt-part">' [L] 검증: A(U5) 진입</span></div>
                 <div class="job-line" id="lineWORK_12"><span class="cmd-part text-blue-700">0012 MOVE L, P_B</span><span class="cmt-part">' [L] 검증: A→B(U5) 주행</span></div>
                 <div class="job-line" id="lineWORK_13"><span class="cmd-part text-blue-700">0013 MOVE L, P_C</span><span class="cmt-part">' [L] 검증: B→C(U5) 50cm</span></div>
@@ -359,13 +360,15 @@
                 <div class="job-line" id="lineWORK_17"><span class="cmd-part text-orange-700">0017 MOVE L, P_A</span><span class="cmt-part">' [L] A'(U6) 안착</span></div>
                 <div class="job-line" id="lineWORK_18"><span class="cmd-part text-orange-700">0018 MOVE L, P_B</span><span class="cmt-part">' [L] A'→B'(U6) 실링</span></div>
                 <div class="job-line" id="lineWORK_19"><span class="cmd-part text-indigo-700">0019 MOVE L, P_C</span><span class="cmt-part">' [L] B'→C'(U6) 50cm 실링</span></div>
+                <div class="job-line" id="lineWORK_19b"><span class="cmd-part text-indigo-700">0019b MOVE L, P_C_UP</span><span class="cmt-part">' [L] C'(U6) +Z' 0.8m 상승</span></div>
+                <div class="job-line" id="lineWORK_19c"><span class="cmd-part text-blue-700">0019c MOVE P, P_READY</span><span class="cmt-part">' [P] 보정 완료 대기 복귀</span></div>
                 <div class="job-line" id="lineWORK_20"><span class="cmd-part text-blue-700">0020 MOVE P, P_HOME</span><span class="cmt-part">' [P] 홈 복귀 완료</span></div>
               </div>
               <div id="codeUF6" class="space-y-0.5 hidden">
                 <div class="job-line" id="lineUF6_1"><span class="cmd-part text-slate-500">0001 ' === UF6.JOB : STRUCTURED LIGHT ===</span><span class="cmt-part"></span></div>
                 <div class="job-line" id="lineUF6_2"><span class="cmd-part text-blue-700">0002 WAIT DI12=ON</span><span class="cmt-part">' 부품 인입 감지</span></div>
                 <div class="job-line" id="lineUF6_3"><span class="cmd-part text-emerald-700">0003 DO15=ON</span><span class="cmt-part">' 📷 프로젝터/카메라 트리거</span></div>
-                <div class="job-line" id="lineUF6_4"><span class="cmd-part text-blue-700">0004 WAIT DI15=ON, 6.0</span><span class="cmt-part">' 0.3s 교대 10회 위상천이</span></div>
+                <div class="job-line" id="lineUF6_4"><span class="cmd-part text-blue-700">0004 WAIT DI15=ON, 2.7</span><span class="cmt-part">' 0.45s 교대 3회 위상천이</span></div>
                 <div class="job-line" id="lineUF6_5"><span class="cmd-part text-blue-700">0005 DO15=OFF</span><span class="cmt-part">' 스캔 시퀀스 종료</span></div>
                 <div class="job-line" id="lineUF6_6"><span class="cmd-part text-purple-700">0006 GET_VISION_SHIFT</span><span class="cmt-part">' [R:T] 변위 행렬 수신</span></div>
                 <div class="job-line" id="lineUF6_7"><span class="cmd-part text-orange-700">0007 SET_UFRAME 6, UF5, SHIFT</span><span class="cmt-part">' UF6 프레임 확정</span></div>
@@ -555,13 +558,13 @@
       { badge: "STEP 2", icon: "📐", heading: "2. 부품 마스터 기준점 Org(U5) 정의 및 지그 형성", body: "작업 테이블 위에 마스터 지그가 세워지고, 기준 원점 Org(U5)와 직교 3축 XX(U5), XY(U5), Z(U5)가 형성됩니다." },
       { badge: "STEP 3", icon: "🗂️", heading: "3. U6 시트 중첩 Org'(U6) 및 로봇 준비 위치(Ready) 진입", body: "Org'(U6) 프레임을 중첩함과 동시에, 로봇이 광학계 시야 간섭 없는 대기 위치(Ready Position)로 진입합니다." },
       { badge: "STEP 4", icon: "🎯", heading: "4. A(U5), B(U5) 및 끝점 C(U5) (B: X+0.3m, Z+0.4m) 3D 지정", body: "A(U5), B(U5)와 더불어 U5 기준 B에서 XX(U5)+0.3m, Z(U5)+0.4m(선분 길이 0.50m) 떨어진 C(U5)가 정의됩니다." },
-      { badge: "STEP 5", icon: "📍", heading: "5. A(U5) → B(U5) → C(U5) 3점 정밀 티칭 (Move P / Move L)", body: "A(U5) 하강 티칭 ➔ B(U5) 하강 티칭 ➔ C(U5) (B: X+0.3m, Z+0.4m) 사선 공간 티칭을 연속 수행합니다." },
-      { badge: "STEP 6", icon: "🤖", heading: "6. 티칭된 A(U5) → B(U5) → C(U5) 3차원 선형 보간(Move L) 검증", body: "A(U5) 진입 후 B(U5) 선형 주행 ➔ C(U5)까지 50cm 사선 상승 검증 주행 후 안전 대기 위치로 복귀합니다." },
+      { badge: "STEP 5", icon: "📍", heading: "5. A(U5) → B(U5) → C(U5) 3점 정밀 티칭 및 대기 복귀", body: "A(U5) ➔ B(U5) ➔ C(U5) 3점 티칭을 연속 수행한 뒤, C(U5) 상공을 거쳐 대기 위치(Ready)로 복귀합니다." },
+      { badge: "STEP 6", icon: "🤖", heading: "6. 티칭된 A(U5) → B(U5) → C(U5) 3차원 선형 보간(Move L) 검증", body: "대기 위치(Ready)에서 출발해 A(U5) 진입 ➔ B(U5) ➔ C(U5) 50cm 사선 주행 후 C(U5) 상공을 거쳐 대기 위치로 복귀합니다." },
       { badge: "STEP 7", icon: "📦", heading: "7. 투명 시트 틀어짐 인입 (A/B/C(U5) → A'/B'/C'(U6) 변위 화살표)", body: "부품이 3D 변위로 인입되며, A/B/C(U5)에서 U6 로컬 기준 변위된 A'/B'/C'(U6)까지의 3D 점선 화살표가 연장됩니다." },
-      { badge: "STEP 8", icon: "📸", heading: "8. AITZ 3DU[3DM] 구조광 0.3초 교대 점멸 위상 천이(Phase Shifting) 캡처", body: "프로젝터 사각뿔 패턴 투사와 에어리어 카메라 사각뿔대 셔터가 0.3s 주기로 교대 점멸(총 10회)하며 3D 점군을 수집합니다." },
+      { badge: "STEP 8", icon: "📸", heading: "8. AITZ 3DU[3DM] 구조광 교대 점멸 위상 천이(Phase Shifting) 캡처", body: "프로젝터 사각뿔 패턴 투사와 에어리어 카메라 사각뿔대 셔터가 0.45s 주기로 교대 점멸(총 3회)하며 3D 점군을 수집합니다." },
       { badge: "STEP 9", icon: "✨", heading: "9. 3DU 알고리즘 ICP 정합 수렴 & A'(U6)-B'(U6)-C'(U6) 확정", body: "측정 점군이 ICP 정합 수렴하며 6자유도 동차변환 행렬 [R:T] 및 U6 기준 보정 경로 A'(U6)-B'(U6)-C'(U6)가 확정됩니다." },
-      { badge: "STEP 10", icon: "🔄", heading: "10. 계측된 U6 기반 6자유도 보정 주행 (3차원 입체 실링 도포)", body: "로봇이 U6 프레임에서 A'(U6)➔B'(U6) 도포 후 B'(U6)➔C'(U6)(50cm 사선) 입체 실링 비드를 도포하고 정지 검사합니다." },
-      { badge: "STEP 11", icon: "🏁", heading: "11. 작업 완료 및 안전 홈 위치 복귀 (입체 실링 비드 보존)", body: "로봇이 홈 위치로 복귀하며 도포된 꺾인 3차원 보라색 실링 비드는 완제품으로 온전히 보존됩니다." }
+      { badge: "STEP 10", icon: "🔄", heading: "10. 계측된 U6 기반 6자유도 보정 주행 (3차원 입체 실링 & 복귀)", body: "대기 위치에서 출발해 A'(U6)➔B'(U6)➔C'(U6) 입체 실링 도포 후, U6 +Z' 축(+0.8m) 상승을 거쳐 대기 위치(Ready)로 복귀합니다." },
+      { badge: "STEP 11", icon: "🏁", heading: "11. 작업 완료 및 안전 홈 위치 복귀 (입체 실링 비드 보존)", body: "대기 위치(Ready)에서 시스템 홈 위치로 안전 복귀하며, 도포된 꺾인 3차원 보라색 실링 비드는 완제품으로 보존됩니다." }
     ];
 
     let currentStep = 0, isAutoPlaying = false, autoPlayTimeoutId = null, animProgress = 0, isAnimating = false;
@@ -738,7 +741,7 @@
       else if (stepIdx === 4) appendPacketLog('TX', `START_TEACH_3P :: Approach A->B->C with Vertical Descent & Height Check`);
       else if (stepIdx === 5) appendPacketLog('TX', `VERIFY_3D_PATH :: MOVE L (Pt_A -> Pt_B -> Pt_C Step-Sealing Check)`);
       else if (stepIdx === 6) { appendPacketLog('RX', `DI12=ON (PART_IN_DETECTED) :: Shifted Workpiece Injected [${payload}]`); if (tol.isOver) appendPacketLog('WARN', `PRE_CHECK_WARNING :: Shift out of tolerance bounds!`); }
-      else if (stepIdx === 7) appendPacketLog('TX', `CALL UF6.JOB -> DO15=ON :: Trigger Fringe Phase-Shifting Scan (10 Cycles, T=0.6s)`);
+      else if (stepIdx === 7) appendPacketLog('TX', `CALL UF6.JOB -> DO15=ON :: Trigger Fringe Phase-Shifting Scan (3 Cycles, T=0.9s)`);
       else if (stepIdx === 8) { 
         appendPacketLog('RX', `VISION_CALC_DONE :: [R|T] Solved (${payload})`); 
         if (tol.isOver) appendPacketLog('WARN', `ALARM_TOLERANCE_OVER :: Interlock Armed! Bypassing Steps 9~10 -> Direct Home Return!`);
@@ -1045,10 +1048,11 @@
         else if (currentStep === 4) {
           if (animProgress <= 0.10) activeLineId = 'lineWORK_5';
           else if (animProgress <= 0.30) activeLineId = 'lineWORK_6';
-          else if (animProgress <= 0.45) activeLineId = 'lineWORK_7';
-          else if (animProgress <= 0.65) activeLineId = 'lineWORK_8';
-          else if (animProgress <= 0.80) activeLineId = 'lineWORK_9';
-          else activeLineId = 'lineWORK_10';
+          else if (animProgress <= 0.40) activeLineId = 'lineWORK_7';
+          else if (animProgress <= 0.60) activeLineId = 'lineWORK_8';
+          else if (animProgress <= 0.70) activeLineId = 'lineWORK_9';
+          else if (animProgress <= 0.94) activeLineId = 'lineWORK_10';
+          else activeLineId = 'lineWORK_10b';
         }
         else if (currentStep === 5) {
           if (animProgress <= 0.25) activeLineId = 'lineWORK_11';
@@ -1058,9 +1062,11 @@
         }
         else if (currentStep >= 6 && currentStep <= 8) activeLineId = 'lineWORK_15';
         else if (currentStep === 9) {
-          if (animProgress <= 0.35) activeLineId = 'lineWORK_17';
-          else if (animProgress <= 0.68) activeLineId = 'lineWORK_18';
-          else activeLineId = 'lineWORK_19';
+          if (animProgress <= 0.25) activeLineId = 'lineWORK_17';
+          else if (animProgress <= 0.55) activeLineId = 'lineWORK_18';
+          else if (animProgress <= 0.82) activeLineId = 'lineWORK_19';
+          else if (animProgress <= 0.90) activeLineId = 'lineWORK_19b';
+          else activeLineId = 'lineWORK_19c';
         }
         else if (currentStep === 10) activeLineId = 'lineWORK_20';
       } else {
@@ -2050,11 +2056,11 @@
         setGroupOpacity(uf6SolidAxesGroup, 1.0);
       }
 
-      /* [V9.0 핵심 구현 3] 교대 점멸 위상 천이(Phase Shifting) 동기 시퀀스 (Step 8 / 총 6000ms 동안 10사이클, 주기 T=0.6s) */
+      /* [V9.0 핵심 구현 3] 교대 점멸 위상 천이(Phase Shifting) 동기 시퀀스 (Step 8 / 총 2700ms 동안 3사이클, 주기 T=0.9s) */
       if (projectorFrustumMesh && cameraFrustumMesh && cameraFlashMesh && !isEasterEggScanRunning) {
         if (currentStep === 7) {
-          // 총 10사이클(T=0.6s, duration 6000ms): 1사이클 내 프로젝터 0.3s On ➔ 카메라 0.3s On
-          const totalCycles = 10.0;
+          // 총 3사이클(T=0.9s, duration 2700ms): 1사이클 내 프로젝터 0.45s On ➔ 카메라 0.45s On
+          const totalCycles = 3.0;
           const phaseProgress = (t * totalCycles) % 1.0;
           const isProjectorPhase = (phaseProgress < 0.50);
 
@@ -2084,8 +2090,8 @@
 
       if (currentStep === 4) {
         if (t >= 0.20 && !stepSubLogFlags.step4_A) { stepSubLogFlags.step4_A = true; appendPacketLog('RX', `REC_POINT_A :: UF5_Local(${ufParams.pta_x.toFixed(2)}, ${ufParams.pta_y.toFixed(2)}, ${ufParams.pta_z.toFixed(2)}) Locked`); }
-        if (t >= 0.55 && !stepSubLogFlags.step4_B) { stepSubLogFlags.step4_B = true; appendPacketLog('RX', `REC_POINT_B :: UF5_Local(${ufParams.ptb_x.toFixed(2)}, ${ufParams.ptb_y.toFixed(2)}, ${ufParams.ptb_z.toFixed(2)}) Locked`); }
-        if (t >= 0.88 && !stepSubLogFlags.step4_C) { stepSubLogFlags.step4_C = true; appendPacketLog('RX', `REC_C(U5) :: U5_Local(${(ufParams.ptb_x + ufParams.ptc_x_offset).toFixed(2)}, ${ufParams.ptb_y.toFixed(2)}, ${(ufParams.ptb_z + ufParams.ptc_z_offset).toFixed(2)}) Locked (Len=0.50m)`); }
+        if (t >= 0.50 && !stepSubLogFlags.step4_B) { stepSubLogFlags.step4_B = true; appendPacketLog('RX', `REC_POINT_B :: UF5_Local(${ufParams.ptb_x.toFixed(2)}, ${ufParams.ptb_y.toFixed(2)}, ${ufParams.ptb_z.toFixed(2)}) Locked`); }
+        if (t >= 0.80 && !stepSubLogFlags.step4_C) { stepSubLogFlags.step4_C = true; appendPacketLog('RX', `REC_C(U5) :: U5_Local(${(ufParams.ptb_x + ufParams.ptc_x_offset).toFixed(2)}, ${ufParams.ptb_y.toFixed(2)}, ${(ufParams.ptb_z + ufParams.ptc_z_offset).toFixed(2)}) Locked (Len=0.50m)`); }
       }
       if (currentStep === 7 && t >= 0.18 && !stepSubLogFlags.step7_flash) {
         stepSubLogFlags.step7_flash = true;
@@ -2171,7 +2177,7 @@
         document.getElementById('pointB_UF').innerText = `(${ufParams.ptb_x.toFixed(1)}, ${ufParams.ptb_y.toFixed(1)}, ${ufParams.ptb_z.toFixed(1)})`;
         document.getElementById('pointC_UF').innerText = `(${(ufParams.ptb_x + ufParams.ptc_x_offset).toFixed(1)}, ${ufParams.ptb_y.toFixed(1)}, ${(ufParams.ptb_z + ufParams.ptc_z_offset).toFixed(1)})`;
       } else if (currentStep === 4) {
-        // [Step 5 티칭] A ➔ B ➔ C 3구간 티칭 타임라인
+        // [Step 5 티칭] A ➔ B ➔ C 3구간 티칭 후 Ready 복귀 타임라인
         targetQuat.copy(qMasterRadY);
         if (t <= 0.10) {
           interpolateMove(readyPos, aboveA_1m, t / 0.10, { mode: 'P_HOP', hopHeight: 0.35 }, targetPos);
@@ -2180,38 +2186,41 @@
           const st = (t - 0.10) / 0.12;
           interpolateMove(aboveA_1m, masterPointAWorld, st, { mode: 'L' }, targetPos);
           lockOnBeam.material.opacity = 0.6 * st; document.getElementById('targetCoord').innerText = "A(U5) 수직 하강 티칭 (MOVE L)"; recordMoveMotionTrails(targetPos, 'L');
-        } else if (t <= 0.32) {
+        } else if (t <= 0.30) {
           targetPos.copy(masterPointAWorld); lockOnBeam.material.opacity = 1.0; document.getElementById('targetCoord').innerText = "📍 A(U5) 정밀 티칭 기록 완료";
-        } else if (t <= 0.42) {
-          interpolateMove(masterPointAWorld, aboveB_1m, (t - 0.32) / 0.10, { mode: 'P_HOP', hopHeight: 0.35 }, targetPos);
+        } else if (t <= 0.40) {
+          interpolateMove(masterPointAWorld, aboveB_1m, (t - 0.30) / 0.10, { mode: 'P_HOP', hopHeight: 0.35 }, targetPos);
           lockOnBeam.material.opacity = 0; document.getElementById('targetCoord').innerText = "B(U5) 상공 점프 이동 (MOVE P)"; recordMoveMotionTrails(targetPos, 'P');
-        } else if (t <= 0.54) {
-          const st = (t - 0.42) / 0.12;
+        } else if (t <= 0.52) {
+          const st = (t - 0.40) / 0.12;
           interpolateMove(aboveB_1m, masterPointBWorld, st, { mode: 'L' }, targetPos);
           lockOnBeam.material.opacity = 0.6 * st; document.getElementById('targetCoord').innerText = "B(U5) 수직 하강 티칭 (MOVE L)"; recordMoveMotionTrails(targetPos, 'L');
-        } else if (t <= 0.64) {
+        } else if (t <= 0.60) {
           targetPos.copy(masterPointBWorld); lockOnBeam.material.opacity = 1.0; document.getElementById('targetCoord').innerText = "📍 B(U5) 정밀 티칭 기록 완료";
-        } else if (t <= 0.74) {
-          interpolateMove(masterPointBWorld, aboveC_1m, (t - 0.64) / 0.10, { mode: 'P_HOP', hopHeight: 0.35 }, targetPos);
+        } else if (t <= 0.70) {
+          interpolateMove(masterPointBWorld, aboveC_1m, (t - 0.60) / 0.10, { mode: 'P_HOP', hopHeight: 0.35 }, targetPos);
           lockOnBeam.material.opacity = 0; document.getElementById('targetCoord').innerText = "C(U5) (B: X+0.3m, Z+0.4m) 상공 점프"; recordMoveMotionTrails(targetPos, 'P');
-        } else if (t <= 0.86) {
-          const st = (t - 0.74) / 0.12;
+        } else if (t <= 0.82) {
+          const st = (t - 0.70) / 0.12;
           interpolateMove(aboveC_1m, masterPointCWorld, st, { mode: 'L' }, targetPos);
           lockOnBeam.material.opacity = 0.7 * st; document.getElementById('targetCoord').innerText = "C(U5) 수직 하강 티칭 (MOVE L)"; recordMoveMotionTrails(targetPos, 'L');
-        } else if (t <= 0.94) {
+        } else if (t <= 0.88) {
           targetPos.copy(masterPointCWorld); lockOnBeam.material.opacity = 1.0; document.getElementById('targetCoord').innerText = "📍 C(U5) 정밀 티칭 기록 완료";
+        } else if (t <= 0.94) {
+          interpolateMove(masterPointCWorld, aboveC_1m, (t - 0.88) / 0.06, { mode: 'L' }, targetPos);
+          lockOnBeam.material.opacity = 0; document.getElementById('targetCoord').innerText = "C(U5) 상공 상승 (MOVE L)"; recordMoveMotionTrails(targetPos, 'L');
         } else {
-          interpolateMove(masterPointCWorld, aboveC_1m, (t - 0.94) / 0.06, { mode: 'L' }, targetPos);
-          lockOnBeam.material.opacity = 0; document.getElementById('targetCoord').innerText = "3점 티칭 완료 (C(U5) 상공 대기)"; recordMoveMotionTrails(targetPos, 'L');
+          interpolateMove(aboveC_1m, readyPos, (t - 0.94) / 0.06, { mode: 'P_HOP', hopHeight: 0.5 }, targetPos);
+          lockOnBeam.material.opacity = 0; document.getElementById('targetCoord').innerText = "3점 티칭 완료 (대기 위치 Ready 복귀)"; recordMoveMotionTrails(targetPos, 'P');
         }
       } else if (currentStep === 5) {
-        // [Step 6 선형 검증] A 진입 ➔ A ➔ B 선형 주행 ➔ B ➔ C 수직 상승 주행 ➔ 대기 복귀
+        // [Step 6 선형 검증] Ready 출발 ➔ A 진입 ➔ A ➔ B 선형 주행 ➔ B ➔ C 사선 상승 ➔ C 상공 ➔ Ready 복귀
         targetQuat.copy(qMasterRadY);
-        if (t <= 0.10) {
-          interpolateMove(aboveC_1m, aboveA_1m, t / 0.10, { mode: 'P_HOP', hopHeight: 0.35 }, targetPos);
+        if (t <= 0.12) {
+          interpolateMove(readyPos, aboveA_1m, t / 0.12, { mode: 'P_HOP', hopHeight: 0.35 }, targetPos);
           lockOnBeam.material.opacity = 0; document.getElementById('targetCoord').innerText = "시작점 A(U5) 상공 점프 (MOVE P)"; recordMoveMotionTrails(targetPos, 'P');
         } else if (t <= 0.25) {
-          const st = (t - 0.10) / 0.15;
+          const st = (t - 0.12) / 0.13;
           interpolateMove(aboveA_1m, masterPointAWorld, st, { mode: 'L' }, targetPos);
           lockOnBeam.material.opacity = 0.8 * st; document.getElementById('targetCoord').innerText = "A(U5) 수직 진입 (MOVE L)"; recordMoveMotionTrails(targetPos, 'L');
         } else if (t <= 0.55) {
@@ -2235,8 +2244,8 @@
           document.getElementById('targetCoord').innerText = "부품 인입 (A/B/C 3점 입체 변위 점선 연장)";
           document.getElementById('pointA_UF').innerText = "A'(U6) 변위"; document.getElementById('pointB_UF').innerText = "B'(U6) 변위"; document.getElementById('pointC_UF').innerText = "C'(U6) 변위";
         } else if (currentStep === 7) {
-          const cycleNum = Math.min(10, Math.floor(t * 10) + 1);
-          document.getElementById('targetCoord').innerText = `📸 구조광 위상천이 교대점멸 스캔 중 (${cycleNum}/10 회)`;
+          const cycleNum = Math.min(3, Math.floor(t * 3) + 1);
+          document.getElementById('targetCoord').innerText = `📸 구조광 위상천이 교대점멸 스캔 중 (${cycleNum}/3 회)`;
           document.getElementById('pointA_UF').innerText = "위상 천이 측정"; document.getElementById('pointB_UF').innerText = "위상 천이 측정"; document.getElementById('pointC_UF').innerText = "심도 캡처";
         } else {
           document.getElementById('targetCoord').innerText = isToleranceError ? "⚠️ 오차 초과 감지 -> 즉시 비상 복귀!" : "ICP 정합 및 A/B/C ➔ A'/B'/C' 변위 확정";
@@ -2245,51 +2254,57 @@
           document.getElementById('pointC_UF').innerText = isToleranceError ? "안전 인터락" : "C'(U6) 완료";
         }
       } else if (currentStep === 9) {
-        // [Step 10 6자유도 보정 실링 주행] A' 안착 ➔ A'➔B' 1차 도포 ➔ B'➔C' 2차 입체 실링 비드 도포
+        // [Step 10 6자유도 보정 실링 주행] Ready 출발 ➔ A' 상공 ➔ A'➔B'➔C' 도포 ➔ C' 상공(UF6 +Z' 0.8m) ➔ Ready 복귀
         const qSheetFull = sheetGroup.quaternion.clone();
         const aboveA_Prime = sheetPointAWorld.clone().add(new THREE.Vector3(0, 0.9, 0).applyQuaternion(qSheetFull));
+        const aboveC_Prime = sheetPointCWorld.clone().add(new THREE.Vector3(0, 0.8, 0).applyQuaternion(qSheetFull));
 
-        if (t <= 0.18) {
+        if (t <= 0.12) {
           resetTrajectoryTrail();
-          interpolateMove(readyPos, aboveA_Prime, t / 0.18, { mode: 'P_HOP', hopHeight: 0.35 }, targetPos);
-          targetQuat.copy(qMasterRadY).slerp(qSheetFull, t / 0.18);
+          interpolateMove(readyPos, aboveA_Prime, t / 0.12, { mode: 'P_HOP', hopHeight: 0.35 }, targetPos);
+          targetQuat.copy(qMasterRadY).slerp(qSheetFull, t / 0.12);
           document.getElementById('targetCoord').innerText = "보정 위치 A'(U6) 상공 접근 중...";
           lockOnBeam.material.opacity = 0;
-        } else if (t <= 0.35) {
+        } else if (t <= 0.25) {
           resetTrajectoryTrail();
-          interpolateMove(aboveA_Prime, sheetPointAWorld, (t - 0.18) / 0.17, { mode: 'L' }, targetPos);
+          interpolateMove(aboveA_Prime, sheetPointAWorld, (t - 0.12) / 0.13, { mode: 'L' }, targetPos);
           targetQuat.copy(qSheetFull);
           document.getElementById('targetCoord').innerText = "A'(U6) 법선 수직 하강 안착...";
-          lockOnBeam.material.opacity = (t - 0.18) / 0.17 * 0.95;
-        } else if (t <= 0.68) {
-          const st = (t - 0.35) / 0.33;
+          lockOnBeam.material.opacity = (t - 0.12) / 0.13 * 0.95;
+        } else if (t <= 0.55) {
+          const st = (t - 0.25) / 0.30;
           interpolateMove(sheetPointAWorld, sheetPointBWorld, st, { mode: 'L' }, targetPos);
           targetQuat.copy(qSheetFull);
           document.getElementById('targetCoord').innerText = `🟣 1구간: A'(U6) → B'(U6) 실링 도포 중 ${(st * 100).toFixed(0)}%`;
           lockOnBeam.material.opacity = 0.95;
           recordTrajectoryPoint(targetPos);
-        } else if (t <= 0.92) {
-          const st = (t - 0.68) / 0.24;
+        } else if (t <= 0.82) {
+          const st = (t - 0.55) / 0.27;
           interpolateMove(sheetPointBWorld, sheetPointCWorld, st, { mode: 'L' }, targetPos);
           targetQuat.copy(qSheetFull);
           document.getElementById('targetCoord').innerText = `🟣 2구간: B'(U6) → C'(U6) (50cm 사선) 실링 중 ${(st * 100).toFixed(0)}%`;
           lockOnBeam.material.opacity = 0.95;
           recordTrajectoryPoint(targetPos);
-        } else {
-          targetPos.copy(sheetPointCWorld);
+        } else if (t <= 0.90) {
+          const st = (t - 0.82) / 0.08;
+          interpolateMove(sheetPointCWorld, aboveC_Prime, st, { mode: 'L' }, targetPos);
           targetQuat.copy(qSheetFull);
-          document.getElementById('targetCoord').innerText = "✅ 3D 입체 도포 완료: C'(U6) 끝점 검사 대기...";
-          lockOnBeam.material.opacity = 0.95;
-          recordTrajectoryPoint(targetPos);
+          document.getElementById('targetCoord').innerText = "C'(U6) 기준 +Z'(+0.8m) 수직 상승 (MOVE L)";
+          lockOnBeam.material.opacity = 0;
+        } else {
+          const st = (t - 0.90) / 0.10;
+          interpolateMove(aboveC_Prime, readyPos, st, { mode: 'P_HOP', hopHeight: 0.5 }, targetPos);
+          targetQuat.copy(qSheetFull).slerp(qMasterRadY, st);
+          document.getElementById('targetCoord').innerText = "✅ 보정 실링 완료 후 대기 위치(Ready) 복귀";
+          lockOnBeam.material.opacity = 0;
         }
         document.getElementById('pointA_UF').innerText = "A'(U6) 일치";
         document.getElementById('pointB_UF').innerText = "B'(U6) 일치";
         document.getElementById('pointC_UF').innerText = "C'(U6) 일치";
       } else if (currentStep === 10) {
-        const startPos = !isAnimating ? homePos : (isToleranceError ? readyPos : sheetPointCWorld);
-        const qSheetFull = sheetGroup.quaternion.clone();
+        const startPos = !isAnimating ? homePos : readyPos;
         interpolateMove(startPos, homePos, t, { mode: 'P_SWING', swingHeight: 1.0, swingOut: 0.8 }, targetPos);
-        targetQuat.copy(isToleranceError ? qMasterRadY : qSheetFull.slerp(qMasterRadY, t));
+        targetQuat.copy(qMasterRadY);
         lockOnBeam.material.opacity = 0;
         document.getElementById('targetCoord').innerText = isToleranceError ? "🛑 The work Fails! (안전 홈 복귀 완료)" : "🏁 Cycle Completed !! (입체 실링 비드 완제품 유지)";
         document.getElementById('pointA_UF').innerText = isToleranceError ? "NG 종료" : "정상 완료";
@@ -2339,10 +2354,10 @@
       let duration = 1000;
       if (currentStep === 0 || currentStep === 1) duration = 500;
       else if (currentStep === 2) duration = 1200;
-      else if (currentStep === 4) duration = 7200; 
+      else if (currentStep === 4) duration = 7800; 
       else if (currentStep === 5) duration = 6000; 
-      else if (currentStep === 9) duration = 5600; 
-      else if (currentStep === 7) duration = 6000; 
+      else if (currentStep === 9) duration = 6000; 
+      else if (currentStep === 7) duration = 2700; 
       else if (currentStep === 8) duration = 1800; 
       else if (currentStep === 10) duration = 2400;
       
@@ -2510,10 +2525,10 @@
       if (autoPlayTimeoutId !== null) clearTimeout(autoPlayTimeoutId);
       let waitTime = 4200;
       if (currentStep === 0 || currentStep === 1 || currentStep === 2) waitTime = 2100;
-      else if (currentStep === 4) waitTime = 8000;
+      else if (currentStep === 4) waitTime = 8600;
       else if (currentStep === 5) waitTime = 6800;
-      else if (currentStep === 7) waitTime = 6800;
-      else if (currentStep === 9) waitTime = 6400;
+      else if (currentStep === 7) waitTime = 3500;
+      else if (currentStep === 9) waitTime = 6800;
       else if (currentStep === 10) waitTime = 3200;
 
       const pWrap = document.getElementById('autoPlayProgressWrapper');
