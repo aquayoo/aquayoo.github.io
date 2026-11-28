@@ -598,6 +598,307 @@
       .action-sidebar { grid-column: 1 / 2; }
       .sub-caption { display: none; }
     }
+
+    /* =========================================================================
+       V2.0 확장: 학습 포인트 카드 & 중앙 뷰어 탭 & 퀴즈형/시험형 형성평가 UI
+       ========================================================================= */
+    .quiz-mini-badge {
+      font-family: var(--font-mono);
+      font-size: 9.5px;
+      font-weight: 700;
+      padding: 2px 5px;
+      border-radius: 3px;
+      flex-shrink: 0;
+      background: rgba(0, 173, 181, 0.14);
+      color: var(--accent-cyan);
+      border: 1px solid rgba(0, 173, 181, 0.35);
+    }
+    .quiz-mini-badge.passed {
+      background: rgba(46, 213, 115, 0.16);
+      color: var(--success-green);
+      border-color: rgba(46, 213, 115, 0.45);
+    }
+    .quiz-mini-badge.deferred {
+      background: rgba(136, 160, 176, 0.12);
+      color: var(--text-muted);
+      border-color: rgba(136, 160, 176, 0.28);
+    }
+
+    .viewer-tabs {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 16px;
+      border-bottom: 1px solid var(--panel-border);
+      padding-bottom: 10px;
+      flex-wrap: wrap;
+    }
+
+    .v-tab-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 16px;
+      border-radius: 6px;
+      border: 1px solid var(--panel-border);
+      background: var(--card-bg);
+      color: var(--text-muted);
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.16s ease;
+    }
+    .v-tab-btn:hover {
+      border-color: var(--accent-cyan);
+      color: #ffffff;
+    }
+    .v-tab-btn.active {
+      background: linear-gradient(135deg, rgba(0, 173, 181, 0.22), rgba(21, 101, 192, 0.22));
+      border-color: var(--accent-cyan);
+      color: #ffffff;
+      box-shadow: 0 2px 10px rgba(0, 173, 181, 0.18);
+    }
+    .v-tab-btn.disabled {
+      opacity: 0.55;
+      cursor: not-allowed;
+    }
+
+    .tab-pill-count {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      padding: 1px 6px;
+      border-radius: 10px;
+      background: rgba(0, 173, 181, 0.2);
+      color: var(--accent-cyan);
+    }
+
+    /* 학습 포인트 카드 */
+    .lp-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 10px;
+    }
+    .lp-item {
+      background: rgba(21, 101, 192, 0.1);
+      border: 1px solid rgba(66, 165, 245, 0.35);
+      border-left: 3px solid #42a5f5;
+      border-radius: 6px;
+      padding: 12px 14px;
+    }
+    .lp-title {
+      font-size: 12.5px;
+      font-weight: 800;
+      color: #81d4fa;
+      margin-bottom: 5px;
+    }
+    .lp-detail {
+      font-size: 12.4px;
+      line-height: 1.55;
+      color: #d8e7f3;
+    }
+
+    /* 퀴즈 모드 전환 바 (퀴즈형 vs 시험형) */
+    .quiz-mode-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 10px;
+      background: var(--card-bg);
+      border: 1px solid var(--panel-border);
+      border-radius: 8px;
+      padding: 12px 16px;
+      margin-bottom: 14px;
+    }
+    .mode-switch-group {
+      display: flex;
+      gap: 6px;
+      background: #080d12;
+      padding: 4px;
+      border-radius: 6px;
+      border: 1px solid #1b3142;
+    }
+    .mode-btn {
+      padding: 6px 13px;
+      border: none;
+      border-radius: 4px;
+      background: transparent;
+      color: var(--text-muted);
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .mode-btn.active {
+      background: var(--accent-cyan);
+      color: #080d12;
+    }
+    .quiz-progress-text {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      color: #9ec0d6;
+    }
+
+    .quiz-card {
+      background: var(--card-bg);
+      border: 1px solid var(--panel-border);
+      border-radius: 8px;
+      padding: 16px 20px;
+      margin-bottom: 12px;
+    }
+    .quiz-card.q-correct { border-color: rgba(46, 213, 115, 0.55); }
+    .quiz-card.q-wrong   { border-color: rgba(255, 71, 87, 0.55); }
+
+    .quiz-q-header {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+    .quiz-q-num {
+      background: #1565c0;
+      color: #ffffff;
+      font-family: var(--font-mono);
+      font-weight: 800;
+      font-size: 11px;
+      padding: 3px 8px;
+      border-radius: 4px;
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+    .quiz-q-text {
+      font-size: 13.5px;
+      font-weight: 700;
+      color: #ffffff;
+      line-height: 1.5;
+    }
+
+    .quiz-options {
+      display: flex;
+      flex-direction: column;
+      gap: 7px;
+    }
+    .quiz-opt-btn {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      width: 100%;
+      text-align: left;
+      padding: 10px 13px;
+      border-radius: 6px;
+      border: 1px solid #1f394d;
+      background: rgba(20, 35, 48, 0.55);
+      color: #dce8f0;
+      font-size: 12.8px;
+      line-height: 1.45;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .quiz-opt-btn:hover:not(:disabled) {
+      border-color: var(--accent-cyan);
+      background: rgba(0, 173, 181, 0.12);
+    }
+    .quiz-opt-btn.selected {
+      border-color: #42a5f5;
+      background: rgba(21, 101, 192, 0.25);
+      color: #ffffff;
+      font-weight: 600;
+    }
+    .quiz-opt-btn.opt-correct {
+      border-color: var(--success-green);
+      background: rgba(46, 213, 115, 0.16);
+      color: #b8f7d0;
+      font-weight: 700;
+    }
+    .quiz-opt-btn.opt-wrong {
+      border-color: var(--danger-red);
+      background: rgba(255, 71, 87, 0.16);
+      color: #ffc2c8;
+    }
+    .opt-idx {
+      font-family: var(--font-mono);
+      font-weight: 800;
+      font-size: 11px;
+      color: var(--accent-cyan);
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+
+    .quiz-feedback {
+      margin-top: 10px;
+      padding: 10px 13px;
+      border-radius: 6px;
+      font-size: 12.5px;
+      line-height: 1.55;
+    }
+    .quiz-feedback.fb-ok {
+      background: rgba(46, 213, 115, 0.1);
+      border: 1px solid rgba(46, 213, 115, 0.4);
+      color: #c8f7dc;
+    }
+    .quiz-feedback.fb-no {
+      background: rgba(255, 71, 87, 0.1);
+      border: 1px solid rgba(255, 71, 87, 0.4);
+      color: #ffd0d5;
+    }
+
+    .exam-actions-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 14px;
+      padding: 14px 18px;
+      background: var(--panel-bg);
+      border: 1px solid var(--panel-border);
+      border-radius: 8px;
+    }
+    .btn-primary {
+      background: var(--accent-cyan);
+      color: #080d12;
+      border: none;
+      border-radius: 6px;
+      padding: 9px 18px;
+      font-size: 13px;
+      font-weight: 800;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+    .btn-primary:hover { background: #26d0d9; }
+    .btn-secondary {
+      background: rgba(255, 255, 255, 0.06);
+      color: #e2ecf3;
+      border: 1px solid var(--panel-border);
+      border-radius: 6px;
+      padding: 8px 14px;
+      font-size: 12.5px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    .btn-secondary:hover { border-color: var(--accent-cyan); }
+
+    .exam-result-banner {
+      background: linear-gradient(135deg, rgba(21, 101, 192, 0.2), rgba(0, 173, 181, 0.16));
+      border: 1px solid var(--accent-cyan);
+      border-radius: 8px;
+      padding: 16px 20px;
+      margin-bottom: 14px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    .exam-result-banner.pass {
+      background: linear-gradient(135deg, rgba(46, 213, 115, 0.18), rgba(0, 173, 181, 0.15));
+      border-color: var(--success-green);
+    }
+    .exam-score-big {
+      font-family: var(--font-mono);
+      font-size: 24px;
+      font-weight: 900;
+      color: #ffffff;
+    }
   </style>
 </head>
 <body>
@@ -605,9 +906,9 @@
   <!-- 상단 헤더 -->
   <header>
     <div class="header-left">
-      <span class="ver-badge">V1.0 (Nov.21)</span>
+      <span class="ver-badge">V2.0 (Nov.28)</span>
       <span class="main-title">ATM Manual Collection</span>
-      <span class="sub-caption">Main Manual(Notion) · 3D Vision · Robot Calibration · Troubleshooting 기술 자료실</span>
+      <span class="sub-caption">Main Manual(Notion) · 3D Vision · Robot Calibration · 형성평가 Quiz</span>
     </div>
 
     <a href="index.html" class="home-btn" title="메인 교육 포털(index.html)로 돌아가기">
@@ -624,7 +925,7 @@
     <aside class="sidebar">
       <div class="panel-header">
         <span>📁 File list (기술 매뉴얼 목록)</span>
-        <span id="file-count" style="font-family:var(--font-mono); font-size:11px; color:#8faec4;">22개</span>
+        <span id="file-count" style="font-family:var(--font-mono); font-size:11px; color:#8faec4;">23개</span>
       </div>
 
       <!-- 최상단 고정: Main Manual (Notion 웹 매뉴얼) -->
@@ -695,456 +996,55 @@
 
   </div>
 
+  <script src="manual_data.js"></script>
   <script>
-    /* =========================================================================
-       1번 사진(pdf 폴더 내 22개 문서) 메타데이터 및 핵심 요약본 데이터베이스
-       ========================================================================= */
-    const manualDocs = [
-      // --- 카테고리 1: 기초 & 하드웨어/OS 세팅 (BASIC) ---
-      {
-        id: 0,
-        cat: 'BASIC',
-        catName: '1. 기초 & 하드웨어/OS 세팅',
-        file: '0. ATM_Vision_3D 구조광 패턴과 스캔.pdf',
-        ext: 'PDF',
-        level: '입문 필수',
-        tags: ['구조광(Structured Light)', '3D 스캔 원리', '포인트 클라우드'],
-        overview: 'ATM 3D 비전 시스템의 핵심인 구조광(Structured Light) 패턴 투사 원리와 3차원 점군(Point Cloud) 데이터 획득 과정을 다룬 기초 이론 매뉴얼입니다.',
-        steps: [
-          '프로젝터에서 순차적으로 투사되는 Gray-code 및 위상 천이(Phase-Shift) 광학 패턴의 원리를 이해합니다.',
-          '카메라 이미지 센서로 취득된 변형 패턴으로부터 삼각측량(Triangulation) 기반 Z-높이 값을 복원하는 과정을 확인합니다.',
-          '작업거리(WD)와 시야각(FOV)에 따른 스캐너 기종(3Du / 3Dm) 선정 기준 및 표면 반사율 대응법을 학습합니다.'
-        ],
-        warnings: [
-          '강한 외부 직사광선이나 용접 아크 광원이 스캔 영역에 유입되면 패턴 대비가 저하될 수 있습니다.',
-          '스캐너 유리창(LPF) 오염 시 3D 노이즈가 급증하므로 지정된 전용 렌즈 와이프로 관리해야 합니다.'
-        ],
-        simLink: { label: '3D 스캔 원리 시뮬레이터 실행', url: '3D_scan.html' }
-      },
-      {
-        id: 9,
-        cat: 'BASIC',
-        catName: '1. 기초 & 하드웨어/OS 세팅',
-        file: '9. 컴퓨터 관련 교육 영상_(유투브 영상 링크).pdf',
-        ext: 'PDF',
-        level: '입문 참고',
-        tags: ['비전 PC 세팅', '네트워크 기초', '영상 강의'],
-        overview: '비전 제어용 산업용 PC의 기본 환경 구성, 멀티 랜카드 IP 대역 분리, 방화벽 해제 등 필수 설정 과정을 담은 교육 영상 링크 모음집입니다.',
-        steps: [
-          '문서 내 정리된 주제별 YouTube 교육 링크를 클릭해 PC 네트워크 및 드라이버 설정 시연을 시청합니다.',
-          '4-Port 랜카드(로봇·PLC·스캐너 S0/S1) 각각의 고정 IP 할당 및 1.0Gbps 링크 속도 확인 절차를 숙지합니다.',
-          'Windows 방화벽 및 전원 관리(절전 모드 해제) 필수 점검 항목을 체크리스트로 확인합니다.'
-        ],
-        warnings: [
-          '사내 보안망 환경에서는 외부 YouTube 접속이 제한될 수 있으므로 모바일 또는 사외망 환경에서 시청을 권장합니다.'
-        ],
-        simLink: { label: 'PLC-Robot 네트워크 시뮬레이터 실행', url: 'net_comm.html' }
-      },
-      {
-        id: 10,
-        cat: 'BASIC',
-        catName: '1. 기초 & 하드웨어/OS 세팅',
-        file: '10.ATM_3D와 Abeoscan 셋팅.pdf',
-        ext: 'PDF',
-        level: '초기 셋업',
-        tags: ['ATM_3D', 'AbeoSCAN', '초기 환경설정'],
-        overview: '비전 PC에 설치되는 메인 런타임 프로그램(ATM_3D / ATMC)과 3D 형상 정합 소프트웨어(AbeoSCAN)의 연동 및 초기 파라미터 세팅 가이드입니다.',
-        steps: [
-          'Basler Pylon 카메라 드라이버 및 프로젝터 제어 모듈 정상 인식 여부를 장치 관리자에서 확인합니다.',
-          'AbeoSCAN과 ATM_3D 간의 실행 경로, 모델 폴더(REF.ply), 통신 포트 번호를 일치시킵니다.',
-          '테스트 스캔을 수행하여 3D 뷰어에 포인트 클라우드가 정상 렌더링되는지 검증합니다.'
-        ],
-        warnings: [
-          '설치 경로에 한글이나 특수문자가 포함되면 외부 라이브러리(DLL) 호출 오류가 발생할 수 있습니다.'
-        ],
-        simLink: null
-      },
-      {
-        id: 17,
-        cat: 'BASIC',
-        catName: '1. 기초 & 하드웨어/OS 세팅',
-        file: '윈도우 11 재인증 매뉴얼.pptx',
-        ext: 'PPTX',
-        level: '유지보수',
-        tags: ['Windows 11', '정품 인증', '비전 PC 유지보수'],
-        overview: '현장 산업용 비전 PC 출하 또는 메인보드 교체 후 Windows 11 라이선스 재인증 및 시스템 복구 절차를 안내하는 프레젠테이션 자료입니다.',
-        steps: [
-          '윈도우 설정 → 시스템 → 정품 인증 메뉴에서 현재 라이선스 상태 및 오류 코드를 확인합니다.',
-          '오프라인 현장 환경일 경우 전화 인증 또는 사내 라이선스 키 재입력 절차를 단계별로 진행합니다.',
-          '인증 완료 후 Windows 자동 업데이트 일시 중지(현장 공정 중 재부팅 방지) 설정을 재확인합니다.'
-        ],
-        warnings: [
-          '현장 가동 중인 비전 PC에 임의로 OS 대규모 업데이트를 진행하면 드라이버 호환성이 깨질 수 있습니다.'
-        ],
-        simLink: null
-      },
-
-      // --- 카테고리 2: 캘리브레이션 & 원점 보정 (CALIB) ---
-      {
-        id: 1,
-        cat: 'CALIB',
-        catName: '2. 캘리브레이션 & 원점 보정',
-        file: '1. 작업표준서[스캐너캘리브레이션]240702ver.pdf',
-        ext: 'PDF',
-        level: '현장 표준',
-        tags: ['작업표준서', '스캐너 캘리브레이션', '체커보드'],
-        overview: '3D 스캐너 내부 카메라·프로젝터 광학 파라미터 정밀 보정을 위한 사내 공식 작업표준서(240702 버전)입니다.',
-        steps: [
-          '스캐너 예열(Warm-up) 후 전용 캘리브레이션 보드(체커보드/서클 그리드)의 오염 및 스크래치 상태를 점검합니다.',
-          '작업거리(WD) 전·중·후 구간 및 기울기 자세별로 규정된 매수만큼 보드 이미지를 취득합니다.',
-          '재투영 오차(Reprojection Error)가 사내 합격 기준(Threshold) 이내인지 확인 후 파라미터를 저장합니다.'
-        ],
-        warnings: [
-          '캘리브레이션 보드 표면에 지문이나 이물질이 묻어 있으면 특징점 추출 오차가 크게 증가합니다.',
-          '캘리브레이션 수행 후 반드시 캘리브레이션 파일 백업을 수행해야 합니다.'
-        ],
-        simLink: null
-      },
-      {
-        id: 2,
-        cat: 'CALIB',
-        catName: '2. 캘리브레이션 & 원점 보정',
-        file: '2. ATMC 로봇 스캐너 캘리브레이션 매뉴얼.pdf',
-        ext: 'PDF',
-        level: '핵심 실무',
-        tags: ['Hand-Eye 캘리브레이션', 'ATMC', '로봇-스캐너 정합'],
-        overview: '로봇 좌표계와 3D 스캐너 좌표계 간의 상대 변환 행렬(Hand-Eye Matrix)을 산출하는 ATMC 스캐너 캘리브레이션 상세 매뉴얼입니다.',
-        steps: [
-          'Eye-on-Hand(로봇 장착형) 또는 Fixed-Eye(외부 고정형) 구성에 맞는 로봇 자세(Pose) 티칭 포인트를 설정합니다.',
-          'ATMC 캘리브레이션 모드에서 로봇 이동과 스캐너 촬영을 순차 연동하여 다각도 데이터를 수집합니다.',
-          '산출된 변환 행렬의 잔차(Residual Error)를 검증하고 제어기 파라미터에 적용합니다.'
-        ],
-        warnings: [
-          '캘리브레이션 자세 티칭 시 회전(Rx, Ry, Rz) 변화량이 너무 작으면 수학적 해의 정밀도가 급격히 떨어집니다.'
-        ],
-        simLink: { label: 'Hand-Eye FOV 시뮬레이터 실행', url: 'fov_mo.html' }
-      },
-      {
-        id: 6,
-        cat: 'CALIB',
-        catName: '2. 캘리브레이션 & 원점 보정',
-        file: '6. ATMC 원점 보정 매뉴얼.pdf',
-        ext: 'PDF',
-        level: '핵심 실무',
-        tags: ['원점 보정', '기준 모델', '오프셋 복구'],
-        overview: '설비 유지보수, 충돌, 또는 스캐너 탈부착 이후 틀어진 기준 좌표계 원점을 신속하게 재정렬하는 원점 보정 매뉴얼입니다.',
-        steps: [
-          '정위치에 고정된 마스터 기준물(Master Part) 또는 지그를 스캔하여 현재 편차량을 계측합니다.',
-          '기존 등록된 기준 데이터(REF)와 현재 측정값 간의 6자유도(X, Y, Z, Rx, Ry, Rz) 오프셋을 산출합니다.',
-          '보정 값을 ATMC 기준 원점에 업데이트한 뒤 테스트 사이클에서 로봇 장착 정밀도를 최종 확인합니다.'
-        ],
-        warnings: [
-          '원점 보정 전 마스터 기준물이 지그 핀에 완전히 밀착·안착되었는지 육안으로 반드시 확인해야 합니다.'
-        ],
-        simLink: null
-      },
-      {
-        id: 8,
-        cat: 'CALIB',
-        catName: '2. 캘리브레이션 & 원점 보정',
-        file: '8. ATMC 로봇 스캐너 캘리브레이션 트랜스퍼 매뉴얼_검증포함.pdf',
-        ext: 'PDF',
-        level: '고급 실무',
-        tags: ['캘리브레이션 트랜스퍼', '다중 스캐너', '정밀도 검증'],
-        overview: '스캐너 교체 또는 다중 스캐너 시스템 구축 시 기존 티칭 데이터를 유지하면서 캘리브레이션 데이터를 이관(Transfer)하고 검증하는 매뉴얼입니다.',
-        steps: [
-          '기준 스캐너와 신규(또는 보조) 스캐너가 공통으로 관측할 수 있는 기준 타겟 좌표를 획득합니다.',
-          'TransferCalib 기능을 통해 좌표계 변환 행렬을 이관하고 기존 로봇 경로와의 일관성을 맞춥니다.',
-          '검증 시나리오에 따라 실제 작업물 스캔 후 로봇 이동 오차가 허용 공차 이내인지 최종 검증합니다.'
-        ],
-        warnings: [
-          '트랜스퍼 작업 중 로봇의 기준 툴(TCP) 번호나 유저 좌표계(UF) 번호가 변경되지 않도록 주의합니다.'
-        ],
-        simLink: { label: '공통좌표계(CC) 시뮬레이터 실행', url: 'com_uf.html' }
-      },
-      {
-        id: 12,
-        cat: 'CALIB',
-        catName: '2. 캘리브레이션 & 원점 보정',
-        file: '12. 스캐너 원점 보정 교육자료.pptx',
-        ext: 'PPTX',
-        level: '강의 자료',
-        tags: ['원점 보정 강의', '시각화 자료', '현장 사례'],
-        overview: '신입사원 및 현장 엔지니어 교육을 위해 스캐너 원점 보정의 필요성과 단계별 화면 캡처를 알기 쉽게 정리한 강의용 PPTX입니다.',
-        steps: [
-          '설비 미세 틀어짐이 발생했을 때 3D 비전 보정 좌표계가 어떻게 왜곡되는지 도식으로 이해합니다.',
-          'ATMC 소프트웨어 내 원점 보정 버튼 위치와 입력 파라미터 의미를 화면 예시로 익힙니다.',
-          '보정 전·후 오차 비교 사례를 통해 현장 트러블슈팅 감각을 익힙니다.'
-        ],
-        warnings: [
-          'PPTX 원본 파일이므로 우측 [다운로드] 버튼을 통해 PC에 저장한 뒤 슬라이드 쇼로 확인하시기 바랍니다.'
-        ],
-        simLink: null
-      },
-      {
-        id: 13,
-        cat: 'CALIB',
-        catName: '2. 캘리브레이션 & 원점 보정',
-        file: '3D 스캐너 - 구조광 방식에 대한 고찰.pptx',
-        ext: 'PPTX',
-        level: '심화 이론',
-        tags: ['광학 이론', '구조광 분석', '노이즈 저감'],
-        overview: '구조광 3D 스캐너의 광학적 한계, 난반사·다중반사(Inter-reflection) 현상 및 산업 현장 적용 시 해결 방안을 심층 고찰한 발표 자료입니다.',
-        steps: [
-          '단일 패턴과 다중 주파수 위상 천이 패턴의 측정 속도 및 정밀도 트레이드오프를 비교합니다.',
-          '금속 가공면이나 유광 도장면에서 발생하는 포화(Saturation) 현상과 노출(Exposure) 최적화 기법을 학습합니다.'
-        ],
-        warnings: [
-          'PPTX 원본 파일입니다. [다운로드] 후 PowerPoint에서 열람하세요.'
-        ],
-        simLink: { label: '3D 스캔 시뮬레이터 실행', url: '3D_scan.html' }
-      },
-
-      // --- 카테고리 3: 좌표계(CC/UF/TCP) & 로봇 실습 (COORD) ---
-      {
-        id: 3,
-        cat: 'COORD',
-        catName: '3. 좌표계(CC/UF/TCP) & 로봇 실습',
-        file: '3. ATMC 공통좌표계 매뉴얼.pdf',
-        ext: 'PDF',
-        level: '핵심 실무',
-        tags: ['공통좌표계(CC)', '이기종 로봇', 'TLH 좌표계'],
-        overview: '여러 대의 로봇과 스캐너가 하나의 작업물을 협업 처리할 때 기준이 되는 공통좌표계(Common Coordinate, CC) 구축 매뉴얼입니다.',
-        steps: [
-          '차량 또는 대형 워크피스의 기준 방향(T: 폭, L: 길이, H: 높이)을 반영한 공통좌표계 원점을 정의합니다.',
-          '각 로봇 제어기에 동일한 물리적 기준점을 3점 교시(원점, +X 방향점, +XY 평면점)로 등록합니다.',
-          '스캐너 보정 행렬을 공통좌표계 기준으로 변환하여 로봇 간 오차 없이 전송되는지 검증합니다.'
-        ],
-        warnings: [
-          '이기종 로봇(예: 현대 Hi5a/Hi6와 FANUC) 혼용 라인에서는 기본 직교축 방향(Z-Up 등)과 회전 오일러 각(ZYX vs XYZ) 표현 차이를 반드시 일치시켜야 합니다.'
-        ],
-        simLink: { label: '공통좌표계(CC) 시뮬레이터 실행', url: 'com_uf.html' }
-      },
-      {
-        id: 5,
-        cat: 'COORD',
-        catName: '3. 좌표계(CC/UF/TCP) & 로봇 실습',
-        file: '5. ATMC UF좌표계 매뉴얼.pdf',
-        ext: 'PDF',
-        level: '핵심 실무',
-        tags: ['유저좌표계(UF)', '6자유도 보정', 'UF6 전송'],
-        overview: '비전 시스템이 산출한 6자유도(X, Y, Z, Rx, Ry, Rz) 위치 오차 보정 값을 로봇의 유저 좌표계(User Frame, UF)로 실시간 전송·반영하는 매뉴얼입니다.',
-        steps: [
-          '로봇 제어기에 비전 보정 전용 유저 좌표계 번호(예: U6)를 할당하고 기준 원점을 등록합니다.',
-          'ATMC에서 계산된 4×4 동차 변환 행렬(Homogeneous Matrix)이 로봇 UF 레지스터로 수신되는 구조를 확인합니다.',
-          '로봇 JOB 프로그램에서 MOVE 명령에 해당 UF 번호를 지정해 보정 경로 추종을 테스트합니다.'
-        ],
-        warnings: [
-          '로봇 티칭 포인트가 BASE 좌표계 기준으로 교시되어 있으면 비전 보정(UF)이 전혀 적용되지 않으므로 반드시 지정 UF로 교시해야 합니다.'
-        ],
-        simLink: { label: 'UF6 3D 좌표계 시뮬레이터 실행', url: 'uf6_pc.html' }
-      },
-      {
-        id: 7,
-        cat: 'COORD',
-        catName: '3. 좌표계(CC/UF/TCP) & 로봇 실습',
-        file: '7. ATMC TCP측정의 3가지 방법 매뉴얼.pdf',
-        ext: 'PDF',
-        level: '핵심 실무',
-        tags: ['TCP 설정', '툴 좌표계', '3가지 측정법'],
-        overview: '로봇 그리퍼 또는 핸드 장착 스캐너의 정밀한 제어점(Tool Center Point, TCP)을 설정하는 3가지 표준 측정 기법 매뉴얼입니다.',
-        steps: [
-          '방법 1 (4점/6점 터치법): 고정된 기준 핀 끝점에 툴 끝단을 서로 다른 자세로 접근시켜 TCP 위치(X, Y, Z)를 산출합니다.',
-          '방법 2 (CAD 도면 치수 직접 입력법): 기구 설계 도면의 플랜지 기준 오프셋 및 자세 각도를 직접 입력합니다.',
-          '방법 3 (비전/레이저 계측기 활용법): 비접촉 광학 계측을 통해 툴 끝점 및 자세 벡터를 정밀 보정합니다.'
-        ],
-        warnings: [
-          'TCP가 부정확하면 로봇이 툴 끝을 중심으로 회전(Rx, Ry, Rz)할 때 끝점이 크게 이탈하여 충돌 위험이 발생합니다.'
-        ],
-        simLink: null
-      },
-      {
-        id: 11,
-        cat: 'COORD',
-        catName: '3. 좌표계(CC/UF/TCP) & 로봇 실습',
-        file: '11. 툴 무게 자동등록 매뉴얼.pptx',
-        ext: 'PPTX',
-        level: '로봇 설정',
-        tags: ['툴 부하(Payload)', '무게중심', '관성 모멘트'],
-        overview: '그리퍼 및 스캐너 장착 후 로봇 제어기의 부하 자동 계측 기능을 이용해 툴 중량, 무게중심(CoG), 관성 모멘트를 자동 등록하는 안내서입니다.',
-        steps: [
-          '로봇 주변 간섭물이 없는 안전 영역으로 이동한 뒤 티칭 펜던트의 [보조 설정 → 부하 자동 계측] 메뉴에 진입합니다.',
-          '등록할 툴 번호를 선택하고 자동 가감속 모션을 실행하여 중량(kg)과 무게중심 좌표를 측정합니다.',
-          '계측된 부하 데이터를 저장하고 활성화하여 고속 이동 시 진동 및 오버슈트를 방지합니다.'
-        ],
-        warnings: [
-          '부하 계측 중 로봇 손목 축이 큰 폭으로 회전하므로 케이블 꼬임 및 주변 설비 간섭 반경을 미리 확보하세요.'
-        ],
-        simLink: null
-      },
-      {
-        id: 15,
-        cat: 'COORD',
-        catName: '3. 좌표계(CC/UF/TCP) & 로봇 실습',
-        file: '로봇 툴좌표계(TCP) 설정 및 현대로봇 실습 가이드.pdf',
-        ext: 'PDF',
-        level: '실습 가이드',
-        tags: ['현대로봇 Hi5a/Hi6', 'TCP 실습', '티칭 펜던트'],
-        overview: '현대로봇(Hi5a / Hi6) 제어기 티칭 펜던트를 이용해 툴 좌표계(TCP)를 신규 등록하고 직교/툴 좌표계 Jog로 검증하는 신입사원 실습 가이드입니다.',
-        steps: [
-          '현대로봇 TP [시스템 → 제어 파라미터 → 툴 데이터]에서 신규 툴 번호를 선택합니다.',
-          '4자세 교시법을 이용해 기준점에 툴 끝을 맞추고 자동 계산된 X, Y, Z 오프셋을 확인합니다.',
-          '좌표계 모드를 [툴(TOOL)]로 전환한 후 Rx/Ry 회전 조그 시 끝점이 제자리에 고정되는지 확인합니다.'
-        ],
-        warnings: [
-          '실습 시 반드시 수동(TEACH) 모드에서 속도를 10% 이하로 제한하고 데드맨 스위치를 올바르게 파지하세요.'
-        ],
-        simLink: null
-      },
-      {
-        id: 16,
-        cat: 'COORD',
-        catName: '3. 좌표계(CC/UF/TCP) & 로봇 실습',
-        file: '위치보정에 대한 전반적인 작업 안내.docx',
-        ext: 'DOCX',
-        level: '전체 흐름',
-        tags: ['위치보정 프로세스', '전체 워크플로우', '현장 체크리스트'],
-        overview: '3D 비전 기반 로봇 위치보정 프로젝트의 착수부터 셋업, 캘리브레이션, 시운전, 양산 이관까지 전 과정을 요약한 안내 문서입니다.',
-        steps: [
-          '1단계(기구/네트워크): 스캐너 설치 거리(WD) 확보 및 PC-로봇-PLC 간 IP 대역 분리를 완료합니다.',
-          '2단계(좌표계/캘리브레이션): TCP 등록 → 스캐너 내부 보정 → Hand-Eye 캘리브레이션을 순차 진행합니다.',
-          '3단계(모델 등록/시운전): 기준 모델(REF) 등록 후 반복 정밀도 테스트 및 예외(NG) 처리 인터락을 검증합니다.'
-        ],
-        warnings: [
-          'DOCX 원본 파일입니다. 우측 [다운로드] 버튼을 눌러 Word 또는 한글 뷰어에서 확인하세요.'
-        ],
-        simLink: null
-      },
-
-      // --- 카테고리 4: 모델 등록 & 트러블슈팅/기타 (MODEL) ---
-      {
-        id: 4,
-        cat: 'MODEL',
-        catName: '4. 모델 등록 & 트러블슈팅/기타',
-        file: '4. ATMC 모델등록 매뉴얼.pdf',
-        ext: 'PDF',
-        level: '핵심 실무',
-        tags: ['3D 모델 등록', 'REF.ply', 'ICP 정합'],
-        overview: '신규 차종 또는 신규 부품 투입 시 기준 3D 형상(Reference Model)을 스캔·편집하여 ATMC에 등록하는 표준 매뉴얼입니다.',
-        steps: [
-          '정위치에 놓인 마스터 부품을 스캔하여 노이즈 및 불필요한 배경 지그 점군을 제거(Cropping)합니다.',
-          '형상 특징이 뚜렷한 영역(홀, 엣지, 굴곡면) 위주로 정합 기준 모델(REF.ply)을 생성합니다.',
-          'ICP(Iterative Closest Point) 정합 허용 오차(Fit Score)와 탐색 반경을 설정하고 시뮬레이션 매칭을 테스트합니다.'
-        ],
-        warnings: [
-          '평면만 있고 기하학적 특징이 부족한 영역을 모델로 등록하면 X·Y 평행 이동 방향에서 슬립(오정합)이 발생할 수 있습니다.'
-        ],
-        simLink: { label: 'ICP 3D 정합 시뮬레이터 실행', url: 'icp_pc.html' }
-      },
-      {
-        id: 14,
-        cat: 'MODEL',
-        catName: '4. 모델 등록 & 트러블슈팅/기타',
-        file: '20250502 - 3D 모델 등록.hwpx',
-        ext: 'HWPX',
-        level: '실무 양식',
-        tags: ['한글 문서(HWPX)', '모델 등록 절차', '현장 기록서'],
-        overview: '2025년 5월 개정된 3D 모델 등록 세부 절차 및 현장 적용 파라미터 기록용 한글(HWPX) 문서입니다.',
-        steps: [
-          '우측 [다운로드] 버튼을 클릭하여 HWPX 원본 파일을 PC에 저장합니다.',
-          '한컴오피스 한글에서 문서를 열어 차종별 모델 등록 파라미터 및 검증 체크리스트를 확인합니다.'
-        ],
-        warnings: [
-          '웹 브라우저에서는 HWPX 파일이 직접 열리지 않으므로 다운로드 후 한컴오피스 한글로 열람해 주세요.'
-        ],
-        simLink: { label: 'ICP 정합 시뮬레이터 실행', url: 'icp_pc.html' }
-      },
-      {
-        id: 18,
-        cat: 'MODEL',
-        catName: '4. 모델 등록 & 트러블슈팅/기타',
-        file: 'AbeoSCAN 매뉴얼_3.6_260521.pdf',
-        ext: 'PDF',
-        level: '소프트웨어 매뉴얼',
-        tags: ['AbeoSCAN 3.6', '3D 편집', '포인트클라우드 필터'],
-        overview: '3D 스캔 데이터 취득, 포인트 클라우드 필터링, CAD/PLY 모델 정합을 수행하는 AbeoSCAN 3.6 버전 전체 사용자 매뉴얼입니다.',
-        steps: [
-          '스캐너 연결 설정, 노출(Exposure) 및 게인(Gain) 조절을 통한 최적 포인트 클라우드 취득 방법을 익힙니다.',
-          'ROI(관심영역) 지정, 이상치(Outlier) 제거, 다운샘플링 등 전처리 필터 기능을 활용합니다.',
-          '다중 2D/3D 패턴 탐색(FormMultiPatternSearch) 및 기준 모델 내보내기(Export) 절차를 수행합니다.'
-        ],
-        warnings: [
-          '필터 강도를 과도하게 높이면 부품의 미세 모서리 특징점까지 함께 깎여 정합 정밀도가 저하될 수 있습니다.'
-        ],
-        simLink: null
-      },
-      {
-        id: 19,
-        cat: 'MODEL',
-        catName: '4. 모델 등록 & 트러블슈팅/기타',
-        file: 'ATM_3D세팅_메뉴얼_통합.pdf',
-        ext: 'PDF',
-        level: '종합 가이드',
-        tags: ['통합 매뉴얼', '전체 세팅', '시운전 가이드'],
-        overview: 'ATM 3D 비전 시스템의 하드웨어 결선, 소프트웨어 설치, 통신 설정, 캘리브레이션, 시운전까지 한 권으로 묶은 통합 매뉴얼입니다.',
-        steps: [
-          '시스템 전체 구성도 및 입출력 신호(PLC 핸드셰이크 비트맵) 표준 사양을 확인합니다.',
-          '단계별 셋업 목차에 따라 초기 설치부터 양산 모드 전환까지 빠짐없이 점검합니다.'
-        ],
-        warnings: [
-          '분량이 방대한 통합본이므로 좌측 검색창이나 PDF 내 목차 검색(Ctrl+F)을 활용해 필요한 파트를 빠르게 찾아보세요.'
-        ],
-        simLink: null
-      },
-      {
-        id: 20,
-        cat: 'MODEL',
-        catName: '4. 모델 등록 & 트러블슈팅/기타',
-        file: 'atm_error.pdf',
-        ext: 'PDF',
-        level: '트러블슈팅 필수',
-        tags: ['에러 코드', '통신 장애 복구', 'SCANNER/ROBOT/PLC 알람'],
-        overview: '현장 가동 중 발생하는 주요 알람 코드(스캐너 연결 끊김, HR-RPC 타임아웃, PLC 포트 오류, 정합 NG)의 원인 분석 및 즉시 조치 매뉴얼입니다.',
-        steps: [
-          'SCANNER[0] is not connected: LAN 케이블 및 1.0Gbps 링크 확인 후 하단 스캐너 아이콘을 Ctrl+더블클릭해 재연결합니다.',
-          'ROBOT HR-RPC Timeout: Hi5a TP [시스템 → 네트워크 → 서비스 → HR-RPC]에서 [초기화 범용] 실행 및 LAN 1을 점검합니다.',
-          'PLC is not connected: CONFIG에서 PLC IP, Port(5020), 디바이스(D300/D400) 설정을 재확인합니다.'
-        ],
-        warnings: [
-          '에러 복구 후 반드시 원점 상태 및 로봇 간섭 여부를 확인한 뒤 자동(AUTO) 운전 사이클을 재개하세요.'
-        ],
-        simLink: { label: '트러블슈팅 시뮬레이터 실행', url: 'net_comm.html' }
-      },
-      {
-        id: 21,
-        cat: 'MODEL',
-        catName: '4. 모델 등록 & 트러블슈팅/기타',
-        file: 'comm_uf.pdf',
-        ext: 'PDF',
-        level: '기술 노트',
-        tags: ['공통좌표계 요약', 'UF 변환 수식', '좌표계 검증'],
-        overview: '공통좌표계(CC)와 유저좌표계(UF) 간의 동차 변환 행렬 연산 구조 및 현장 적용 핵심 포인트를 간결하게 정리한 기술 문서입니다.',
-        steps: [
-          '기준 좌표계와 보정 좌표계 간의 회전·병진 변환 관계식을 확인합니다.',
-          '실제 로봇 제어기에 전송되는 6자유도(X, Y, Z, Rx, Ry, Rz) 데이터 포맷과 부호 규약을 점검합니다.'
-        ],
-        warnings: [
-          '좌표계 변환 테스트 시에는 반드시 로봇 속도를 저속으로 설정하고 드라이 런(Dry Run)으로 먼저 검증하세요.'
-        ],
-        simLink: { label: '공통좌표계 시뮬레이터 실행', url: 'com_uf.html' }
-      },
-      {
-        id: 22,
-        cat: 'MODEL',
-        catName: '4. 모델 등록 & 트러블슈팅/기타',
-        file: 'Hi5a-ma.pdf',
-        ext: 'PDF',
-        level: '로봇 제어기 매뉴얼',
-        tags: ['현대로봇 Hi5a', '파일 관리', '서비스 메뉴'],
-        overview: '현대로봇 Hi5a 제어기의 시스템 조작, 파일 관리(M/B · T/P · USB), 네트워크 서비스, 입출력 신호 설정을 다룬 공식 조작 설명서입니다.',
-        steps: [
-          '티칭 펜던트 화면 구성과 M/B(메인보드), T/P, USB 장치 간 프로그램 백업 및 복원 방법을 익힙니다.',
-          'HR-BASIC JOB 프로그램 구조 및 외부 입출력(DI/DO) 조건 대기·분기 명령을 확인합니다.'
-        ],
-        warnings: [
-          'USB 메모리에 파일 복사/삭제 작업을 수행하는 중에는 절대 USB 메모리를 분리하지 마십시오.'
-        ],
-        simLink: null
-      }
-    ];
+    const manualDocs = window.manualDocs || [];
+    const STORAGE_KEY = 'atm_manual_quiz_progress_v2';
 
     let currentCat = 'ALL';
     let selectedDocId = 0;
+    let currentViewerTab = 'manual'; // 'manual' | 'quiz'
+    let currentQuizMode = 'quiz';    // 'quiz' (즉시 피드백) | 'exam' (일괄 채점)
+
+    // 문서별 퀴즈/시험 상태 저장소 (메모리)
+    const quizSession = {}; // { [docId]: { quizAnswers: {}, examAnswers: {}, examSubmitted: false, retryIndices: null } }
+
+    function loadProgress() {
+      try {
+        return JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+      } catch (e) {
+        return {};
+      }
+    }
+
+    function saveDocScore(docId, correct, total) {
+      try {
+        const data = loadProgress();
+        const prev = data[docId];
+        const bestCorrect = prev ? Math.max(prev.bestCorrect || 0, correct) : correct;
+        data[docId] = { latestCorrect: correct, bestCorrect, total, updatedAt: Date.now() };
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+      } catch (e) {}
+    }
+
+    function getSession(docId) {
+      if (!quizSession[docId]) {
+        quizSession[docId] = {
+          quizAnswers: {},
+          examAnswers: {},
+          examSubmitted: false,
+          retryIndices: null
+        };
+      }
+      return quizSession[docId];
+    }
+
+    function escapeHtml(str) {
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;');
+    }
 
     /* =========================================================================
        2. 좌측 File List 렌더링 & 필터/검색 로직
@@ -1159,6 +1059,7 @@
     function renderFileList() {
       const keyword = document.getElementById('search-box').value.trim().toLowerCase();
       const container = document.getElementById('file-list-container');
+      const progress = loadProgress();
 
       const filtered = manualDocs.filter(doc => {
         const matchCat = (currentCat === 'ALL' || doc.cat === currentCat);
@@ -1176,7 +1077,6 @@
         return;
       }
 
-      // 카테고리별 그룹핑 출력
       const groups = {};
       filtered.forEach(doc => {
         if (!groups[doc.catName]) groups[doc.catName] = [];
@@ -1189,9 +1089,25 @@
         groups[catTitle].forEach(doc => {
           const isActive = (doc.id === selectedDocId) ? 'active' : '';
           const extClass = `ext-${doc.ext.toLowerCase()}`;
+          const qCount = (doc.quiz && doc.quiz.length) || 0;
+          const rec = progress[doc.id];
+
+          let qBadge = '';
+          if (qCount > 0) {
+            if (rec && rec.bestCorrect !== undefined) {
+              const passed = (rec.bestCorrect / qCount) >= 0.8;
+              qBadge = `<span class="quiz-mini-badge ${passed ? 'passed' : ''}" title="최고 기록 ${rec.bestCorrect}/${qCount}">${passed ? '✓ ' : ''}${rec.bestCorrect}/${qCount}</span>`;
+            } else {
+              qBadge = `<span class="quiz-mini-badge" title="형성평가 ${qCount}문항">Q${qCount}</span>`;
+            }
+          } else {
+            qBadge = `<span class="quiz-mini-badge deferred" title="퀴즈 보류 문서">참고</span>`;
+          }
+
           html += `
             <div class="file-item ${isActive}" onclick="selectDoc(${doc.id})">
               <span class="file-name">${doc.file}</span>
+              ${qBadge}
               <span class="ext-badge ${extClass}">${doc.ext}</span>
             </div>
           `;
@@ -1202,36 +1118,328 @@
     }
 
     /* =========================================================================
-       3. 문서 선택 시 중앙 요약 뷰어 & 우측 다운로드/새창열기 버튼 갱신
+       3. 문서 선택 & 중앙 뷰어(매뉴얼 탭 / 형성평가 퀴즈·시험 탭) 렌더링
        ========================================================================= */
     function selectDoc(id) {
       selectedDocId = id;
-      const doc = manualDocs.find(d => d.id === id) || manualDocs[0];
+      currentViewerTab = 'manual';
+      renderCurrentDoc();
+    }
+
+    function switchViewerTab(tab) {
+      const doc = manualDocs.find(d => d.id === selectedDocId) || manualDocs[0];
+      if (tab === 'quiz' && (!doc.quiz || doc.quiz.length === 0)) return;
+      currentViewerTab = tab;
+      renderCurrentDoc();
+      const scrollEl = document.querySelector('.viewer-scroll');
+      if (scrollEl) scrollEl.scrollTop = 0;
+    }
+
+    function switchQuizMode(mode) {
+      currentQuizMode = mode;
+      renderCurrentDoc();
+    }
+
+    function selectQuizOption(qIdx, optIdx) {
+      const doc = manualDocs.find(d => d.id === selectedDocId);
+      if (!doc || !doc.quiz) return;
+      const sess = getSession(doc.id);
+
+      if (currentQuizMode === 'quiz') {
+        if (sess.quizAnswers[qIdx] !== undefined) return; // 이미 푼 문항 고정
+        sess.quizAnswers[qIdx] = optIdx;
+        // 전체 문항을 다 풀었으면 최고 기록 저장
+        if (Object.keys(sess.quizAnswers).length === doc.quiz.length) {
+          let correct = 0;
+          doc.quiz.forEach((q, i) => {
+            if (sess.quizAnswers[i] === q.answer) correct++;
+          });
+          saveDocScore(doc.id, correct, doc.quiz.length);
+        }
+      } else {
+        if (sess.examSubmitted) return;
+        sess.examAnswers[qIdx] = optIdx;
+      }
+      renderCurrentDoc();
+    }
+
+    function submitExam() {
+      const doc = manualDocs.find(d => d.id === selectedDocId);
+      if (!doc || !doc.quiz) return;
+      const sess = getSession(doc.id);
+      const targetIndices = sess.retryIndices || doc.quiz.map((_, i) => i);
+
+      const unanswered = targetIndices.filter(i => sess.examAnswers[i] === undefined);
+      if (unanswered.length > 0) {
+        alert(`아직 선택하지 않은 문항이 ${unanswered.length}개 있습니다. 모든 문항을 선택 후 제출해 주세요.`);
+        return;
+      }
+
+      sess.examSubmitted = true;
+      if (!sess.retryIndices) {
+        let correct = 0;
+        doc.quiz.forEach((q, i) => {
+          if (sess.examAnswers[i] === q.answer) correct++;
+        });
+        saveDocScore(doc.id, correct, doc.quiz.length);
+      }
+      renderCurrentDoc();
+      const scrollEl = document.querySelector('.viewer-scroll');
+      if (scrollEl) scrollEl.scrollTop = 0;
+    }
+
+    function resetQuizSession(onlyWrong) {
+      const doc = manualDocs.find(d => d.id === selectedDocId);
+      if (!doc || !doc.quiz) return;
+      const sess = getSession(doc.id);
+
+      if (currentQuizMode === 'quiz') {
+        sess.quizAnswers = {};
+      } else {
+        if (onlyWrong && sess.examSubmitted) {
+          const wrongIndices = [];
+          doc.quiz.forEach((q, i) => {
+            if (sess.examAnswers[i] !== q.answer) wrongIndices.push(i);
+          });
+          if (wrongIndices.length === 0) return;
+          wrongIndices.forEach(i => delete sess.examAnswers[i]);
+          sess.retryIndices = wrongIndices;
+          sess.examSubmitted = false;
+        } else {
+          sess.examAnswers = {};
+          sess.examSubmitted = false;
+          sess.retryIndices = null;
+        }
+      }
+      renderCurrentDoc();
+    }
+
+    function renderQuizPanel(doc) {
+      const sess = getSession(doc.id);
+      const total = doc.quiz.length;
+      const isQuiz = (currentQuizMode === 'quiz');
+
+      let progressLabel = '';
+      if (isQuiz) {
+        const answeredCount = Object.keys(sess.quizAnswers).length;
+        let correctCount = 0;
+        doc.quiz.forEach((q, i) => {
+          if (sess.quizAnswers[i] === q.answer) correctCount++;
+        });
+        progressLabel = `진행: ${answeredCount}/${total}문항 (현재 정답 ${correctCount}개)`;
+      } else {
+        const activeIndices = sess.retryIndices || doc.quiz.map((_, i) => i);
+        const answeredCount = activeIndices.filter(i => sess.examAnswers[i] !== undefined).length;
+        progressLabel = sess.examSubmitted
+          ? '채점 완료'
+          : `선택: ${answeredCount}/${activeIndices.length}문항`;
+      }
+
+      const modeBarHtml = `
+        <div class="quiz-mode-bar">
+          <div class="mode-switch-group">
+            <button class="mode-btn ${isQuiz ? 'active' : ''}" onclick="switchQuizMode('quiz')">💡 퀴즈형 (즉시 피드백)</button>
+            <button class="mode-btn ${!isQuiz ? 'active' : ''}" onclick="switchQuizMode('exam')">📋 시험형 (일괄 채점)</button>
+          </div>
+          <div style="display:flex; align-items:center; gap:10px;">
+            <span class="quiz-progress-text">${progressLabel}</span>
+            <button class="btn-secondary" style="padding:5px 10px; font-size:11.5px;" onclick="resetQuizSession(false)">초기화</button>
+          </div>
+        </div>
+      `;
+
+      // 시험형 채점 결과 배너
+      let examBannerHtml = '';
+      if (!isQuiz && sess.examSubmitted) {
+        const targetIndices = sess.retryIndices || doc.quiz.map((_, i) => i);
+        let correct = 0;
+        targetIndices.forEach(i => {
+          if (sess.examAnswers[i] === doc.quiz[i].answer) correct++;
+        });
+        const pct = Math.round((correct / targetIndices.length) * 100);
+        const isPass = pct >= 80;
+        const wrongCount = targetIndices.length - correct;
+
+        examBannerHtml = `
+          <div class="exam-result-banner ${isPass ? 'pass' : ''}">
+            <div>
+              <div style="font-size:12px; color:var(--text-muted); margin-bottom:4px;">
+                ${sess.retryIndices ? '오답 재평가 결과' : '형성평가 시험 채점 결과'}
+              </div>
+              <div class="exam-score-big">${pct}점 <span style="font-size:14px; font-weight:600; color:#d8e5ee;">(${correct} / ${targetIndices.length} 정답)</span></div>
+              <div style="font-size:12.5px; margin-top:4px; color:${isPass ? '#b8f7d0' : '#f3e9c6'};">
+                ${isPass
+                  ? '✅ 우수 이해도 달성! 핵심 절차와 설정 기준을 정확히 이해하고 있습니다.'
+                  : '📌 80점 미만입니다. 아래 오답 해설을 확인한 뒤 [오답만 다시 풀기]로 보완해 주세요.'}
+              </div>
+            </div>
+            <div style="display:flex; gap:8px; flex-wrap:wrap;">
+              ${wrongCount > 0 ? `<button class="btn-primary" onclick="resetQuizSession(true)">오답만 다시 풀기 (${wrongCount}문항)</button>` : ''}
+              <button class="btn-secondary" onclick="resetQuizSession(false)">전체 다시 풀기</button>
+            </div>
+          </div>
+        `;
+      }
+
+      // 문항 리스트
+      const indicesToRender = (!isQuiz && sess.retryIndices) ? sess.retryIndices : doc.quiz.map((_, i) => i);
+      const questionsHtml = indicesToRender.map(qIdx => {
+        const item = doc.quiz[qIdx];
+        const chosen = isQuiz ? sess.quizAnswers[qIdx] : sess.examAnswers[qIdx];
+        const showResult = isQuiz ? (chosen !== undefined) : sess.examSubmitted;
+
+        let cardStatusClass = '';
+        if (showResult) {
+          cardStatusClass = (chosen === item.answer) ? 'q-correct' : 'q-wrong';
+        }
+
+        const optsHtml = item.options.map((opt, optIdx) => {
+          let cls = '';
+          if (showResult) {
+            if (optIdx === item.answer) cls = 'opt-correct';
+            else if (optIdx === chosen) cls = 'opt-wrong';
+          } else if (chosen === optIdx) {
+            cls = 'selected';
+          }
+          const disabled = showResult ? 'disabled' : '';
+          return `
+            <button class="quiz-opt-btn ${cls}" ${disabled} onclick="selectQuizOption(${qIdx}, ${optIdx})">
+              <span class="opt-idx">${['①', '②', '③', '④'][optIdx]}</span>
+              <span>${escapeHtml(opt)}</span>
+            </button>
+          `;
+        }).join('');
+
+        let fbHtml = '';
+        if (showResult) {
+          const isOk = (chosen === item.answer);
+          fbHtml = `
+            <div class="quiz-feedback ${isOk ? 'fb-ok' : 'fb-no'}">
+              <b>${isOk ? '⭕ 정답입니다!' : `❌ 오답입니다. (정답: ${['①', '②', '③', '④'][item.answer]})`}</b><br>
+              ${escapeHtml(item.explanation)}
+            </div>
+          `;
+        }
+
+        return `
+          <div class="quiz-card ${cardStatusClass}">
+            <div class="quiz-q-header">
+              <span class="quiz-q-num">Q${qIdx + 1}</span>
+              <div class="quiz-q-text">${escapeHtml(item.q)}</div>
+            </div>
+            <div class="quiz-options">${optsHtml}</div>
+            ${fbHtml}
+          </div>
+        `;
+      }).join('');
+
+      let examSubmitBar = '';
+      if (!isQuiz && !sess.examSubmitted) {
+        const answeredCount = indicesToRender.filter(i => sess.examAnswers[i] !== undefined).length;
+        examSubmitBar = `
+          <div class="exam-actions-bar">
+            <span style="font-size:12.5px; color:var(--text-muted);">
+              모든 문항(${answeredCount}/${indicesToRender.length})을 선택한 뒤 제출하면 일괄 채점 및 해설이 표시됩니다.
+            </span>
+            <button class="btn-primary" onclick="submitExam()">📝 채점 및 결과 제출</button>
+          </div>
+        `;
+      }
+
+      return modeBarHtml + examBannerHtml + questionsHtml + examSubmitBar;
+    }
+
+    function renderCurrentDoc() {
+      const doc = manualDocs.find(d => d.id === selectedDocId) || manualDocs[0];
       renderFileList();
 
-      // 한글, 공백, 대괄호 등이 포함된 파일명을 안전하게 URL 인코딩
       const safeHref = 'pdf/' + encodeURIComponent(doc.file);
-
       document.getElementById('viewer-path').textContent = `pdf/${doc.file}`;
 
-      // 중앙 요약 카드 렌더링
       const tagsHtml = doc.tags.map(t => `<span class="meta-pill"># ${t}</span>`).join('');
-      const stepsHtml = doc.steps.map((s, idx) => `
-        <li>
-          <span class="step-num">STEP ${idx + 1}</span>
-          <span>${s}</span>
-        </li>
-      `).join('');
-      const warnsHtml = doc.warnings.map(w => `<li>${w}</li>`).join('');
+      const qCount = (doc.quiz && doc.quiz.length) || 0;
+      const hasQuiz = qCount > 0;
 
-      const simHtml = doc.simLink ? `
-        <div class="sim-link-box">
-          <div style="font-size:12.5px; color:#d7f3f5;">
-            <b>💡 연계 실습 시뮬레이터:</b> 본 매뉴얼의 원리를 3D 가상 환경에서 직접 조작해 볼 수 있습니다.
-          </div>
-          <a href="${doc.simLink.url}" class="sim-link-btn">${doc.simLink.label} ↗</a>
+      const tabsHtml = `
+        <div class="viewer-tabs">
+          <button class="v-tab-btn ${currentViewerTab === 'manual' ? 'active' : ''}" onclick="switchViewerTab('manual')">
+            📖 매뉴얼 & 학습 포인트
+          </button>
+          <button class="v-tab-btn ${currentViewerTab === 'quiz' ? 'active' : ''} ${!hasQuiz ? 'disabled' : ''}"
+                  onclick="switchViewerTab('quiz')"
+                  title="${hasQuiz ? '퀴즈형/시험형 형성평가 풀기' : '현재 보류/참고 문서입니다'}">
+            📝 형성평가 Quiz
+            <span class="tab-pill-count">${hasQuiz ? `${qCount}문항` : '보류'}</span>
+          </button>
         </div>
-      ` : '';
+      `;
+
+      let bodyHtml = '';
+      if (currentViewerTab === 'quiz' && hasQuiz) {
+        bodyHtml = renderQuizPanel(doc);
+      } else {
+        const stepsHtml = doc.steps.map((s, idx) => `
+          <li>
+            <span class="step-num">STEP ${idx + 1}</span>
+            <span>${s}</span>
+          </li>
+        `).join('');
+
+        const lpHtml = (doc.learningPoints && doc.learningPoints.length > 0) ? `
+          <div class="summary-card">
+            <div class="card-title">💡 핵심 학습 포인트 (Key Learning Points)</div>
+            <div class="lp-grid">
+              ${doc.learningPoints.map(lp => `
+                <div class="lp-item">
+                  <div class="lp-title">▸ ${lp.title}</div>
+                  <div class="lp-detail">${lp.detail}</div>
+                </div>
+              `).join('')}
+            </div>
+          </div>
+        ` : '';
+
+        const warnsHtml = doc.warnings.map(w => `<li>${w}</li>`).join('');
+        const simHtml = doc.simLink ? `
+          <div class="sim-link-box">
+            <div style="font-size:12.5px; color:#d7f3f5;">
+              <b>💡 연계 실습 시뮬레이터:</b> 본 매뉴얼의 원리를 3D 가상 환경에서 직접 조작해 볼 수 있습니다.
+            </div>
+            <a href="${doc.simLink.url}" class="sim-link-btn">${doc.simLink.label} ↗</a>
+          </div>
+        ` : '';
+
+        const quizCalloutHtml = hasQuiz ? `
+          <div class="sim-link-box" style="margin-top:10px; border-color:#42a5f5; background:linear-gradient(90deg, rgba(21,101,192,0.16), rgba(0,173,181,0.12));">
+            <div style="font-size:12.5px; color:#d8e9f8;">
+              <b>📝 이해도 점검 (${qCount}문항):</b> 학습한 내용을 바탕으로 퀴즈형(즉시 피드백) 또는 시험형(일괄 채점) 평가를 풀어보세요.
+            </div>
+            <button class="sim-link-btn" style="border:none; cursor:pointer;" onclick="switchViewerTab('quiz')">형성평가 시작 →</button>
+          </div>
+        ` : '';
+
+        bodyHtml = `
+          <div class="summary-card">
+            <div class="card-title">📌 문서 개요 및 활용 목적</div>
+            <p class="overview-text">${doc.overview}</p>
+          </div>
+
+          <div class="summary-card">
+            <div class="card-title">🔢 핵심 작업 절차 및 설정 기준</div>
+            <ul class="step-list">${stepsHtml}</ul>
+          </div>
+
+          ${lpHtml}
+
+          <div class="warn-card">
+            <div class="warn-title">⚠️ 현장 주의사항 & 체크포인트</div>
+            <ul class="warn-list">${warnsHtml}</ul>
+          </div>
+
+          ${simHtml}
+          ${quizCalloutHtml}
+        `;
+      }
 
       document.getElementById('doc-viewer').innerHTML = `
         <div class="doc-hero">
@@ -1243,23 +1451,8 @@
           <div class="doc-title">${doc.file.replace(/\.[^/.]+$/, "")}</div>
           <div class="doc-filename">원본 파일명: pdf/${doc.file} (${doc.ext})</div>
         </div>
-
-        <div class="summary-card">
-          <div class="card-title">📌 문서 개요 및 활용 목적</div>
-          <p class="overview-text">${doc.overview}</p>
-        </div>
-
-        <div class="summary-card">
-          <div class="card-title">🔢 핵심 작업 절차 및 학습 포인트</div>
-          <ul class="step-list">${stepsHtml}</ul>
-        </div>
-
-        <div class="warn-card">
-          <div class="warn-title">⚠️ 현장 주의사항 & 체크포인트</div>
-          <ul class="warn-list">${warnsHtml}</ul>
-        </div>
-
-        ${simHtml}
+        ${tabsHtml}
+        ${bodyHtml}
       `;
 
       // 우측 다운로드 / 새창열기 버튼 링크 및 라벨 동기화
@@ -1281,7 +1474,7 @@
     }
 
     // 초기 실행: 첫 번째 문서(0번) 자동 선택
-    selectDoc(0);
+    renderCurrentDoc();
   </script>
 </body>
 </html>
