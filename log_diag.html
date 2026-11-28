@@ -222,6 +222,41 @@
       border-color: var(--ok-green);
       color: #7bed9f;
     }
+    .sc-btn.solved.first-try {
+      background: rgba(241, 196, 15, 0.18);
+      border-color: #f1c40f;
+      color: #ffe066;
+    }
+
+    .ribbon-right-actions {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-shrink: 0;
+    }
+
+    .ribbon-tool-btn {
+      background: #0d2636;
+      border: 1px solid #26536b;
+      color: #cbe0ec;
+      padding: 4px 9px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 700;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all 0.15s;
+    }
+    .ribbon-tool-btn:hover { border-color: var(--accent-cyan); color: #fff; }
+    .ribbon-tool-btn.active {
+      background: rgba(56, 189, 248, 0.2);
+      border-color: var(--accent-cyan);
+      color: var(--accent-cyan);
+    }
+    .ribbon-tool-btn.danger:hover {
+      border-color: var(--ng-red);
+      color: #ff9a90;
+    }
 
     .mode-badge {
       background: var(--ok-green);
@@ -233,6 +268,118 @@
       letter-spacing: 0.5px;
       flex-shrink: 0;
     }
+
+    .atmc-menu-item {
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .atmc-menu-item:hover:not(.active) {
+      border-color: var(--accent-cyan);
+      color: #fff;
+    }
+
+    .atmc-subpanel {
+      flex: 1;
+      overflow-y: auto;
+      padding: 14px 16px;
+      background: #06131c;
+      color: #d6e4ee;
+      font-size: 12px;
+    }
+    .subpanel-title {
+      font-size: 13px;
+      font-weight: 800;
+      color: var(--accent-cyan);
+      margin-bottom: 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid #1b3d52;
+      padding-bottom: 6px;
+    }
+    .cfg-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 10px;
+    }
+    .cfg-card {
+      background: #0a1f2c;
+      border: 1px solid #1b3d52;
+      border-radius: 6px;
+      padding: 10px 12px;
+    }
+    .cfg-card-head {
+      font-size: 11px;
+      font-weight: 800;
+      color: #8ab4cc;
+      margin-bottom: 8px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .cfg-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+      padding: 4px 0;
+      border-bottom: 1px dashed rgba(255,255,255,0.06);
+      font-family: var(--font-mono);
+      font-size: 11px;
+    }
+    .cfg-row:last-child { border-bottom: none; }
+    .cfg-key { color: #7c9eb2; }
+    .cfg-val { color: #d6e4ee; font-weight: 700; text-align: right; word-break: break-all; }
+    .cfg-val.bad { color: #ff7675; background: rgba(231, 76, 60, 0.16); padding: 0 5px; border-radius: 3px; }
+    .cfg-val.ok { color: #7bed9f; }
+
+    .db-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 11.5px;
+    }
+    .db-table th {
+      text-align: left;
+      padding: 6px 8px;
+      background: #0a1f2c;
+      color: #8ab4cc;
+      border-bottom: 1px solid #26536b;
+      font-size: 11px;
+    }
+    .db-table td {
+      padding: 6px 8px;
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+    }
+    .db-table tr.db-row { cursor: pointer; }
+    .db-table tr.db-row:hover { background: rgba(56, 189, 248, 0.1); }
+    .db-table tr.db-row.cur { background: rgba(231, 76, 60, 0.12); }
+
+    .option-list.cooldown {
+      pointer-events: none;
+      opacity: 0.52;
+      transition: opacity 0.2s;
+    }
+    .fb-actions-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 9px;
+      padding-top: 8px;
+      border-top: 1px dashed rgba(255,255,255,0.16);
+    }
+    .fb-link-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      background: #0d2636;
+      border: 1px solid #2c5f7a;
+      color: #cbe6f5;
+      padding: 4px 9px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 700;
+      text-decoration: none;
+      cursor: pointer;
+    }
+    .fb-link-btn:hover { border-color: var(--accent-cyan); color: #fff; }
 
     /* 메인 그리드 (데스크톱 2단 / 모바일 1단) */
     .main-grid {
@@ -713,7 +860,12 @@
         <button class="cat-btn" onclick="setCategory('PLC_ROB', this)">로봇·PLC (3)</button>
         <button class="cat-btn" onclick="setCategory('CFG', this)">설정·모델파일 (2)</button>
       </div>
-      <div class="mode-badge" id="progress-badge">완료 0/12</div>
+      <div class="ribbon-right-actions">
+        <button class="ribbon-tool-btn" id="random-mode-btn" onclick="toggleRandomMode()" title="순차/랜덤 출제 전환">🎲 순차 모드</button>
+        <div class="mode-badge" id="progress-badge">완료 0/12</div>
+        <button class="ribbon-tool-btn" id="copy-result-btn" onclick="copyLearningSummary()" title="학습 결과 요약 클립보드 복사">📋 결과 복사</button>
+        <button class="ribbon-tool-btn danger" id="reset-progress-btn" onclick="resetProgress()" title="진행 기록 초기화">↺ 초기화</button>
+      </div>
     </div>
     <div class="scenario-bar-wrap">
       <button class="sc-nav-btn" id="sc-prev-btn" onclick="scrollScenarioBar(-1)" title="이전 탭 보기" aria-label="이전 시나리오 탭 보기">◀</button>
@@ -730,16 +882,16 @@
       <!-- ATMC.App 내부 메뉴 스트립 (HOME / DB / LOG / CONFIG + MANUAL/AUTO) -->
       <div class="atmc-app-subbar">
         <div class="atmc-menu-icons">
-          <span class="atmc-menu-item active">HOME</span>
-          <span class="atmc-menu-item">DB</span>
-          <span class="atmc-menu-item">LOG</span>
-          <span class="atmc-menu-item">CONFIG</span>
+          <span class="atmc-menu-item active" id="tab-home" onclick="setAtmcTab('HOME', this)">HOME</span>
+          <span class="atmc-menu-item" id="tab-db" onclick="setAtmcTab('DB', this)">DB</span>
+          <span class="atmc-menu-item" id="tab-log" onclick="setAtmcTab('LOG', this)">LOG</span>
+          <span class="atmc-menu-item" id="tab-config" onclick="setAtmcTab('CONFIG', this)">CONFIG</span>
         </div>
         <div class="atmc-op-mode manual" id="op-mode-badge">MANUAL</div>
       </div>
 
       <!-- 상단 카메라 뷰포트 + 경고 배너 -->
-      <div class="cam-viewport">
+      <div class="cam-viewport" id="atmc-cam-viewport">
         <div class="cam-box">
           <div class="cam-header">SCANNER 0 (S0)</div>
           <div class="cam-canvas" id="s0-view">No 3D Scan Data</div>
@@ -759,7 +911,7 @@
       </div>
 
       <!-- 중단 카운터 / I/O / 판정 / SHIFT -->
-      <div class="atmc-mid-strip">
+      <div class="atmc-mid-strip" id="atmc-mid-strip">
         <div class="counter-col">
           <div class="cnt-top">
             <div class="cnt-ok">OK<span class="cnt-num" id="cnt-ok">124</span></div>
@@ -779,6 +931,9 @@
 
         <div class="shift-grid" id="shift-grid"></div>
       </div>
+
+      <!-- DB / CONFIG 서브 패널 -->
+      <div class="atmc-subpanel" id="atmc-subpanel" style="display:none;"></div>
 
       <!-- 하단 로그 터미널 -->
       <div class="log-terminal" id="log-terminal"></div>
@@ -1245,6 +1400,14 @@
       }
     ];
 
+    const STORAGE_KEY = 'atmc_diag_s2_progress_v1';
+    const CAT_LABELS = {
+      HW: '스캐너·광학',
+      NET: '네트워크·NIC',
+      PLC_ROB: '로봇·PLC',
+      CFG: '설정·모델파일'
+    };
+
     let curCat = 'ALL';
     let curSc = 0;
     let selectedCause = null;
@@ -1253,6 +1416,252 @@
     let lastHwTriggerTime = 0;
     let baseOkCount = 124;
     let solvedSet = new Set();
+    let firstTrySet = new Set();
+    let wrongAttemptsMap = {};
+    let isRandomMode = false;
+    let displayOrder = scenarios.map(s => s.id);
+    let curAtmcTab = 'HOME';
+    let cooldownTimer = null;
+
+    function getScenarioById(id) {
+      return scenarios.find(s => s.id === id) || scenarios[0];
+    }
+
+    function saveProgress() {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify({
+          solved: Array.from(solvedSet),
+          firstTry: Array.from(firstTrySet),
+          wrongAttempts: wrongAttemptsMap,
+          lastSc: curSc,
+          randomMode: isRandomMode
+        }));
+      } catch (_) {}
+    }
+
+    function loadProgress() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (!raw) return;
+        const data = JSON.parse(raw);
+        if (Array.isArray(data.solved)) solvedSet = new Set(data.solved);
+        if (Array.isArray(data.firstTry)) firstTrySet = new Set(data.firstTry);
+        if (data.wrongAttempts && typeof data.wrongAttempts === 'object') {
+          wrongAttemptsMap = data.wrongAttempts;
+        }
+        if (typeof data.lastSc === 'number' && scenarios.some(s => s.id === data.lastSc)) {
+          curSc = data.lastSc;
+        }
+        if (data.randomMode) {
+          isRandomMode = true;
+          displayOrder = shuffleArray(scenarios.map(s => s.id));
+          const btn = document.getElementById('random-mode-btn');
+          if (btn) {
+            btn.textContent = '🎲 랜덤 모드';
+            btn.classList.add('active');
+          }
+        }
+      } catch (_) {}
+    }
+
+    function resetProgress() {
+      if (!confirm('저장된 학습 진행도(완료 및 1차 정답 기록)를 모두 초기화하시겠습니까?')) return;
+      solvedSet.clear();
+      firstTrySet.clear();
+      wrongAttemptsMap = {};
+      try { localStorage.removeItem(STORAGE_KEY); } catch (_) {}
+      loadScenario(displayOrder[0] ?? 0);
+    }
+
+    function toggleRandomMode() {
+      isRandomMode = !isRandomMode;
+      displayOrder = isRandomMode
+        ? shuffleArray(scenarios.map(s => s.id))
+        : scenarios.map(s => s.id);
+      const btn = document.getElementById('random-mode-btn');
+      if (btn) {
+        btn.textContent = isRandomMode ? '🎲 랜덤 모드' : '🎲 순차 모드';
+        btn.classList.toggle('active', isRandomMode);
+      }
+      saveProgress();
+      const filtered = getOrderedFilteredScenarios();
+      if (filtered.length > 0) {
+        const nextTarget = filtered.find(s => !solvedSet.has(s.id)) || filtered[0];
+        loadScenario(nextTarget.id);
+      }
+    }
+
+    function getOrderedFilteredScenarios() {
+      const ordered = displayOrder.map(id => getScenarioById(id));
+      return ordered.filter(s => curCat === 'ALL' || s.cat === curCat);
+    }
+
+    function setAtmcTab(tab, el) {
+      curAtmcTab = tab;
+      document.querySelectorAll('.atmc-menu-item').forEach(m => m.classList.remove('active'));
+      if (el) el.classList.add('active');
+      else {
+        const tabEl = document.getElementById('tab-' + tab.toLowerCase());
+        if (tabEl) tabEl.classList.add('active');
+      }
+
+      const camEl = document.getElementById('atmc-cam-viewport');
+      const midEl = document.getElementById('atmc-mid-strip');
+      const logEl = document.getElementById('log-terminal');
+      const subEl = document.getElementById('atmc-subpanel');
+
+      if (tab === 'HOME') {
+        camEl.style.display = '';
+        midEl.style.display = '';
+        logEl.style.display = '';
+        subEl.style.display = 'none';
+      } else if (tab === 'LOG') {
+        camEl.style.display = 'none';
+        midEl.style.display = 'none';
+        logEl.style.display = '';
+        subEl.style.display = 'none';
+      } else {
+        camEl.style.display = 'none';
+        midEl.style.display = 'none';
+        logEl.style.display = 'none';
+        subEl.style.display = 'block';
+        renderAtmcSubpanel();
+      }
+    }
+
+    function renderAtmcSubpanel() {
+      const subEl = document.getElementById('atmc-subpanel');
+      if (!subEl || subEl.style.display === 'none') return;
+      const sc = getScenarioById(curSc);
+
+      if (curAtmcTab === 'CONFIG') {
+        const isPlcAddrErr = sc.id === 3;
+        const isHandEyeErr = sc.id === 5;
+        const isModelErr = sc.id === 6;
+        const isLinkErr = sc.id === 7;
+        const isJumboErr = sc.id === 8;
+        const isPowerErr = sc.id === 9;
+        const isExpErr = sc.id === 10;
+        const isEndianErr = sc.id === 11;
+
+        subEl.innerHTML = `
+          <div class="subpanel-title">
+            <span>⚙️ ATMC.App Configuration Inspector (현재 케이스: CASE ${sc.id + 1})</span>
+            <span style="font-size:11px; color:#9ab5c7;">붉은색 강조 항목을 확인하세요</span>
+          </div>
+          <div class="cfg-grid">
+            <div class="cfg-card">
+              <div class="cfg-card-head">PLC / Robot Communication</div>
+              <div class="cfg-row"><span class="cfg-key">PLC.Type</span><span class="cfg-val">Siemens S7 / Melsec</span></div>
+              <div class="cfg-row"><span class="cfg-key">PLC.InputDevice</span><span class="cfg-val ${isPlcAddrErr ? 'bad' : ''}">${isPlcAddrErr ? 'D0000 (Invalid!)' : 'DB100 / D300'}</span></div>
+              <div class="cfg-row"><span class="cfg-key">Robot.Protocol</span><span class="cfg-val">Hyundai HR-RPC (10.10.10.55)</span></div>
+              <div class="cfg-row"><span class="cfg-key">Byte/Word Swap</span><span class="cfg-val ${isEndianErr ? 'bad' : 'ok'}">${isEndianErr ? 'DISABLED (Mismatch!)' : 'ENABLED (Synced)'}</span></div>
+            </div>
+            <div class="cfg-card">
+              <div class="cfg-card-head">GigE Vision &amp; NIC Adapter</div>
+              <div class="cfg-row"><span class="cfg-key">Link Speed</span><span class="cfg-val ${isLinkErr ? 'bad' : 'ok'}">${isLinkErr ? '100 Mbps (Drop!)' : '1.0 Gbps Full Duplex'}</span></div>
+              <div class="cfg-row"><span class="cfg-key">Jumbo Packet (MTU)</span><span class="cfg-val ${isJumboErr ? 'bad' : 'ok'}">${isJumboErr ? '1500 Bytes (Default)' : '9014 Bytes'}</span></div>
+              <div class="cfg-row"><span class="cfg-key">NIC Power Saving / EEE</span><span class="cfg-val ${isPowerErr ? 'bad' : 'ok'}">${isPowerErr ? 'ENABLED (Idle Cut!)' : 'DISABLED'}</span></div>
+              <div class="cfg-row"><span class="cfg-key">Exposure / HDR</span><span class="cfg-val ${isExpErr ? 'bad' : ''}">${isExpErr ? '12000 us (Saturated!)' : 'Auto / HDR Balanced'}</span></div>
+            </div>
+            <div class="cfg-card">
+              <div class="cfg-card-head">Calibration &amp; Model Files</div>
+              <div class="cfg-row"><span class="cfg-key">HandEye_S0.json</span><span class="cfg-val ${isHandEyeErr ? 'bad' : 'ok'}">${isHandEyeErr ? 'FILE NOT FOUND' : './ATMC.App.Settings/HandEye_S0.json'}</span></div>
+              <div class="cfg-row"><span class="cfg-key">HandEye_S1.json</span><span class="cfg-val ok">./ATMC.App.Settings/HandEye_S1.json</span></div>
+              <div class="cfg-row"><span class="cfg-key">ModelDir (Type 33)</span><span class="cfg-val ${isModelErr ? 'bad' : 'ok'}">${isModelErr ? 'OS_EV\\hole_model_base.ply (Missing!)' : 'Loaded OK'}</span></div>
+            </div>
+          </div>
+        `;
+      } else if (curAtmcTab === 'DB') {
+        subEl.innerHTML = `
+          <div class="subpanel-title">
+            <span>🗄️ 트러블슈팅 진단 DB 현황 (${solvedSet.size}/${scenarios.length} 완료 · ★ 1차 정답 ${firstTrySet.size})</span>
+            <span style="font-size:11px; color:#9ab5c7;">행을 클릭하면 해당 케이스로 이동합니다</span>
+          </div>
+          <table class="db-table">
+            <thead>
+              <tr><th>No</th><th>카테고리</th><th>시나리오</th><th>상태</th><th>오답 횟수</th></tr>
+            </thead>
+            <tbody>
+              ${scenarios.map(s => {
+                const isSolved = solvedSet.has(s.id);
+                const isFirst = firstTrySet.has(s.id);
+                const wrongs = wrongAttemptsMap[s.id] || 0;
+                const statusTxt = isFirst ? '★ 1차 완료' : (isSolved ? '✓ 재시도 완료' : '미완료');
+                const statusColor = isFirst ? '#ffe066' : (isSolved ? '#7bed9f' : '#9ab5c7');
+                return `
+                  <tr class="db-row ${s.id === curSc ? 'cur' : ''}" onclick="loadScenario(${s.id}); setAtmcTab('HOME');">
+                    <td>#${s.id + 1}</td>
+                    <td>${CAT_LABELS[s.cat]}</td>
+                    <td>${s.shortTitle}</td>
+                    <td style="color:${statusColor}; font-weight:700;">${statusTxt}</td>
+                    <td>${wrongs}회</td>
+                  </tr>
+                `;
+              }).join('')}
+            </tbody>
+          </table>
+        `;
+      }
+    }
+
+    function copyLearningSummary() {
+      const now = new Date();
+      const pad = n => String(n).padStart(2, '0');
+      const ts = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())} ${pad(now.getHours())}:${pad(now.getMinutes())}`;
+      const catStats = ['HW', 'NET', 'PLC_ROB', 'CFG'].map(cat => {
+        const list = scenarios.filter(s => s.cat === cat);
+        const firstCnt = list.filter(s => firstTrySet.has(s.id)).length;
+        return `${CAT_LABELS[cat]} ${firstCnt}/${list.length}`;
+      }).join(' | ');
+      const retryList = scenarios
+        .filter(s => solvedSet.has(s.id) && !firstTrySet.has(s.id))
+        .map(s => s.shortTitle)
+        .join(', ') || '없음';
+      const pendingList = scenarios
+        .filter(s => !solvedSet.has(s.id))
+        .map(s => s.shortTitle)
+        .join(', ') || '없음';
+
+      const summary = [
+        '[ATMC.Diagnostics_Trainer Season 2 학습 결과]',
+        `- 완료율: ${solvedSet.size} / ${scenarios.length}`,
+        `- 1차 시도 정답(★): ${firstTrySet.size} / ${scenarios.length}`,
+        `- 카테고리별 1차 정답: ${catStats}`,
+        `- 재시도 완료 케이스: ${retryList}`,
+        `- 미완료 케이스: ${pendingList}`,
+        `- 기록 시각: ${ts}`
+      ].join('\n');
+
+      const btn = document.getElementById('copy-result-btn');
+      const flashBtn = () => {
+        if (!btn) return;
+        const orig = btn.textContent;
+        btn.textContent = '✅ 복사됨!';
+        setTimeout(() => { btn.textContent = orig; }, 1800);
+      };
+
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(summary).then(flashBtn).catch(() => {
+          fallbackCopyText(summary);
+          flashBtn();
+        });
+      } else {
+        fallbackCopyText(summary);
+        flashBtn();
+      }
+    }
+
+    function fallbackCopyText(text) {
+      const ta = document.createElement('textarea');
+      ta.value = text;
+      ta.style.position = 'fixed';
+      ta.style.opacity = '0';
+      document.body.appendChild(ta);
+      ta.select();
+      try { document.execCommand('copy'); } catch (_) {}
+      document.body.removeChild(ta);
+    }
 
     /* 접속 기기 OS / 모바일 자동 감지 안내 */
     function detectPlatformHint() {
@@ -1274,7 +1683,7 @@
       btn.classList.add('active');
       initScenarioBar();
 
-      const filtered = scenarios.filter(s => curCat === 'ALL' || s.cat === curCat);
+      const filtered = getOrderedFilteredScenarios();
       if (filtered.length > 0 && !filtered.some(s => s.id === curSc)) {
         loadScenario(filtered[0].id);
       }
@@ -1308,24 +1717,50 @@
 
     function initScenarioBar() {
       const bar = document.getElementById('scenario-buttons');
-      const filtered = scenarios.filter(s => curCat === 'ALL' || s.cat === curCat);
+      const filtered = getOrderedFilteredScenarios();
       bar.innerHTML = filtered.map((s) => {
-        const cls = s.id === curSc ? 'active' : (solvedSet.has(s.id) ? 'solved' : '');
-        const mark = solvedSet.has(s.id) ? '✓ ' : '';
+        const isFirst = firstTrySet.has(s.id);
+        const isSolved = solvedSet.has(s.id);
+        const cls = s.id === curSc
+          ? 'active'
+          : (isFirst ? 'solved first-try' : (isSolved ? 'solved' : ''));
+        const mark = isFirst ? '★ ' : (isSolved ? '✓ ' : '');
         return `<button class="sc-btn ${cls}" onclick="loadScenario(${s.id})">${mark}${s.shortTitle}</button>`;
       }).join('');
-      document.getElementById('progress-badge').textContent = `완료 ${solvedSet.size}/${scenarios.length}`;
+      document.getElementById('progress-badge').textContent = `완료 ${solvedSet.size}/${scenarios.length} (★${firstTrySet.size})`;
       requestAnimationFrame(updateScenarioScrollButtons);
+    }
+
+    function clearOptionCooldown() {
+      if (cooldownTimer) {
+        clearTimeout(cooldownTimer);
+        cooldownTimer = null;
+      }
+      const cList = document.getElementById('cause-options');
+      const aList = document.getElementById('action-options');
+      if (cList) cList.classList.remove('cooldown');
+      if (aList) aList.classList.remove('cooldown');
+    }
+
+    function triggerOptionCooldown(ms = 2200) {
+      clearOptionCooldown();
+      const cList = document.getElementById('cause-options');
+      const aList = document.getElementById('action-options');
+      if (cList) cList.classList.add('cooldown');
+      if (aList) aList.classList.add('cooldown');
+      cooldownTimer = setTimeout(clearOptionCooldown, ms);
     }
 
     function loadScenario(idx) {
       curSc = idx;
       selectedCause = null;
       selectedAction = null;
-      const sc = scenarios.find(s => s.id === idx) || scenarios[0];
+      clearOptionCooldown();
+      const sc = getScenarioById(idx);
       sc.causes = shuffleArray(sc.causes);
       sc.actions = shuffleArray(sc.actions);
       hwTriggered = (sc.ctrlDblTarget === null);
+      saveProgress();
 
       initScenarioBar();
       const activeBtn = document.querySelector('#scenario-buttons .sc-btn.active');
@@ -1398,10 +1833,13 @@
       ).join('');
 
       document.getElementById('diag-feedback').style.display = 'none';
+      if (curAtmcTab === 'CONFIG' || curAtmcTab === 'DB') {
+        renderAtmcSubpanel();
+      }
     }
 
     function pickCause(i) {
-      const sc = scenarios[curSc];
+      const sc = getScenarioById(curSc);
       selectedCause = i;
       sc.causes.forEach((_, idx) => {
         const b = document.getElementById(`c-opt-${idx}`);
@@ -1411,7 +1849,7 @@
     }
 
     function pickAction(i) {
-      const sc = scenarios[curSc];
+      const sc = getScenarioById(curSc);
       selectedAction = i;
       sc.actions.forEach((_, idx) => {
         const b = document.getElementById(`a-opt-${idx}`);
@@ -1420,8 +1858,14 @@
       evaluateDiagnosis();
     }
 
+    function goNextUnsolved() {
+      const ordered = getOrderedFilteredScenarios();
+      const next = ordered.find(s => !solvedSet.has(s.id) && s.id !== curSc) || ordered.find(s => !solvedSet.has(s.id));
+      if (next) loadScenario(next.id);
+    }
+
     function evaluateDiagnosis() {
-      const sc = scenarios[curSc];
+      const sc = getScenarioById(curSc);
       const fb = document.getElementById('diag-feedback');
       if (selectedCause === null || selectedAction === null) return;
 
@@ -1435,21 +1879,43 @@
           fb.innerHTML = `⚠️ <b>거의 완료되었습니다! 마지막 현장 절차:</b><br>하단 상태바의 적색 <b>[${sc.ctrlDblTarget === 'S0' ? 'SCANNER0' : (sc.ctrlDblTarget === 'S1' ? 'SCANNER1' : (sc.ctrlDblTarget === 'ROBOT' ? 'ROBOT0' : 'PLC'))}]</b> LED 탭을 재연결(Win: Ctrl+더블클릭 / Mac: Cmd·Option+클릭 / 모바일: 1회 탭)하여 통신을 복구하세요.`;
           return;
         }
+        const isFirstTry = !(wrongAttemptsMap[curSc] > 0);
+        if (isFirstTry) firstTrySet.add(curSc);
+        applyRecoveryVisuals();
+
+        const hasUnsolved = scenarios.some(s => !solvedSet.has(s.id));
+        const nextBtnHtml = hasUnsolved
+          ? `<button class="fb-link-btn" onclick="goNextUnsolved()">➡️ 다음 미완료 케이스</button>`
+          : `<button class="fb-link-btn" onclick="copyLearningSummary()">🎉 전체 12개 완료! 학습 결과 복사</button>`;
+
         fb.className = 'feedback-box ok';
         fb.style.display = 'block';
-        fb.innerHTML = `✅ <b>진단 및 복구 완료!</b><br>${sc.explain}`;
-        applyRecoveryVisuals();
+        fb.innerHTML = `✅ <b>진단 및 복구 완료!</b> (${isFirstTry ? '★ 1차 시도 완벽 진단' : '✓ 재시도 복구 완료'})<br>${sc.explain}<div class="fb-actions-row">${nextBtnHtml}</div>`;
       } else {
+        wrongAttemptsMap[curSc] = (wrongAttemptsMap[curSc] || 0) + 1;
+        saveProgress();
+        triggerOptionCooldown(2200);
+        const errLog = sc.logs.find(l => l.t === 'err')?.m || sc.bannerCode;
         fb.className = 'feedback-box err';
         fb.style.display = 'block';
-        fb.innerHTML = `❌ <b>진단 또는 조치 불일치:</b> 베이지색 로그창의 에러 키워드(<code>${sc.logs.find(l => l.t === 'err').m.slice(15, 56)}...</code>)를 다시 확인해 보세요.`;
+        fb.innerHTML = `
+          ❌ <b>진단 또는 조치 불일치 (누적 오답 ${wrongAttemptsMap[curSc]}회):</b><br>
+          단순 재클릭 방지를 위해 2초간 선택이 잠깁니다. 로그의 핵심 키워드(<code>${errLog.slice(15, 56)}...</code>)와 상단 <b>CONFIG</b> 탭을 다시 확인해 보세요.
+          <div class="fb-actions-row">
+            <a class="fb-link-btn" href="manual.html" target="_blank">📚 매뉴얼 찾아보기 ↗</a>
+            <a class="fb-link-btn" href="field_kit.html" target="_blank">📱 현장 툴킷 ↗</a>
+            <button class="fb-link-btn" onclick="setAtmcTab('CONFIG')">⚙️ CONFIG 설정 보기</button>
+          </div>
+        `;
       }
     }
 
     function applyRecoveryVisuals() {
       const wasSolved = solvedSet.has(curSc);
       solvedSet.add(curSc);
+      saveProgress();
       initScenarioBar();
+      if (curAtmcTab === 'DB') renderAtmcSubpanel();
 
       // OK 카운터 증가 연출
       const curOk = baseOkCount + solvedSet.size;
@@ -1482,7 +1948,7 @@
       if (now - lastHwTriggerTime < 350) return;
       lastHwTriggerTime = now;
 
-      const sc = scenarios[curSc];
+      const sc = getScenarioById(curSc);
       const logEl = document.getElementById('log-terminal');
       logEl.innerHTML += `<div class="log-line log-info">[USER] Reconnect Trigger on [${target}] -> Attempting reconnect...</div>`;
       if (sc.ctrlDblTarget === target) {
@@ -1539,7 +2005,8 @@
     window.addEventListener('resize', updateScenarioScrollButtons);
 
     detectPlatformHint();
-    loadScenario(0);
+    loadProgress();
+    loadScenario(curSc);
   </script>
 </body>
 </html>
