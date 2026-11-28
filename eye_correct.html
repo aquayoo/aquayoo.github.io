@@ -4,11 +4,11 @@
   <meta charset="UTF-8">
   <!-- 
     ========================================================================================
-    [ATM / 3D Vision 원점보정 (Eye Calibration) Simulator (ver 1.0 - Official PC 1920x1080 Release)]
-    Release Date: November 23, 2026
+    [ATM / 3D Vision 원점보정 (Eye Calibration) Simulator (ver 2.0 - Official PC 1920x1080 Release)]
+    Release Date: November 29, 2026
     Author: 교육관 유재광 (jaekwang.yoo@atmc.co.kr)
     
-    [핵심 구현 사양 (Eye_Correct.html V1.0)]
+    [핵심 구현 사양 (eye_correct.html V2.0)]
     ----------------------------------------------------------------------------------------
     1. 고정 기준 교정물 (calib_plate v91 - 3D 실물 메쉬 & 포인트 클라우드):
        - 작업대 원점에 고정된 역사각뿔대(호퍼형) 캘리브레이션 지그
@@ -25,7 +25,7 @@
   -->
   <meta name="application-version" content="1.0">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>3D Vision 원점보정(Eye Calibration) Simulator (ver 1.0)</title>
+  <title>3D Vision 원점보정(Eye Calibration) Simulator (ver 2.0)</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
@@ -90,8 +90,8 @@
   <header class="w-full bg-white rounded-xl shadow-xs border border-slate-200 px-4 py-1.5 flex items-center justify-between shrink-0 mb-1.5">
     <div class="flex items-center gap-2.5">
       <div class="bg-blue-600 text-white px-2.5 py-0.5 rounded-md shadow-xs flex flex-col items-center justify-center leading-tight">
-        <span class="text-[11px] font-black tracking-tight">V1.0</span>
-        <span class="text-[8.5px] font-bold opacity-90 leading-none">(Nov.23)</span>
+        <span class="text-[11px] font-black tracking-tight">V2.0</span>
+        <span class="text-[8.5px] font-bold opacity-90 leading-none">(Nov.29)</span>
       </div>
       <h1 class="text-sm md:text-base font-extrabold text-slate-900 tracking-tight whitespace-nowrap">
         3D Vision 원점보정 (Eye Calibration) Simulator
@@ -502,7 +502,7 @@
             </div>
           </div>
           <div id="packetLogList" class="flex-1 overflow-y-auto overflow-x-auto px-3 py-1.5 font-mono text-[9.5px] space-y-0.5 select-text bg-slate-50/90">
-            <div class="text-slate-600 whitespace-nowrap">[SYS] AbeoSCAN Eye Calibration Simulator (Eye_Correct ver 1.0) Ready. Target: calib_plate v91</div>
+            <div class="text-slate-600 whitespace-nowrap">[SYS] AbeoSCAN Eye Calibration Simulator (eye_correct ver 2.0) Ready. Target: calib_plate v91</div>
           </div>
         </div>
 
@@ -617,6 +617,7 @@
     // - currentOldScannerPts: 이동하는 기존 스캐너(Old) 기준 스캔 점군 (딥 네이비)
     // - targetNewScannerPts: 옮겨진 새 스캐너(New) 기준 위치 점군 (비비드 오렌지)
     let oldScanCloud, newScanCloud, rayLinesMesh = null;
+    let hasNewScanData = false;
     let currentOldScannerPts = [];
     let targetNewScannerPts = [];
 
@@ -964,6 +965,7 @@
         color: 0xff5500, size: 3.2, transparent: false, opacity: 1.0, depthTest: true
       }));
       newScanCloud.renderOrder = 500;
+      newScanCloud.visible = false;
       scene.add(newScanCloud);
 
       // 5) 점-대응선 (Old -> New 이동 벡터 시각화, 보라색)
@@ -973,6 +975,7 @@
       });
       rayLinesMesh = new THREE.LineSegments(rayGeo, rayMat);
       rayLinesMesh.renderOrder = 499;
+      rayLinesMesh.visible = false;
       scene.add(rayLinesMesh);
 
       window.addEventListener('resize', onWindowResize);
@@ -1237,6 +1240,7 @@
       document.getElementById('txt-ry').innerText = (currentShift.ry > 0 ? '+' : '') + currentShift.ry.toFixed(1) + '°';
       document.getElementById('txt-rz').innerText = (currentShift.rz > 0 ? '+' : '') + currentShift.rz.toFixed(1) + '°';
 
+      hasNewScanData = false;
       updateFromSliders();
       appendPacketLog('SYS', `스캐너 이동량 설정(Old→New): [ΔX:${currentShift.dx}, ΔY:${currentShift.dy}, ΔZ:${currentShift.dz} | ΔRx:${currentShift.rx}°, ΔRy:${currentShift.ry}°, ΔRz:${currentShift.rz}°]`);
     }
@@ -1283,6 +1287,10 @@
 
       oldScanCloud.geometry.attributes.position.needsUpdate = true;
       newScanCloud.geometry.attributes.position.needsUpdate = true;
+      if (!hasNewScanData) {
+        newScanCloud.visible = false;
+        if (rayLinesMesh) rayLinesMesh.visible = false;
+      }
       currentIteration = 0;
 
       updateCorrespondenceRays();
@@ -1317,7 +1325,7 @@
        5. 점-대응선 (기존 스캐너 기준 점군 Old → 옮겨진 스캐너 기준 점군 New)
        ========================================================================= */
     function updateCorrespondenceRays() {
-      if (!showCorrespondenceRays || (currentStep < 1 && currentStep !== 3)) {
+      if (!showCorrespondenceRays || !hasNewScanData || (currentStep < 1 && currentStep !== 3)) {
         if (rayLinesMesh) rayLinesMesh.visible = false;
         return;
       }
@@ -1366,7 +1374,8 @@
           ? "px-2 py-1 bg-purple-100 text-purple-800 rounded-lg transition font-extrabold border border-purple-400 flex items-center gap-1 shadow-2xs"
           : "px-2 py-1 bg-slate-100 text-slate-500 rounded-lg transition font-extrabold border border-slate-200 flex items-center gap-1 shadow-2xs";
       }
-      if (rayLinesMesh) rayLinesMesh.visible = showCorrespondenceRays;
+      if (rayLinesMesh) rayLinesMesh.visible = showCorrespondenceRays && hasNewScanData && currentStep >= 1;
+      updateCorrespondenceRays();
     }
 
     function toggleRefFov() {
@@ -1830,6 +1839,7 @@
       const desc = document.getElementById('cycleResultDesc');
 
       if (currentStep === 0) {
+        hasNewScanData = false;
         updateFromSliders();
         oldScannerGroup.visible = true;
         newScannerGroup.visible = false; // STEP 1: 기존 기준 스캐너만 원점 대기
@@ -1846,12 +1856,13 @@
         if (banner) banner.classList.remove('show-banner');
         appendPacketLog('SYS', `STEP 1 :: calib_plate 고정 및 기존 기준 스캐너(Old) 원점 대기.`);
       } else if (currentStep === 1) {
+        hasNewScanData = false;
         updateFromSliders();
         oldScannerGroup.visible = true;
-        newScannerGroup.visible = true; // STEP 2: 기존 스캐너(Old)와 옮겨진 새 스캐너(New) 동시 비교
+        newScannerGroup.visible = true; // STEP 2: 기존 스캐너(Old)와 옮겨진 새 스캐너(New) 위치만 비교 (스캔 전)
         oldScanCloud.visible = true;
-        newScanCloud.visible = true;
-        updateCorrespondenceRays();
+        newScanCloud.visible = false;
+        if (rayLinesMesh) rayLinesMesh.visible = false;
         if (oldFrustumVol) oldFrustumVol.material.opacity = showRefFov ? 0.04 : 0;
         if (oldFrustumEdge) oldFrustumEdge.material.opacity = showRefFov ? 0.45 : 0;
         if (newFrustumVol) newFrustumVol.material.opacity = 0.05;
@@ -1862,10 +1873,12 @@
         if (banner) banner.classList.remove('show-banner');
         appendPacketLog('SYS', `STEP 2 :: 스캐너 교체/외란 발생 -> 새 스캐너(New) 위치 이격 확인.`);
       } else if (currentStep === 2) {
+        hasNewScanData = false;
         oldScannerGroup.visible = true;
         newScannerGroup.visible = true;
         oldScanCloud.visible = true;
-        newScanCloud.visible = true;
+        newScanCloud.visible = false;
+        if (rayLinesMesh) rayLinesMesh.visible = false;
         if (banner) banner.classList.remove('show-banner');
         triggerAreaScanCeremony();
         appendPacketLog('TX', `STEP 3 :: 변경된 새 스캐너(New)로 고정 calib_plate 10패턴 구조광 스캔 실행.`);
@@ -1875,6 +1888,7 @@
           goToStep(4, options);
           return;
         }
+        hasNewScanData = true;
         oldScannerGroup.visible = true;
         newScannerGroup.visible = true;
         oldScanCloud.visible = true;
@@ -1887,6 +1901,7 @@
         if (banner) banner.classList.remove('show-banner');
         appendPacketLog('TX', `STEP 4 :: 원점보정 정합 실행 (기존 스캐너 Old → 옮겨진 스캐너 New로 이동).`);
       } else if (currentStep === 4) {
+        hasNewScanData = true;
         oldScannerGroup.visible = true;
         newScannerGroup.visible = true;
         oldScanCloud.visible = true;
@@ -1969,6 +1984,9 @@
           requestAnimationFrame(scanAnim);
         } else {
           isSensorScanning = false;
+          hasNewScanData = true;
+          if (newScanCloud) newScanCloud.visible = true;
+          updateCorrespondenceRays();
           sensorPatternStep = 11;
           updateSensorViewCanvas();
 
