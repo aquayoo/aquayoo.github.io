@@ -215,6 +215,12 @@
       color: #fbbf24;
     }
 
+    .season-pill.s3-exam {
+      background: rgba(74, 222, 128, 0.14);
+      border: 1px solid rgba(74, 222, 128, 0.5);
+      color: var(--accent-green);
+    }
+
     .section-label {
       font-size: 0.92rem;
       font-weight: 700;
@@ -251,9 +257,20 @@
       gap: 1.5rem 2rem;
       max-width: 780px;
       width: 100%;
-      margin: 0 auto;
+      margin: 0 auto 2.5rem;
       justify-items: center;
       align-items: start;
+    }
+
+    /* SEASON 3: 형성평가 (향후 설문 등 확장 가능) */
+    .s3-wrapper {
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 1.5rem 2.5rem;
+      max-width: 780px;
+      width: 100%;
+      margin: 0 auto;
     }
 
     .module-item {
@@ -305,6 +322,22 @@
       background: var(--accent-teal);
       border-color: var(--accent-teal);
       box-shadow: 0 0 24px rgba(45, 212, 191, 0.55);
+    }
+
+    /* SEASON 3 원형 버튼 디자인 */
+    .module-item.is-s3 .circle-btn {
+      border-color: var(--accent-green);
+      box-shadow: 0 4px 16px rgba(74, 222, 128, 0.18);
+    }
+
+    .module-item.is-s3:hover .circle-btn {
+      background: var(--accent-green);
+      border-color: var(--accent-green);
+      box-shadow: 0 0 24px rgba(74, 222, 128, 0.55);
+    }
+
+    .module-item.is-s3 .btn-icon {
+      color: var(--accent-green);
     }
 
     .btn-icon {
@@ -516,7 +549,7 @@
         <span class="notice-tag">NOTICE</span>
         <div class="notice-list">
           <span>1. 기본 모듈은 PC(1920×1080) 해상도에 최적화되어 있으며, (Mobile) 표기 모듈은 iPhone 14 Pro 화면 해상도에 최적화되어 있습니다.</span>
-          <span>2. <strong>SEASON 1 (8개 프로젝트)</strong>는 정식 버전으로 공개되며(<strong>원점보정 Eye_Correct</strong> 신규 추가), <strong>SEASON 2 (매뉴얼·필드 툴킷·로그 진단)</strong>는 현재 <strong>BETA TEST 중</strong>입니다.</span>
+          <span>2. <strong>SEASON 1 (8개 프로젝트)</strong>는 정식 버전으로 공개되며(<strong>원점보정 Eye_Correct</strong> 신규 추가), <strong>SEASON 2 (매뉴얼·필드 툴킷·로그 진단)</strong>는 <strong>BETA TEST 중</strong>이고, <strong>SEASON 3 (직무 형성평가)</strong>가 신규 추가되었습니다.</span>
         </div>
       </div>
     </section>
@@ -656,6 +689,37 @@
         </div>
         <div class="module-title">로그·알람 진단 훈련</div>
         <div class="module-desc">현장 에러 역추적 12종</div>
+      </a>
+    </nav>
+
+    <!-- 5. SEASON 3: 직무 형성평가 (신입/재교육 및 향후 설문 확장) -->
+    <div class="section-divider">
+      <span class="season-pill s3-exam">SEASON 3 · 형성평가</span>
+      <span class="section-label">직무 형성평가 · 자동 채점 · A4 결과지 출력 (30분 제한)</span>
+      <span class="divider-line"></span>
+    </div>
+
+    <nav class="s3-wrapper">
+      <!-- ⑫ 신입사원 형성평가 -->
+      <a href="test_new.html" class="module-item is-s3">
+        <div class="circle-btn">
+          <span class="new-badge">NEW</span>
+          <span class="btn-icon">📝</span>
+          <span class="btn-code">test_new</span>
+        </div>
+        <div class="module-title">신입사원 형성평가</div>
+        <div class="module-desc">객관식 10 · 주관식 10 (30분)</div>
+      </a>
+
+      <!-- ⑬ 사원 재교육 형성평가 -->
+      <a href="test_old.html" class="module-item is-s3">
+        <div class="circle-btn">
+          <span class="new-badge">NEW</span>
+          <span class="btn-icon">📋</span>
+          <span class="btn-code">test_old</span>
+        </div>
+        <div class="module-title">사원 재교육 형성평가</div>
+        <div class="module-desc">객관식 10 · 주관식 4 (30분)</div>
       </a>
     </nav>
   </main>
