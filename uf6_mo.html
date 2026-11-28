@@ -430,13 +430,13 @@
       { badge: "STEP 2", heading: "2. 부품 마스터 기준점 Org(U5) 정의", body: "작업 테이블 위에 마스터 지그와 기준 원점 Org(U5) 직교 3축이 형성됩니다." },
       { badge: "STEP 3", heading: "3. U6 시트 중첩 Org'(U6) & 대기 진입", body: "Org'(U6) 프레임 중첩과 동시에 로봇이 시야 간섭 없는 대기 위치로 진입합니다." },
       { badge: "STEP 4", heading: "4. A/B/C(U5) (B: X+0.3m, Z+0.4m) 지정", body: "A(U5), B(U5) 및 B에서 XX(U5)+0.3m, Z(U5)+0.4m 떨어진 C(U5)가 정의됩니다." },
-      { badge: "STEP 5", heading: "5. A(U5) → B(U5) → C(U5) 3점 정밀 티칭", body: "A(U5) 하강 ➔ B(U5) 하강 ➔ C(U5) 사선 공간 티칭을 연속 수행합니다." },
-      { badge: "STEP 6", heading: "6. A(U5) → B(U5) → C(U5) 선형 검증", body: "A→B 주행 후 B→C(50cm 사선 상승) 검증 주행을 마치고 대기 위치로 복귀합니다." },
+      { badge: "STEP 5", heading: "5. A(U5) → B(U5) → C(U5) 3점 티칭 & 복귀", body: "A(U5) ➔ B(U5) ➔ C(U5) 3점 티칭을 수행한 뒤 C(U5) 상공을 거쳐 대기 위치로 복귀합니다." },
+      { badge: "STEP 6", heading: "6. A(U5) → B(U5) → C(U5) 선형 검증", body: "대기 위치에서 출발해 A→B→C(50cm 사선 상승) 검증 주행 후 대기 위치로 복귀합니다." },
       { badge: "STEP 7", heading: "7. 부품 변위 인입 (3점 변위 화살표)", body: "부품이 3D 변위로 인입되며 A/B/C(U5)에서 A'/B'/C'(U6)까지 점선 화살표가 연장됩니다." },
-      { badge: "STEP 8", heading: "8. 구조광 0.3초 교대점멸 위상천이 스캔", body: "프로젝터 사각뿔과 카메라 사각뿔대가 0.3s 주기로 10회 교대 점멸하며 스캔합니다." },
+      { badge: "STEP 8", heading: "8. 구조광 교대점멸 위상천이 스캔 (3회)", body: "프로젝터 사각뿔과 카메라 사각뿔대가 0.45s 주기로 3회 교대 점멸하며 스캔합니다." },
       { badge: "STEP 9", heading: "9. ICP 정합 수렴 & A'-B'-C'(U6) 확정", body: "측정 점군이 ICP 정합 수렴하며 [R:T] 행렬 및 U6 보정 경로가 확정됩니다." },
-      { badge: "STEP 10", heading: "10. 6자유도 보정 주행 (3차원 입체 실링)", body: "A'(U6)➔B'(U6) 도포 후 B'(U6)➔C'(U6)(50cm 사선) 입체 실링 비드를 도포합니다." },
-      { badge: "STEP 11", heading: "11. 작업 완료 및 안전 홈 원점 복귀", body: "로봇이 홈으로 복귀하며 꺾인 3차원 보라색 실링 비드는 완제품으로 보존됩니다." }
+      { badge: "STEP 10", heading: "10. 6자유도 보정 주행 (실링 & 대기 복귀)", body: "대기 위치에서 출발해 A'➔B'➔C' 실링 도포 후 U6 +Z'(+0.8m) 상승을 거쳐 대기 위치로 복귀합니다." },
+      { badge: "STEP 11", heading: "11. 작업 완료 및 안전 홈 원점 복귀", body: "대기 위치에서 홈으로 안전 복귀하며 꺾인 3차원 보라색 실링 비드는 완제품으로 보존됩니다." }
     ];
 
     let currentStep = 0, isAutoPlaying = false, autoPlayTimeoutId = null, animProgress = 0, isAnimating = false;
@@ -1450,10 +1450,10 @@
         setGroupOpacity(uf6SolidAxesGroup, 1.0);
       }
 
-      /* 교대 점멸 위상 천이(Phase Shifting) 동기 시퀀스 (Step 8 / 총 6000ms 동안 10사이클, T=0.6s) */
+      /* 교대 점멸 위상 천이(Phase Shifting) 동기 시퀀스 (Step 8 / 총 2700ms 동안 3사이클, T=0.9s) */
       if (projectorFrustumMesh && cameraFrustumMesh && cameraFlashMesh) {
         if (currentStep === 7) {
-          const totalCycles = 10.0;
+          const totalCycles = 3.0;
           const phaseProgress = (t * totalCycles) % 1.0;
           const isProjectorPhase = (phaseProgress < 0.50);
 
@@ -1546,7 +1546,7 @@
         if (lockOnBeam) lockOnBeam.material.opacity = 0.0;
         if (elTarget) elTarget.innerText = "A/B/C(U5) 준비";
       } else if (currentStep === 4) {
-        // Step 5: A -> B -> C 3점 연속 티칭
+        // Step 5: A -> B -> C 3점 연속 티칭 후 Ready 복귀
         targetQuat.copy(qMasterRadY);
         if (t <= 0.10) {
           interpolateMove(readyPos, aboveA_1m, t / 0.10, { mode: 'P_HOP', hopHeight: 0.35 }, targetPos);
@@ -1557,47 +1557,51 @@
           interpolateMove(aboveA_1m, masterPointAWorld, st, { mode: 'L' }, targetPos);
           lockOnBeam.material.opacity = 0.6 * st; recordMoveMotionTrails(targetPos, 'L');
           if (elTarget) elTarget.innerText = "A(U5) 하강 티칭";
-        } else if (t <= 0.32) {
+        } else if (t <= 0.30) {
           targetPos.copy(masterPointAWorld); lockOnBeam.material.opacity = 1.0;
           if (elTarget) elTarget.innerText = "📍 A(U5) 티칭 완료";
-        } else if (t <= 0.42) {
-          interpolateMove(masterPointAWorld, aboveB_1m, (t - 0.32) / 0.10, { mode: 'P_HOP', hopHeight: 0.35 }, targetPos);
+        } else if (t <= 0.40) {
+          interpolateMove(masterPointAWorld, aboveB_1m, (t - 0.30) / 0.10, { mode: 'P_HOP', hopHeight: 0.35 }, targetPos);
           lockOnBeam.material.opacity = 0; recordMoveMotionTrails(targetPos, 'P');
           if (elTarget) elTarget.innerText = "B(U5) 상공 점프";
-        } else if (t <= 0.54) {
-          const st = (t - 0.42) / 0.12;
+        } else if (t <= 0.52) {
+          const st = (t - 0.40) / 0.12;
           interpolateMove(aboveB_1m, masterPointBWorld, st, { mode: 'L' }, targetPos);
           lockOnBeam.material.opacity = 0.6 * st; recordMoveMotionTrails(targetPos, 'L');
           if (elTarget) elTarget.innerText = "B(U5) 하강 티칭";
-        } else if (t <= 0.64) {
+        } else if (t <= 0.60) {
           targetPos.copy(masterPointBWorld); lockOnBeam.material.opacity = 1.0;
           if (elTarget) elTarget.innerText = "📍 B(U5) 티칭 완료";
-        } else if (t <= 0.74) {
-          interpolateMove(masterPointBWorld, aboveC_1m, (t - 0.64) / 0.10, { mode: 'P_HOP', hopHeight: 0.35 }, targetPos);
+        } else if (t <= 0.70) {
+          interpolateMove(masterPointBWorld, aboveC_1m, (t - 0.60) / 0.10, { mode: 'P_HOP', hopHeight: 0.35 }, targetPos);
           lockOnBeam.material.opacity = 0; recordMoveMotionTrails(targetPos, 'P');
           if (elTarget) elTarget.innerText = "C(U5) 상공 점프";
-        } else if (t <= 0.86) {
-          const st = (t - 0.74) / 0.12;
+        } else if (t <= 0.82) {
+          const st = (t - 0.70) / 0.12;
           interpolateMove(aboveC_1m, masterPointCWorld, st, { mode: 'L' }, targetPos);
           lockOnBeam.material.opacity = 0.7 * st; recordMoveMotionTrails(targetPos, 'L');
           if (elTarget) elTarget.innerText = "C(U5) 하강 티칭";
-        } else if (t <= 0.94) {
+        } else if (t <= 0.88) {
           targetPos.copy(masterPointCWorld); lockOnBeam.material.opacity = 1.0;
           if (elTarget) elTarget.innerText = "📍 C(U5) 티칭 완료";
-        } else {
-          interpolateMove(masterPointCWorld, aboveC_1m, (t - 0.94) / 0.06, { mode: 'L' }, targetPos);
+        } else if (t <= 0.94) {
+          interpolateMove(masterPointCWorld, aboveC_1m, (t - 0.88) / 0.06, { mode: 'L' }, targetPos);
           lockOnBeam.material.opacity = 0; recordMoveMotionTrails(targetPos, 'L');
-          if (elTarget) elTarget.innerText = "3점 티칭 완료";
+          if (elTarget) elTarget.innerText = "C(U5) 상공 상승";
+        } else {
+          interpolateMove(aboveC_1m, readyPos, (t - 0.94) / 0.06, { mode: 'P_HOP', hopHeight: 0.5 }, targetPos);
+          lockOnBeam.material.opacity = 0; recordMoveMotionTrails(targetPos, 'P');
+          if (elTarget) elTarget.innerText = "티칭 완료 (대기 복귀)";
         }
       } else if (currentStep === 5) {
-        // Step 6: A -> B -> C 선형 검증 주행
+        // Step 6: Ready 출발 -> A -> B -> C 선형 검증 주행 -> Ready 복귀
         targetQuat.copy(qMasterRadY);
-        if (t <= 0.10) {
-          interpolateMove(aboveC_1m, aboveA_1m, t / 0.10, { mode: 'P_HOP', hopHeight: 0.35 }, targetPos);
+        if (t <= 0.12) {
+          interpolateMove(readyPos, aboveA_1m, t / 0.12, { mode: 'P_HOP', hopHeight: 0.35 }, targetPos);
           lockOnBeam.material.opacity = 0; recordMoveMotionTrails(targetPos, 'P');
           if (elTarget) elTarget.innerText = "A(U5) 상공 점프";
         } else if (t <= 0.25) {
-          const st = (t - 0.10) / 0.15;
+          const st = (t - 0.12) / 0.13;
           interpolateMove(aboveA_1m, masterPointAWorld, st, { mode: 'L' }, targetPos);
           lockOnBeam.material.opacity = 0.8 * st; recordMoveMotionTrails(targetPos, 'L');
           if (elTarget) elTarget.innerText = "A(U5) 수직 진입";
@@ -1625,54 +1629,60 @@
         if (currentStep === 6) {
           if (elTarget) elTarget.innerText = "A/B/C 3점 변위 인입";
         } else if (currentStep === 7) {
-          const cycleNum = Math.min(10, Math.floor(t * 10) + 1);
-          if (elTarget) elTarget.innerText = `위상천이 스캔 (${cycleNum}/10회)`;
+          const cycleNum = Math.min(3, Math.floor(t * 3) + 1);
+          if (elTarget) elTarget.innerText = `위상천이 스캔 (${cycleNum}/3회)`;
         } else {
           if (elTarget) elTarget.innerText = isToleranceError ? "⚠️ 오차초과 비상복귀" : "ICP 정합 & A'B'C' 확정";
         }
       } else if (currentStep === 9) {
-        // Step 10: A' -> B' -> C' 6자유도 보정 입체 실링 주행
+        // Step 10: Ready -> A' -> B' -> C' 6자유도 보정 입체 실링 -> UF6 +Z' 0.8m 상승 -> Ready 복귀
         const qSheetFull = sheetGroup.quaternion.clone();
         const aboveA_Prime = sheetPointAWorld.clone().add(new THREE.Vector3(0, 0.9, 0).applyQuaternion(qSheetFull));
+        const aboveC_Prime = sheetPointCWorld.clone().add(new THREE.Vector3(0, 0.8, 0).applyQuaternion(qSheetFull));
 
-        if (t <= 0.18) {
+        if (t <= 0.12) {
           resetTrajectoryTrail();
-          interpolateMove(readyPos, aboveA_Prime, t / 0.18, { mode: 'P_HOP', hopHeight: 0.35 }, targetPos);
-          targetQuat.copy(qMasterRadY).slerp(qSheetFull, t / 0.18);
+          interpolateMove(readyPos, aboveA_Prime, t / 0.12, { mode: 'P_HOP', hopHeight: 0.35 }, targetPos);
+          targetQuat.copy(qMasterRadY).slerp(qSheetFull, t / 0.12);
           lockOnBeam.material.opacity = 0;
           if (elTarget) elTarget.innerText = "A'(U6) 상공 접근";
-        } else if (t <= 0.35) {
+        } else if (t <= 0.25) {
           resetTrajectoryTrail();
-          interpolateMove(aboveA_Prime, sheetPointAWorld, (t - 0.18) / 0.17, { mode: 'L' }, targetPos);
+          interpolateMove(aboveA_Prime, sheetPointAWorld, (t - 0.12) / 0.13, { mode: 'L' }, targetPos);
           targetQuat.copy(qSheetFull);
-          lockOnBeam.material.opacity = (t - 0.18) / 0.17 * 0.95;
+          lockOnBeam.material.opacity = (t - 0.12) / 0.13 * 0.95;
           if (elTarget) elTarget.innerText = "A'(U6) 법선 안착";
-        } else if (t <= 0.68) {
-          const st = (t - 0.35) / 0.33;
+        } else if (t <= 0.55) {
+          const st = (t - 0.25) / 0.30;
           interpolateMove(sheetPointAWorld, sheetPointBWorld, st, { mode: 'L' }, targetPos);
           targetQuat.copy(qSheetFull);
           lockOnBeam.material.opacity = 0.95;
           recordTrajectoryPoint(targetPos);
           if (elTarget) elTarget.innerText = `1구간 A'→B' ${(st * 100).toFixed(0)}%`;
-        } else if (t <= 0.92) {
-          const st = (t - 0.68) / 0.24;
+        } else if (t <= 0.82) {
+          const st = (t - 0.55) / 0.27;
           interpolateMove(sheetPointBWorld, sheetPointCWorld, st, { mode: 'L' }, targetPos);
           targetQuat.copy(qSheetFull);
           lockOnBeam.material.opacity = 0.95;
           recordTrajectoryPoint(targetPos);
           if (elTarget) elTarget.innerText = `2구간 B'→C' ${(st * 100).toFixed(0)}%`;
-        } else {
-          targetPos.copy(sheetPointCWorld);
+        } else if (t <= 0.90) {
+          const st = (t - 0.82) / 0.08;
+          interpolateMove(sheetPointCWorld, aboveC_Prime, st, { mode: 'L' }, targetPos);
           targetQuat.copy(qSheetFull);
-          lockOnBeam.material.opacity = 0.95;
-          recordTrajectoryPoint(targetPos);
-          if (elTarget) elTarget.innerText = "C'(U6) 입체 실링 완료";
+          lockOnBeam.material.opacity = 0;
+          if (elTarget) elTarget.innerText = "C'(U6) +Z' 상승";
+        } else {
+          const st = (t - 0.90) / 0.10;
+          interpolateMove(aboveC_Prime, readyPos, st, { mode: 'P_HOP', hopHeight: 0.5 }, targetPos);
+          targetQuat.copy(qSheetFull).slerp(qMasterRadY, st);
+          lockOnBeam.material.opacity = 0;
+          if (elTarget) elTarget.innerText = "보정 완료 (대기 복귀)";
         }
       } else if (currentStep === 10) {
-        const startPos = !isAnimating ? homePos : (isToleranceError ? readyPos : sheetPointCWorld);
-        const qSheetFull = sheetGroup.quaternion.clone();
+        const startPos = !isAnimating ? homePos : readyPos;
         interpolateMove(startPos, homePos, t, { mode: 'P_SWING', swingHeight: 1.0, swingOut: 0.8 }, targetPos);
-        targetQuat.copy(isToleranceError ? qMasterRadY : qSheetFull.slerp(qMasterRadY, t));
+        targetQuat.copy(qMasterRadY);
         lockOnBeam.material.opacity = 0;
         if (elTarget) elTarget.innerText = isToleranceError ? "작업 중단 (홈 복귀)" : "공정 완료 (홈 복귀)";
       }
@@ -1714,10 +1724,10 @@
       let duration = 1000;
       if (currentStep === 0 || currentStep === 1) duration = 500;
       else if (currentStep === 2) duration = 1200;
-      else if (currentStep === 4) duration = 7200; 
+      else if (currentStep === 4) duration = 7800; 
       else if (currentStep === 5) duration = 6000; 
-      else if (currentStep === 9) duration = 5600; 
-      else if (currentStep === 7) duration = 6000; 
+      else if (currentStep === 9) duration = 6000; 
+      else if (currentStep === 7) duration = 2700; 
       else if (currentStep === 8) duration = 1800; 
       else if (currentStep === 10) duration = 2400;
       
@@ -1851,10 +1861,10 @@
       if (autoPlayTimeoutId !== null) clearTimeout(autoPlayTimeoutId);
       let waitTime = 4200;
       if (currentStep === 0 || currentStep === 1 || currentStep === 2) waitTime = 2100;
-      else if (currentStep === 4) waitTime = 8000; 
+      else if (currentStep === 4) waitTime = 8600; 
       else if (currentStep === 5) waitTime = 6800; 
-      else if (currentStep === 7) waitTime = 6800; 
-      else if (currentStep === 9) waitTime = 6400; 
+      else if (currentStep === 7) waitTime = 3500; 
+      else if (currentStep === 9) waitTime = 6800; 
       else if (currentStep === 10) waitTime = 3200;
 
       const pWrap = document.getElementById('autoPlayProgressWrapper');
