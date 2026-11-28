@@ -153,7 +153,15 @@
       border-color: var(--accent-cyan);
     }
 
+    .scenario-bar-wrap {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
     .scenario-bar {
+      flex: 1;
+      min-width: 0;
       display: flex;
       align-items: center;
       gap: 6px;
@@ -163,6 +171,32 @@
       padding-bottom: 1px;
     }
     .scenario-bar::-webkit-scrollbar { display: none; }
+
+    .sc-nav-btn {
+      background: #0d2636;
+      border: 1px solid #26536b;
+      color: var(--accent-cyan);
+      width: 26px;
+      height: 26px;
+      border-radius: 5px;
+      font-size: 11px;
+      font-weight: 800;
+      cursor: pointer;
+      flex-shrink: 0;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.15s;
+    }
+    .sc-nav-btn:hover:not(:disabled) {
+      border-color: var(--accent-cyan);
+      background: #14364d;
+      color: #fff;
+    }
+    .sc-nav-btn:disabled {
+      opacity: 0.28;
+      cursor: default;
+    }
 
     .sc-btn {
       background: #0d2636;
@@ -681,7 +715,11 @@
       </div>
       <div class="mode-badge" id="progress-badge">완료 0/12</div>
     </div>
-    <div class="scenario-bar" id="scenario-buttons"></div>
+    <div class="scenario-bar-wrap">
+      <button class="sc-nav-btn" id="sc-prev-btn" onclick="scrollScenarioBar(-1)" title="이전 탭 보기" aria-label="이전 시나리오 탭 보기">◀</button>
+      <div class="scenario-bar" id="scenario-buttons"></div>
+      <button class="sc-nav-btn" id="sc-next-btn" onclick="scrollScenarioBar(1)" title="다음 탭 보기" aria-label="다음 시나리오 탭 보기">▶</button>
+    </div>
   </div>
 
   <!-- 메인 2단 그리드 -->
@@ -884,7 +922,7 @@
           { t: 'info', m: '[11:22:45.102] Loading registry data @[HyundaiRobotRPC]...' },
           { t: 'info', m: '[11:22:45.110] [HostIP]: 10.10.10.100 / [RobotIP]: 10.10.10.55' },
           { t: 'err',  m: '[11:22:45.858] [HyundaiRobot0] Failed to connect. (ReadTimeout: 10000)' },
-          { t: 'err',  m: '[11:22:47.889] Failed to find DO pin with Name='S0_READY'' }
+          { t: 'err',  m: "[11:22:47.889] Failed to find DO pin with Name='S0_READY'" }
         ],
         causes: [
           { text: '현대로봇 제어기 HR-RPC 서비스 소켓 잠김 또는 LAN 1 통신 단절', ok: true },
@@ -984,7 +1022,7 @@
         },
         logs: [
           { t: 'info', m: '[08:45:10.012] Initializing Hand-Eye calibration matrices...' },
-          { t: 'err',  m: '[08:45:10.045] Could not open json file './ATMC.App.Settings/HandEye_S0.json'' },
+          { t: 'err',  m: "[08:45:10.045] Could not open json file './ATMC.App.Settings/HandEye_S0.json'" },
           { t: 'err',  m: '[08:45:10.048] [SCANNER0] Failed to initialize coordinate transform.' },
           { t: 'warn', m: '[08:45:10.052] System startup aborted: Calibration data missing.' }
         ],
@@ -998,7 +1036,7 @@
           { text: '스캐너 프로젝터 밝기(LED Current)를 최대로 설정', ok: false },
           { text: '현대로봇 TP의 비상정지(E-STOP) 버튼을 눌렀다 해제', ok: false }
         ],
-        explain: '정확합니다! <b>"Could not open json file './ATMC.App.Settings/HandEye_S0.json'"</b> 로그는 로봇-스캐너 좌표 변환 행렬 파일이 삭제되었거나 설정 경로가 틀어졌을 때 발생합니다. 백업된 <code>HandEye_S0.json</code>을 복원한 뒤 재기동해야 정확한 3D 보정 좌표가 산출됩니다.',
+        explain: '정확합니다! <b>"Could not open json file \'./ATMC.App.Settings/HandEye_S0.json\'"</b> 로그는 로봇-스캐너 좌표 변환 행렬 파일이 삭제되었거나 설정 경로가 틀어졌을 때 발생합니다. 백업된 <code>HandEye_S0.json</code>을 복원한 뒤 재기동해야 정확한 3D 보정 좌표가 산출됩니다.',
         ctrlDblTarget: 'S0'
       },
       {
@@ -1018,7 +1056,7 @@
         },
         logs: [
           { t: 'info', m: '[13:12:04.220] PLC Model Code Received: Type = 33 (OS_EV)' },
-          { t: 'err',  m: '[13:12:04.235] File does not exist (C:\LotusAPI\bin\...\Models\OS_EV\hole_model_base.ply)' },
+          { t: 'err',  m: '[13:12:04.235] File does not exist (C:\\LotusAPI\\bin\\...\\Models\\OS_EV\\hole_model_base.ply)' },
           { t: 'err',  m: '[13:12:04.238] ICP Aligner aborted: Reference model is null.' },
           { t: 'warn', m: '[13:12:04.242] PLC.DO.S1_NG = True' }
         ],
@@ -1032,7 +1070,7 @@
           { text: '스캐너 CP 전원을 20초 차단 후 재투입', ok: false },
           { text: '로봇 툴 무게(Payload) 자동 계측 재실행', ok: false }
         ],
-        explain: '정확합니다! 로그에 <b>"File does not exist (...\Models\OS_EV\hole_model_base.ply)"</b>가 출력되면 PLC가 보낸 차종 코드(Type=33)에 매핑된 폴더나 기준 3D 모델(<code>.ply</code>)이 없는 상태입니다. <b>CONFIG → MODELS</b>에서 모델 경로와 파일을 등록한 뒤 Reload해야 합니다.',
+        explain: '정확합니다! 로그에 <b>"File does not exist (...\\Models\\OS_EV\\hole_model_base.ply)"</b>가 출력되면 PLC가 보낸 차종 코드(Type=33)에 매핑된 폴더나 기준 3D 모델(<code>.ply</code>)이 없는 상태입니다. <b>CONFIG → MODELS</b>에서 모델 경로와 파일을 등록한 뒤 Reload해야 합니다.',
         ctrlDblTarget: null
       },
       {
@@ -1242,6 +1280,32 @@
       }
     }
 
+    function shuffleArray(arr) {
+      const copy = arr.slice();
+      for (let i = copy.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [copy[i], copy[j]] = [copy[j], copy[i]];
+      }
+      return copy;
+    }
+
+    function updateScenarioScrollButtons() {
+      const bar = document.getElementById('scenario-buttons');
+      const prevBtn = document.getElementById('sc-prev-btn');
+      const nextBtn = document.getElementById('sc-next-btn');
+      if (!bar || !prevBtn || !nextBtn) return;
+      const maxScroll = bar.scrollWidth - bar.clientWidth;
+      prevBtn.disabled = bar.scrollLeft <= 2;
+      nextBtn.disabled = maxScroll <= 2 || bar.scrollLeft >= maxScroll - 2;
+    }
+
+    function scrollScenarioBar(dir) {
+      const bar = document.getElementById('scenario-buttons');
+      if (!bar) return;
+      const step = Math.max(220, Math.round(bar.clientWidth * 0.65));
+      bar.scrollBy({ left: dir * step, behavior: 'smooth' });
+    }
+
     function initScenarioBar() {
       const bar = document.getElementById('scenario-buttons');
       const filtered = scenarios.filter(s => curCat === 'ALL' || s.cat === curCat);
@@ -1251,6 +1315,7 @@
         return `<button class="sc-btn ${cls}" onclick="loadScenario(${s.id})">${mark}${s.shortTitle}</button>`;
       }).join('');
       document.getElementById('progress-badge').textContent = `완료 ${solvedSet.size}/${scenarios.length}`;
+      requestAnimationFrame(updateScenarioScrollButtons);
     }
 
     function loadScenario(idx) {
@@ -1258,9 +1323,15 @@
       selectedCause = null;
       selectedAction = null;
       const sc = scenarios.find(s => s.id === idx) || scenarios[0];
+      sc.causes = shuffleArray(sc.causes);
+      sc.actions = shuffleArray(sc.actions);
       hwTriggered = (sc.ctrlDblTarget === null);
 
       initScenarioBar();
+      const activeBtn = document.querySelector('#scenario-buttons .sc-btn.active');
+      if (activeBtn) {
+        activeBtn.scrollIntoView({ behavior: 'smooth', inline: 'nearest', block: 'nearest' });
+      }
       document.getElementById('sc-badge').textContent = `CASE ${sc.id + 1}/${scenarios.length}`;
 
       // 운전 모드 배지 초기화 (알람 발생 중이므로 MANUAL 대기 상태)
@@ -1454,6 +1525,18 @@
         triggerHwReconnect(target);
       }
     }
+
+    const scBarEl = document.getElementById('scenario-buttons');
+    if (scBarEl) {
+      scBarEl.addEventListener('scroll', updateScenarioScrollButtons);
+      scBarEl.addEventListener('wheel', (e) => {
+        if (e.deltaY !== 0 && Math.abs(e.deltaY) > Math.abs(e.deltaX)) {
+          e.preventDefault();
+          scBarEl.scrollLeft += e.deltaY;
+        }
+      }, { passive: false });
+    }
+    window.addEventListener('resize', updateScenarioScrollButtons);
 
     detectPlatformHint();
     loadScenario(0);
