@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <title>FOV & WD Optical System V2.0</title>
+  <title>FOV & WD Optical System V3.0</title>
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- Three.js CDN -->
@@ -25,14 +25,14 @@
 </head>
 <body class="bg-slate-950 text-slate-100 min-h-screen lg:h-screen flex flex-col font-sans overflow-x-hidden lg:overflow-hidden">
 
-  <!-- 1. 상단 헤더: V2.0 (Nov.12) + 타이틀 + atm_red.png 홈버튼 + 4x2 대칭 프리셋/컨트롤 -->
+  <!-- 1. 상단 헤더: V3.0 (Nov.28) + 타이틀 + atm_red.png 홈버튼 + 4x2 대칭 프리셋/컨트롤 -->
   <header class="bg-slate-900/95 backdrop-blur border-b border-slate-800 px-3 py-2 sticky top-0 z-30 space-y-2 flex-shrink-0">
     <!-- 타이틀 바 -->
     <div class="flex items-center justify-between gap-2">
       <!-- 2행 중앙 정렬 콤팩트 버전 박스 -->
       <div class="flex flex-col items-center justify-center px-1.5 py-0.5 rounded bg-blue-500/20 border border-blue-500/40 font-mono flex-shrink-0 leading-tight">
-        <span class="text-[10px] font-extrabold text-blue-400">V2.0</span>
-        <span class="text-[8px] text-blue-300/80">(Nov.12)</span>
+        <span class="text-[10px] font-extrabold text-blue-400">V3.0</span>
+        <span class="text-[8px] text-blue-300/80">(Nov.28)</span>
       </div>
 
       <!-- 영문 단독 타이틀 -->
@@ -200,7 +200,13 @@
               <span class="text-cyan-300 font-bold">Near 시작 거리 (상단 컷)</span>
               <span class="font-mono text-cyan-300 font-bold"><span id="scNearSliderVal">500</span> mm</span>
             </div>
-            <input type="range" id="scNearRange" min="350" max="1600" step="10" value="500" class="w-full h-1.5 bg-slate-800 rounded-lg cursor-pointer">
+            <div class="relative pb-3.5">
+              <input type="range" id="scNearRange" min="400" max="700" step="10" value="500" class="w-full h-1.5 bg-slate-800 rounded-lg cursor-pointer">
+              <div id="scNearMark" class="absolute top-4 -translate-x-1/2 flex flex-col items-center pointer-events-none" style="left: 33.33%;">
+                <div class="w-[1px] h-1.5 bg-cyan-400"></div>
+                <span id="scNearMarkText" class="text-[9px] font-mono text-cyan-300 font-bold">500</span>
+              </div>
+            </div>
           </div>
 
           <!-- Far WD 슬라이더 -->
@@ -209,7 +215,13 @@
               <span class="text-violet-300 font-bold">Far 종료 거리 (하단 컷)</span>
               <span class="font-mono text-violet-300 font-bold"><span id="scFarSliderVal">900</span> mm</span>
             </div>
-            <input type="range" id="scFarRange" min="600" max="2200" step="10" value="900" class="w-full h-1.5 bg-slate-800 rounded-lg cursor-pointer">
+            <div class="relative pb-3.5">
+              <input type="range" id="scFarRange" min="700" max="2000" step="10" value="900" class="w-full h-1.5 bg-slate-800 rounded-lg cursor-pointer">
+              <div id="scFarMark" class="absolute top-4 -translate-x-1/2 flex flex-col items-center pointer-events-none" style="left: 15.38%;">
+                <div class="w-[1px] h-1.5 bg-violet-400"></div>
+                <span id="scFarMarkText" class="text-[9px] font-mono text-violet-300 font-bold">900</span>
+              </div>
+            </div>
           </div>
 
           <!-- 피사체(A4 / 정12면체) 배치 거리(Z) 확인 슬라이더 -->
@@ -337,34 +349,34 @@
           </div>
         </div>
 
-        <!-- [2구역] WD 조절 슬라이더 (100~2200mm) -->
+        <!-- [2구역] WD 조절 슬라이더 (50~3000mm) -->
         <div class="bg-slate-950 p-2.5 rounded-lg border border-slate-800 space-y-2">
           <div class="flex justify-between items-center text-xs">
             <span class="font-bold text-slate-200">2D 작업거리 (WD) 조절 슬라이더</span>
             <span class="text-amber-400 font-mono font-bold text-xs"><span id="sliderWdVal">700</span> mm</span>
           </div>
           
-          <div class="relative w-full pt-1 pb-4">
-            <input type="range" id="wdRange" min="100" max="2200" step="5" value="700" class="w-full h-2 bg-slate-800 rounded-lg cursor-pointer">
-            <div class="absolute top-5 left-[0%] -translate-x-1 flex flex-col items-center pointer-events-none">
-              <div class="w-[1px] h-1.5 bg-slate-600 mb-0.5"></div>
-              <span class="text-[9px] font-mono text-slate-400">LS</span>
-            </div>
-            <div class="absolute top-5 left-[4.8%] -translate-x-1/2 flex flex-col items-center pointer-events-none">
-              <div class="w-[1px] h-1.5 bg-slate-600 mb-0.5"></div>
-              <span class="text-[9px] font-mono text-slate-400">LZ</span>
-            </div>
-            <div class="absolute top-5 left-[28.6%] -translate-x-1/2 flex flex-col items-center pointer-events-none">
-              <div class="w-[1px] h-1.5 bg-blue-500 mb-0.5"></div>
-              <span class="text-[9px] font-mono text-blue-400 font-bold">3DU</span>
-            </div>
-            <div class="absolute top-5 left-[61.9%] -translate-x-1/2 flex flex-col items-center pointer-events-none">
-              <div class="w-[1px] h-1.5 bg-blue-500 mb-0.5"></div>
-              <span class="text-[9px] font-mono text-blue-400 font-bold">3DM</span>
-            </div>
+          <div class="relative w-full pt-1 pb-5">
+            <input type="range" id="wdRange" min="50" max="3000" step="5" value="700" class="w-full h-2 bg-slate-800 rounded-lg cursor-pointer">
+            <button type="button" onclick="set2DWdMark(100)" class="absolute top-5 left-[1.69%] -translate-x-1/2 flex flex-col items-center group cursor-pointer" title="100mm (LS)">
+              <div class="w-[1.5px] h-2 bg-amber-400 group-hover:bg-amber-300 mb-0.5"></div>
+              <span class="text-[9px] font-mono text-amber-300 group-hover:text-white font-bold">100</span>
+            </button>
+            <button type="button" onclick="set2DWdMark(200)" class="absolute top-5 left-[5.08%] -translate-x-1/2 flex flex-col items-center group cursor-pointer" title="200mm (LZ)">
+              <div class="w-[1.5px] h-2 bg-amber-400 group-hover:bg-amber-300 mb-0.5"></div>
+              <span class="text-[9px] font-mono text-amber-300 group-hover:text-white font-bold">200</span>
+            </button>
+            <button type="button" onclick="set2DWdMark(700)" class="absolute top-5 left-[22.03%] -translate-x-1/2 flex flex-col items-center group cursor-pointer" title="700mm (3DU)">
+              <div class="w-[1.5px] h-2 bg-blue-400 group-hover:bg-blue-300 mb-0.5"></div>
+              <span class="text-[9px] font-mono text-blue-400 group-hover:text-white font-bold">700</span>
+            </button>
+            <button type="button" onclick="set2DWdMark(1400)" class="absolute top-5 left-[45.76%] -translate-x-1/2 flex flex-col items-center group cursor-pointer" title="1400mm (3DM)">
+              <div class="w-[1.5px] h-2 bg-blue-400 group-hover:bg-blue-300 mb-0.5"></div>
+              <span class="text-[9px] font-mono text-blue-400 group-hover:text-white font-bold">1400</span>
+            </button>
             <div class="absolute top-5 right-[0%] translate-x-1 flex flex-col items-center pointer-events-none">
               <div class="w-[1px] h-1.5 bg-slate-600 mb-0.5"></div>
-              <span class="text-[9px] font-mono text-slate-400">2200</span>
+              <span class="text-[9px] font-mono text-slate-500">3000</span>
             </div>
           </div>
         </div>
@@ -494,7 +506,7 @@
 
   <script>
     /* ============================================================
-       1. 장비 스펙 데이터 (V2.0)
+       1. 장비 스펙 데이터 (V3.0)
        ============================================================ */
     const SCANNER_SPECS = {
       '3DU_16': {
@@ -504,12 +516,13 @@
         pxW: 1602, pxH: 1202,
         focal: 15.0,       // 표기 16mm, 실제 탑재 15mm
         aperture: 4.0,     // F4.0 고정
+        baseline: 152,     // 카메라-프로젝터 모듈 간격 (mm)
         centerWd: 700,
         defaultNear: 500,
         defaultFar: 900,
-        minNear: 350, maxNear: 680,
-        minFar: 720, maxFar: 1150,
-        minZ: 400, maxZ: 1050
+        minNear: 400, maxNear: 700,
+        minFar: 700, maxFar: 2000,
+        minZ: 400, maxZ: 2000
       },
       '3DU_12': {
         key: '3DU_12',
@@ -518,12 +531,13 @@
         pxW: 1602, pxH: 1202,
         focal: 12.0,       // 실제 탑재 12mm
         aperture: 4.0,
+        baseline: 152,
         centerWd: 700,
         defaultNear: 500,
         defaultFar: 900,
-        minNear: 350, maxNear: 680,
-        minFar: 720, maxFar: 1150,
-        minZ: 400, maxZ: 1050
+        minNear: 400, maxNear: 700,
+        minFar: 700, maxFar: 2000,
+        minZ: 400, maxZ: 2000
       },
       '3DM_16': {
         key: '3DM_16',
@@ -532,12 +546,13 @@
         pxW: 1602, pxH: 1202,
         focal: 15.0,       // 표기 16mm, 실제 탑재 15mm
         aperture: 4.0,
+        baseline: 408,     // 카메라-프로젝터 모듈 간격 (mm)
         centerWd: 1400,
         defaultNear: 1200,
         defaultFar: 1800,
-        minNear: 900, maxNear: 1380,
-        minFar: 1420, maxFar: 2100,
-        minZ: 1000, maxZ: 1950
+        minNear: 500, maxNear: 1200,
+        minFar: 1200, maxFar: 3000,
+        minZ: 500, maxZ: 3000
       },
       '3DM_12': {
         key: '3DM_12',
@@ -546,12 +561,13 @@
         pxW: 1602, pxH: 1202,
         focal: 12.0,       // 실제 탑재 12mm
         aperture: 4.0,
+        baseline: 408,
         centerWd: 1400,
         defaultNear: 1200,
         defaultFar: 1800,
-        minNear: 900, maxNear: 1380,
-        minFar: 1420, maxFar: 2100,
-        minZ: 1000, maxZ: 1950
+        minNear: 500, maxNear: 1200,
+        minFar: 1200, maxFar: 3000,
+        minZ: 500, maxZ: 3000
       }
     };
 
@@ -989,18 +1005,36 @@
     }
 
     /* ============================================================
-       3. 3D 스캐너 (사각뿔대 Frustum) 렌더링 및 계산
+       3. 3D 스캐너 (카메라 + 프로젝터 듀얼 Frustum 교집합) 렌더링 및 계산
        ============================================================ */
     function render3DScannerMode() {
       clearDynamicScene();
       const spec = SCANNER_SPECS[currentScannerKey];
-      const { sensorW, sensorH, focal, centerWd } = spec;
+      const { sensorW, sensorH, focal, centerWd, baseline } = spec;
       const { nearWd, farWd, targetZ } = scannerState;
 
-      const calcPlane = (z) => ({
-        w: (sensorW * z) / focal,
-        h: (sensorH * z) / focal
-      });
+      const tanX = (sensorW / 2) / focal;
+      const tanY = (sensorH / 2) / focal;
+      const halfB = baseline / 2;
+
+      // 카메라(+X) & 프로젝터(-X) 각 광학계가 centerWd에서 교차할 때 Z에서의 교집합 단면 계산
+      const calcPlane = (z) => {
+        const camCx = halfB * (1 - z / centerWd);
+        const projCx = -halfB * (1 - z / centerWd);
+        const halfW = z * tanX;
+        const left = Math.max(camCx - halfW, projCx - halfW);
+        const right = Math.min(camCx + halfW, projCx + halfW);
+        return {
+          w: Math.max(0, right - left),
+          h: 2 * z * tanY,
+          left,
+          right,
+          camLeft: camCx - halfW,
+          camRight: camCx + halfW,
+          projLeft: projCx - halfW,
+          projRight: projCx + halfW
+        };
+      };
 
       const nearDim = calcPlane(nearWd);
       const centerDim = calcPlane(centerWd);
@@ -1008,43 +1042,70 @@
       const targetPlaneDim = calcPlane(targetZ);
 
       const getCorners = (dim, z) => {
-        const hw = dim.w / 2;
         const hh = dim.h / 2;
         return [
-          new THREE.Vector3(-hw,  hh, z),
-          new THREE.Vector3( hw,  hh, z),
-          new THREE.Vector3( hw, -hh, z),
-          new THREE.Vector3(-hw, -hh, z)
+          new THREE.Vector3(dim.left,  hh, z),
+          new THREE.Vector3(dim.right, hh, z),
+          new THREE.Vector3(dim.right,-hh, z),
+          new THREE.Vector3(dim.left, -hh, z)
         ];
       };
 
-      const pOrigin = new THREE.Vector3(0, 0, 0);
+      const pCamOrigin = new THREE.Vector3(halfB, 0, 0);
+      const pProjOrigin = new THREE.Vector3(-halfB, 0, 0);
       const cNear = getCorners(nearDim, nearWd);
       const cCenter = getCorners(centerDim, centerWd);
       const cFar = getCorners(farDim, farWd);
 
-      // 1) 상단 비측정 구간 (원점 -> Near 평면) 점선 가이드
-      const deadPts = [];
-      for (let i = 0; i < 4; i++) {
-        deadPts.push(pOrigin, cNear[i]);
-      }
-      const deadGeo = new THREE.BufferGeometry().setFromPoints(deadPts);
-      const deadLine = new THREE.LineSegments(
-        deadGeo,
-        new THREE.LineDashedMaterial({ color: 0x475569, dashSize: 18, gapSize: 12 })
-      );
-      deadLine.computeLineDistances();
-      dynamicGroup.add(deadLine);
+      // 1) 카메라(+X) & 프로젝터(-X) 개별 광학계 가이드 라인 (교차 원리 시각화)
+      const camGuidePts = [];
+      const projGuidePts = [];
+      const farHH = farDim.h / 2;
+      [
+        [farDim.camLeft, farHH], [farDim.camRight, farHH],
+        [farDim.camRight, -farHH], [farDim.camLeft, -farHH]
+      ].forEach(([gx, gy]) => {
+        camGuidePts.push(pCamOrigin, new THREE.Vector3(gx, gy, farWd));
+      });
+      [
+        [farDim.projLeft, farHH], [farDim.projRight, farHH],
+        [farDim.projRight, -farHH], [farDim.projLeft, -farHH]
+      ].forEach(([gx, gy]) => {
+        projGuidePts.push(pProjOrigin, new THREE.Vector3(gx, gy, farWd));
+      });
 
-      // 2) 사각뿔대(Frustum: Near -> Far) 반투명 입체 메쉬
+      const camGuideLine = new THREE.LineSegments(
+        new THREE.BufferGeometry().setFromPoints(camGuidePts),
+        new THREE.LineDashedMaterial({ color: 0x38bdf8, dashSize: 16, gapSize: 14, transparent: true, opacity: 0.28 })
+      );
+      camGuideLine.computeLineDistances();
+      dynamicGroup.add(camGuideLine);
+
+      const projGuideLine = new THREE.LineSegments(
+        new THREE.BufferGeometry().setFromPoints(projGuidePts),
+        new THREE.LineDashedMaterial({ color: 0x94a3b8, dashSize: 16, gapSize: 14, transparent: true, opacity: 0.28 })
+      );
+      projGuideLine.computeLineDistances();
+      dynamicGroup.add(projGuideLine);
+
+      // 2) 교집합 유효 볼륨 (Near -> Center -> Far, Center 기준 절곡 반영)
       const frustumVerts = [];
       const addQuad = (a, b, c, d) => {
         frustumVerts.push(a.x,a.y,a.z, b.x,b.y,b.z, c.x,c.y,c.z);
         frustumVerts.push(a.x,a.y,a.z, c.x,c.y,c.z, d.x,d.y,d.z);
       };
-      for (let i = 0; i < 4; i++) {
-        const next = (i + 1) % 4;
-        addQuad(cNear[i], cNear[next], cFar[next], cFar[i]);
+      const hasMidBreak = nearWd < centerWd && centerWd < farWd;
+      if (hasMidBreak) {
+        for (let i = 0; i < 4; i++) {
+          const next = (i + 1) % 4;
+          addQuad(cNear[i], cNear[next], cCenter[next], cCenter[i]);
+          addQuad(cCenter[i], cCenter[next], cFar[next], cFar[i]);
+        }
+      } else {
+        for (let i = 0; i < 4; i++) {
+          const next = (i + 1) % 4;
+          addQuad(cNear[i], cNear[next], cFar[next], cFar[i]);
+        }
       }
       addQuad(cNear[0], cNear[1], cNear[2], cNear[3]);
       addQuad(cFar[0], cFar[1], cFar[2], cFar[3]);
@@ -1057,13 +1118,13 @@
         new THREE.MeshBasicMaterial({
           color: 0x0284c7,
           transparent: true,
-          opacity: 0.14,
+          opacity: 0.16,
           side: THREE.DoubleSide,
           depthWrite: false
         })
       ));
 
-      // 3) 사각뿔대 엣지 라인
+      // 3) 교집합 볼륨 엣지 라인
       const makeLoopLines = (corners, colorHex) => {
         const pts = [
           corners[0], corners[1],
@@ -1077,7 +1138,11 @@
 
       const sideEdgePts = [];
       for (let i = 0; i < 4; i++) {
-        sideEdgePts.push(cNear[i], cFar[i]);
+        if (hasMidBreak) {
+          sideEdgePts.push(cNear[i], cCenter[i], cCenter[i], cFar[i]);
+        } else {
+          sideEdgePts.push(cNear[i], cFar[i]);
+        }
       }
       dynamicGroup.add(new THREE.LineSegments(
         new THREE.BufferGeometry().setFromPoints(sideEdgePts),
@@ -1410,11 +1475,17 @@
       nearSlider.min = spec.minNear;
       nearSlider.max = spec.maxNear;
       nearSlider.value = spec.defaultNear;
+      const nearPct = ((spec.defaultNear - spec.minNear) / (spec.maxNear - spec.minNear)) * 100;
+      document.getElementById('scNearMark').style.left = `${nearPct.toFixed(2)}%`;
+      document.getElementById('scNearMarkText').innerText = spec.defaultNear;
 
       const farSlider = document.getElementById('scFarRange');
       farSlider.min = spec.minFar;
       farSlider.max = spec.maxFar;
       farSlider.value = spec.defaultFar;
+      const farPct = ((spec.defaultFar - spec.minFar) / (spec.maxFar - spec.minFar)) * 100;
+      document.getElementById('scFarMark').style.left = `${farPct.toFixed(2)}%`;
+      document.getElementById('scFarMarkText').innerText = spec.defaultFar;
 
       const zSlider = document.getElementById('scTargetZRange');
       zSlider.min = spec.minZ;
@@ -1460,17 +1531,23 @@
 
     document.getElementById('scNearRange').addEventListener('input', (e) => {
       const val = parseInt(e.target.value, 10);
-      scannerState.nearWd = Math.min(val, scannerState.farWd - 50);
+      scannerState.nearWd = Math.min(val, scannerState.farWd);
       e.target.value = scannerState.nearWd;
       syncAll();
     });
 
     document.getElementById('scFarRange').addEventListener('input', (e) => {
       const val = parseInt(e.target.value, 10);
-      scannerState.farWd = Math.max(val, scannerState.nearWd + 50);
+      scannerState.farWd = Math.max(val, scannerState.nearWd);
       e.target.value = scannerState.farWd;
       syncAll();
     });
+
+    window.set2DWdMark = function(val) {
+      params2D.wd = val;
+      controls.target.set(0, 0, params2D.wd * 0.5);
+      syncAll();
+    };
 
     document.getElementById('scTargetZRange').addEventListener('input', (e) => {
       scannerState.targetZ = parseInt(e.target.value, 10);
